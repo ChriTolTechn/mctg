@@ -1,4 +1,4 @@
-package bif3.swe1.tolan.mcg;
+package bif3.tolan.swe1.mcg;
 
 public class Main {
     public static void main(String[] args) {
