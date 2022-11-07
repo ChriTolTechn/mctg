@@ -1,7 +1,7 @@
 package bif3.tolan.swe1.mcg.model;
 
+import bif3.tolan.swe1.mcg.enums.CardType;
 import bif3.tolan.swe1.mcg.enums.ElementType;
-import bif3.tolan.swe1.mcg.enums.MonsterType;
 
 import java.util.Objects;
 
@@ -10,22 +10,22 @@ public class Card {
 
     private final ElementType element;
 
-    private final MonsterType monsterType;
+    private final CardType cardType;
 
     private final float damage;
 
-    public Card(String name, ElementType element, float damage, MonsterType monsterType) {
+    public Card(String name, ElementType element, float damage, CardType cardType) {
         this.name = name;
         this.element = element;
         this.damage = damage;
-        this.monsterType = monsterType;
+        this.cardType = cardType;
     }
 
     public Card(String name, ElementType element, float damage) {
         this.name = name;
         this.element = element;
         this.damage = damage;
-        this.monsterType = null;
+        this.cardType = null;
     }
 
     public String getName() {
@@ -40,8 +40,8 @@ public class Card {
         return damage;
     }
 
-    public MonsterType getMonsterType() {
-        return monsterType;
+    public CardType getMonsterType() {
+        return cardType;
     }
 
     @Override

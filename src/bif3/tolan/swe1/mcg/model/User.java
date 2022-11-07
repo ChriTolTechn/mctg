@@ -19,6 +19,7 @@ import java.util.Set;
 public class User {
     private String username;
     private String passwordHash;
+    
     private String token;
     private Set<Card> stack;
     private int elo;
@@ -28,8 +29,8 @@ public class User {
     public User(String username, String password) {
         this.username = username;
         this.passwordHash = hashString(password);
-        this.coins = DefaultValues.NEW_USER_BALANCE;
-        this.elo = DefaultValues.DEFAULT_ELO;
+        this.coins = DefaultValues.NewUserBalance;
+        this.elo = DefaultValues.DefaultElo;
         this.stack = new HashSet<Card>();
         this.deck = new HashSet<Card>();
     }
@@ -62,6 +63,22 @@ public class User {
     public void addCardsToStack(Set<Card> newCards) throws IllegalArgumentException {
         if (newCards != null && !newCards.isEmpty()) {
             stack.addAll(newCards);
+            return;
+        }
+        throw new IllegalArgumentException();
+    }
+
+    public void addCardToStack(Card card) throws IllegalArgumentException {
+        if (card != null) {
+            stack.add(card);
+            return;
+        }
+        throw new IllegalArgumentException();
+    }
+
+    public void removeCardFromStack(Card card) {
+        if (card != null && stack.contains(card)) {
+            stack.remove(card);
             return;
         }
         throw new IllegalArgumentException();
