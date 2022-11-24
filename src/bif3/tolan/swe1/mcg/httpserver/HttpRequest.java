@@ -5,8 +5,8 @@ import java.util.Map;
 
 public class HttpRequest {
     private Method method;
-    private String pathname;
-    private Map<String, String> params = new HashMap<>();
+    private String[] pathArray;
+    private Map<String, String> parameterMap = new HashMap<>();
     private Map<String, String> headerMap = new HashMap<>();
     private String body;
 
@@ -20,12 +20,12 @@ public class HttpRequest {
         this.method = method;
     }
 
-    public String getPathname() {
-        return pathname;
+    public String[] getPathArray() {
+        return pathArray;
     }
 
-    public void setPathname(String pathname) {
-        this.pathname = pathname;
+    public void setPathArray(String[] pathArray) {
+        this.pathArray = pathArray;
     }
 
     public Map<String, String> getHeaderMap() {
@@ -52,12 +52,11 @@ public class HttpRequest {
         this.contentLength = contentLength;
     }
 
-    public Map<String, String> getParams() {
-        return params;
+    public Map<String, String> getParameterMap() {
+        return parameterMap;
     }
 
-    public void setParams(Map<String, String> params) {
-        this.params = params;
+    public void setParameterMap(Map<String, String> parameterMap) {
+        this.parameterMap = parameterMap;
     }
 }
-

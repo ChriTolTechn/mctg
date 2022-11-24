@@ -3,6 +3,8 @@ package bif3.tolan.swe1.mcg.model;
 import bif3.tolan.swe1.mcg.constants.DefaultValues;
 import bif3.tolan.swe1.mcg.exceptions.CardsNotInStackException;
 import bif3.tolan.swe1.mcg.exceptions.InsufficientFundsException;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSetter;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -17,18 +19,32 @@ import java.util.Set;
  * @version 0.0
  */
 public class User {
+
     private String username;
+    @JsonIgnore
     private String passwordHash;
 
+    @JsonIgnore
     private String token;
+    @JsonIgnore
     private Set<Card> stack;
+    @JsonIgnore
     private int elo;
+    @JsonIgnore
     private Set<Card> deck;
+    @JsonIgnore
     private int coins;
 
     public User(String username, String password) {
         this.username = username;
         this.passwordHash = hashString(password);
+        this.coins = DefaultValues.DEFAULT_USER_BALANCE;
+        this.elo = DefaultValues.DEFAULT_ELO;
+        this.stack = new HashSet<Card>();
+        this.deck = new HashSet<Card>();
+    }
+
+    public User() {
         this.coins = DefaultValues.DEFAULT_USER_BALANCE;
         this.elo = DefaultValues.DEFAULT_ELO;
         this.stack = new HashSet<Card>();
@@ -53,6 +69,29 @@ public class User {
             }
         }
         throw new CardsNotInStackException();
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    @JsonSetter("Username")
+    private void setUsername(String username) {
+        this.username = username;
+        setToken(this.username + "-mtcgToken");
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    private void setToken(String token) {
+        this.token = token;
+    }
+
+    @JsonSetter("Password")
+    private void setPasswordHash(String password) {
+        this.passwordHash = hashString(password);
     }
 
     public int getCoins() {

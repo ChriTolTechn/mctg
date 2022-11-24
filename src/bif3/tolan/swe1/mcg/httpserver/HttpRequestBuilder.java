@@ -1,5 +1,7 @@
 package bif3.tolan.swe1.mcg.httpserver;
 
+import bif3.tolan.swe1.mcg.constants.ServerConstants;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Arrays;
@@ -30,11 +32,11 @@ public class HttpRequestBuilder {
             boolean hasParams = rawPathName.contains(ServerConstants.PARAMETER_IDENTIFIER);
             if (hasParams) {
                 String[] splittedPathString = rawPathName.split(ServerConstants.REGEX_SPLIT_PARAMETER);
-                request.setPathname(splittedPathString[0]);
-                request.setParams(extractParams(splittedPathString[1]));
+                request.setPathArray(extractPath(splittedPathString[0]));
+                request.setParameterMap(extractParams(splittedPathString[1]));
             } else {
-                request.setPathname(rawPathName);
-                request.setParams(new HashMap<>());
+                request.setPathArray(extractPath(rawPathName));
+                request.setParameterMap(new HashMap<>());
             }
 
             request.setHeaderMap(extractHeaders(bufferedReader));
@@ -125,5 +127,18 @@ public class HttpRequestBuilder {
         }
 
         return parameterMap;
+    }
+
+    /**
+     * Extracts parameters as list
+     *
+     * @param path all parameters as string
+     * @return List of parameters
+     */
+    private String[] extractPath(String path) {
+        String[] splittedPath = path
+                .replaceFirst(ServerConstants.REGEX_SPLIT_PATH, "")
+                .split(ServerConstants.REGEX_SPLIT_PATH);
+        return splittedPath;
     }
 }
