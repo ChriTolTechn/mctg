@@ -3,10 +3,10 @@ package bif3.tolan.swe1.mcg.httpserver;
 import java.io.*;
 import java.net.Socket;
 
-public class RequestHandler implements Runnable {
+public class HttpRequestHandler implements Runnable {
     private Socket clientConnection;
 
-    public RequestHandler(Socket socket) {
+    public HttpRequestHandler(Socket socket) {
         this.clientConnection = socket;
     }
 
@@ -23,15 +23,17 @@ public class RequestHandler implements Runnable {
             OutputStream outputStream = clientConnection.getOutputStream();
             printWriter = new PrintWriter(outputStream);
 
-            Request request = new RequestBuilder().buildRequest(bufferedReader);
+            HttpRequest request = new HttpRequestBuilder().buildRequest(bufferedReader);
 
             String response = "";
 
             ////////DEMO
-            if (request.getMethod() == Method.GET && request.getParams().containsKey("token") && request.getParams().get("token").equals("test")) {
-                response = new Response(HttpStatus.OK, ContentType.PLAIN_TEXT, "Hi").get();
+            if (request.getMethod() == Method.GET
+                    && request.getParams().containsKey("token")
+                    && request.getParams().get("token").equals("test")) {
+                response = new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, "Hi").get();
             } else {
-                response = new Response(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "UNAUTHORIZED").get();
+                response = new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "UNAUTHORIZED").get();
             }
             ////////
 

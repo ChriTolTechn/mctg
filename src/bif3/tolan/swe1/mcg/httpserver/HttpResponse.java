@@ -1,12 +1,12 @@
 package bif3.tolan.swe1.mcg.httpserver;
 
-public class Response {
+public class HttpResponse {
     private int status;
     private String statusMessage;
     private String contentType;
     private String content;
 
-    public Response(HttpStatus httpStatus, ContentType contentType, String content) {
+    public HttpResponse(HttpStatus httpStatus, ContentType contentType, String content) {
         this.status = httpStatus.code;
         this.statusMessage = httpStatus.message;
         this.contentType = contentType.type;

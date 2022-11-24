@@ -19,7 +19,7 @@ import java.util.Set;
 public class User {
     private String username;
     private String passwordHash;
-    
+
     private String token;
     private Set<Card> stack;
     private int elo;
@@ -29,8 +29,8 @@ public class User {
     public User(String username, String password) {
         this.username = username;
         this.passwordHash = hashString(password);
-        this.coins = DefaultValues.NewUserBalance;
-        this.elo = DefaultValues.DefaultElo;
+        this.coins = DefaultValues.DEFAULT_USER_BALANCE;
+        this.elo = DefaultValues.DEFAULT_ELO;
         this.stack = new HashSet<Card>();
         this.deck = new HashSet<Card>();
     }

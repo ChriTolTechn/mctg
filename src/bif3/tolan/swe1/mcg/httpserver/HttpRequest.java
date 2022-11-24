@@ -1,10 +1,9 @@
 package bif3.tolan.swe1.mcg.httpserver;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Request {
+public class HttpRequest {
     private Method method;
     private String pathname;
     private Map<String, String> params = new HashMap<>();
@@ -37,13 +36,6 @@ public class Request {
         this.headerMap = headerMap;
     }
 
-    public String addHeader(String key, String value) {
-        if (key != null && key.equals("Content-Length")) {
-            this.contentLength = Integer.parseInt(value);
-        }
-        return headerMap.put(key, value);
-    }
-
     public String getBody() {
         return body;
     }
@@ -56,27 +48,16 @@ public class Request {
         return contentLength;
     }
 
+    public void setContentLength(int contentLength) {
+        this.contentLength = contentLength;
+    }
+
     public Map<String, String> getParams() {
         return params;
     }
 
-    public void setParams(String params) {
-        if (params == null) {
-            this.params = new HashMap<String, String>();
-            return;
-        }
-
-        var splitParams = Arrays.stream(params.split("&")).toList();
-        var parameterMap = new HashMap<String, String>();
-
-        for (String parameter : splitParams) {
-            var keyValue = parameter.split("=");
-            if (keyValue.length == 2) {
-                parameterMap.put(keyValue[0], keyValue[1]);
-            }
-        }
-
-        this.params = parameterMap;
+    public void setParams(Map<String, String> params) {
+        this.params = params;
     }
 }
 

@@ -6,17 +6,12 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class Server {
+public class HttpServer {
 
     private int port;
 
-    public Server(int port) {
+    public HttpServer(int port) {
         this.port = port;
-    }
-
-    public static void main(String[] args) throws IOException {
-        Server server = new Server(10001);
-        server.start();
     }
 
     public void start() throws IOException {
@@ -30,7 +25,7 @@ public class Server {
             System.out.println("----------------------------------------------");
             while (true) {
                 Socket clientConnection = serverSocket.accept();
-                executorService.execute(new RequestHandler(clientConnection));
+                executorService.execute(new HttpRequestHandler(clientConnection));
             }
         }
     }
