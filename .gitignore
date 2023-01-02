@@ -31,6 +31,9 @@ cmake-build-*/
 
 # IntelliJ
 out/
+.idea/compiler.xml
+.idea/misc.xml
+.idea/discord.xml
 
 # mpeltonen/sbt-idea plugin
 .idea_modules/
