@@ -3,9 +3,12 @@ package bif3.tolan.swe1.mcg.model;
 import bif3.tolan.swe1.mcg.constants.DamageMap;
 import bif3.tolan.swe1.mcg.enums.CardType;
 import bif3.tolan.swe1.mcg.enums.ElementType;
+import bif3.tolan.swe1.mcg.exceptions.CardsNotInStackException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidDeckException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidUserException;
+import bif3.tolan.swe1.mcg.helper.EloCalculator;
 
+import java.util.Random;
 import java.util.Vector;
 
 public class Battle {
@@ -20,16 +23,24 @@ public class Battle {
     private Vector<Card> user1Deck;
     private Vector<Card> user2Deck;
 
-    private Battle(User user1, User user2) throws InvalidUserException {
+    private Vector<String> battleLog;
+
+    private Random random;
+
+    public Battle(User user1, User user2) throws InvalidUserException, InvalidDeckException {
         if (user1 == null || user2 == null || user1 == user2)
             throw new InvalidUserException();
         this.user1 = user1;
         this.user2 = user2;
         this.round = 0;
         this.gameFinished = false;
+        this.random = new Random();
+        this.battleLog = new Vector<>();
+
+        prepareBattle();
     }
 
-    public void prepareBattle() throws InvalidDeckException {
+    private void prepareBattle() throws InvalidDeckException {
         user1Deck = new Vector<>(user1.getDeck());
         user2Deck = new Vector<>(user2.getDeck());
 
@@ -37,9 +48,42 @@ public class Battle {
             throw new InvalidDeckException();
     }
 
-    public void battle(Card user1Card, Card user2Card) {
+    public void battle() throws CardsNotInStackException {
         if (gameFinished == false) {
+            // Advance Round Count
             round++;
+
+            // Choose random card from the users deck
+            Card user1Card = user1Deck.get(random.nextInt(user1Deck.size()));
+            Card user2Card = user2Deck.get(random.nextInt(user2Deck.size()));
+
+            // Calculate damage dealt for each card
+            float damageU1 = calculateDamage(user1Card, user2Card);
+            float damageU2 = calculateDamage(user2Card, user1Card);
+
+            // Prepare message for log
+            String logMessage = user1.getUsername() + ": " + user1Card.getName() + " ( " + user1Card.getDamage() + " BaseDamage" + " )" + " vs " +
+                    user2.getUsername() + ": " + user2Card.getName() + " ( " + user2Card.getDamage() + " BaseDamage" + " )" + " => ";
+
+            // Transfer losing card to the winners deck
+            if (damageU1 > damageU2) {
+                user2Deck.remove(user2Card);
+                user1Deck.add(user2Card);
+
+                logMessage += user1Card.getName() + " ( " + damageU1 + " FinalDamage " + " )" + " defeats " +
+                        user2Card.getName() + " ( " + damageU2 + " FinalDamage " + " )";
+            } else if (damageU2 > damageU1) {
+                user1Deck.remove(user1Card);
+                user2Deck.add(user1Card);
+
+                logMessage += user2Card.getName() + " ( " + damageU2 + " FinalDamage" + " )" + " defeats " +
+                        user1Card.getName() + " ( " + damageU1 + " FinalDamage" + " )";
+            } else {
+                // In case of a draw (damageU1 == damageU2) nothing happens
+                logMessage += user2Card.getName() + " ( " + damageU2 + " FinalDamage" + " )" + " is in draw with " +
+                        user1Card.getName() + " ( " + damageU1 + " FinalDamage" + " )";
+            }
+            battleLog.add(logMessage);
 
             checkVictoryForUser();
         } else {
@@ -47,23 +91,34 @@ public class Battle {
         }
     }
 
-    public void checkVictoryForUser() {
-        if (round > 99) {
-            // implement draw
-        }
+    public String getBattleLog() {
+        return String.join("\n", battleLog);
+    }
 
-        if (user1Deck.isEmpty()) {
-            // User 2 wins
-        } else if (user2Deck.isEmpty()) {
-            // User 1 wins
+    public boolean getGameFinished() {
+        return gameFinished;
+    }
+
+
+    private void checkVictoryForUser() {
+        if (round > 99 || user1Deck.isEmpty() || user2Deck.isEmpty()) {
+            if (round > 99) {
+                //Draw
+                EloCalculator.calculateNewElo(user1, user2, true);
+            } else if (user1Deck.isEmpty()) {
+                // User 2 wins
+                EloCalculator.calculateNewElo(user2, user1);
+            } else if (user2Deck.isEmpty()) {
+                // User 1 wins
+                EloCalculator.calculateNewElo(user1, user2);
+            }
+            user1.setGamesPlayed(user1.getGamesPlayed() + 1);
+            user2.setGamesPlayed(user2.getGamesPlayed() + 1);
+            gameFinished = true;
         }
     }
 
-    private void finishGame(User winner) {
-        gameFinished = true;
-    }
-
-    public float calculateDamage(Card card1, Card card2) {
+    private float calculateDamage(Card card1, Card card2) {
         float damage = -1;
 
         // Check if there are special cases in battle
@@ -82,7 +137,7 @@ public class Battle {
         return damage;
     }
 
-    public float calculateRegularDamage(Card card1, Card card2) {
+    private float calculateRegularDamage(Card card1, Card card2) {
         if (card1.getMonsterType().isInGroup(CardType.CardGroup.Monster)
                 && card2.getMonsterType().isInGroup(CardType.CardGroup.Monster)) {
             // Fights between Monster don't affect their damage output
@@ -96,14 +151,14 @@ public class Battle {
         return -1;
     }
 
-    public float calculateSpecialCaseDamage(Card card1, Card card2) {
+    private float calculateSpecialCaseDamage(Card card1, Card card2) {
         switch (card1.getMonsterType()) {
             // goblins cant attack dragons
             case Goblin:
                 if (card2.getMonsterType() == CardType.Dragon)
                     return 0;
                 return -1;
-            // orks cant attak wizards
+            // orks cant attack wizards
             case Ork:
                 if (card2.getMonsterType() == CardType.Wizard)
                     return 0;

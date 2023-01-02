@@ -35,6 +35,9 @@ public class User {
     @JsonIgnore
     private int coins;
 
+    @JsonIgnore
+    private int gamesPlayed;
+
     public User(String username, String password) {
         this.username = username;
         this.passwordHash = hashString(password);
@@ -42,6 +45,7 @@ public class User {
         this.elo = DefaultValues.DEFAULT_ELO;
         this.stack = new Vector<>();
         this.deck = new Vector<>();
+        this.gamesPlayed = 0;
     }
 
     public User() {
@@ -49,6 +53,7 @@ public class User {
         this.elo = DefaultValues.DEFAULT_ELO;
         this.stack = new Vector<>();
         this.deck = new Vector<>();
+        this.gamesPlayed = 0;
     }
 
     public Vector<Card> getStack() {
@@ -79,6 +84,22 @@ public class User {
     private void setUsername(String username) {
         this.username = username;
         setToken(this.username + "-mtcgToken");
+    }
+
+    public int getElo() {
+        return elo;
+    }
+
+    public void setElo(int elo) {
+        this.elo = elo;
+    }
+
+    public int getGamesPlayed() {
+        return gamesPlayed;
+    }
+
+    public void setGamesPlayed(int gamesPlayed) {
+        this.gamesPlayed = gamesPlayed;
     }
 
     public String getToken() {
