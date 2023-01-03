@@ -1,4 +1,4 @@
-package bif3.tolan.swe1.mcg.helper;
+package bif3.tolan.swe1.mcg.utils;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -8,7 +8,7 @@ import java.security.NoSuchAlgorithmException;
  *
  * @author Christopher Tolan
  */
-public final class PasswordHashHelper {
+public class PasswordHashUtils {
 
     /**
      * Hashes a string with the SHA-256 hash algorithm

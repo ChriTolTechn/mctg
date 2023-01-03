@@ -1,11 +1,11 @@
-package bif3.tolan.swe1.mcg.helper;
+package bif3.tolan.swe1.mcg.utils;
 
 /**
- * Static class the helps calculating elo after battles
+ * Class the helps calculating elo after battles
  *
  * @author Christopher Tolan
  */
-public final class EloHelper {
+public class EloUtils {
 
     /**
      * Calculates new elo without a draw
