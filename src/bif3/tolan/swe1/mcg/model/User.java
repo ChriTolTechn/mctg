@@ -8,9 +8,9 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.Vector;
 
 /**
  * Base class for user
@@ -27,40 +27,45 @@ public class User {
     @JsonIgnore
     private String token;
     @JsonIgnore
-    private Set<Card> stack;
+    private Vector<Card> stack;
     @JsonIgnore
     private int elo;
     @JsonIgnore
-    private Set<Card> deck;
+    private Vector<Card> deck;
     @JsonIgnore
     private int coins;
+
+    @JsonIgnore
+    private int gamesPlayed;
 
     public User(String username, String password) {
         this.username = username;
         this.passwordHash = hashString(password);
         this.coins = DefaultValues.DEFAULT_USER_BALANCE;
         this.elo = DefaultValues.DEFAULT_ELO;
-        this.stack = new HashSet<Card>();
-        this.deck = new HashSet<Card>();
+        this.stack = new Vector<>();
+        this.deck = new Vector<>();
+        this.gamesPlayed = 0;
     }
 
     public User() {
         this.coins = DefaultValues.DEFAULT_USER_BALANCE;
         this.elo = DefaultValues.DEFAULT_ELO;
-        this.stack = new HashSet<Card>();
-        this.deck = new HashSet<Card>();
+        this.stack = new Vector<>();
+        this.deck = new Vector<>();
+        this.gamesPlayed = 0;
     }
 
-    public Set<Card> getStack() {
+    public Vector<Card> getStack() {
         return stack;
     }
 
-    public Set<Card> getDeck() {
+    public Vector<Card> getDeck() {
         return deck;
     }
 
     // Sets cards from the stack to the active deck of the user.
-    public void setDeck(Set<Card> cards) throws CardsNotInStackException {
+    public void setDeck(Vector<Card> cards) throws CardsNotInStackException {
         if (cards != null && cards.size() == 4) {
             if (stack.containsAll(cards)) {
                 returnCardsFromDeckToStackAndClearDeck();
@@ -79,6 +84,22 @@ public class User {
     private void setUsername(String username) {
         this.username = username;
         setToken(this.username + "-mtcgToken");
+    }
+
+    public int getElo() {
+        return elo;
+    }
+
+    public void setElo(int elo) {
+        this.elo = elo;
+    }
+
+    public int getGamesPlayed() {
+        return gamesPlayed;
+    }
+
+    public void setGamesPlayed(int gamesPlayed) {
+        this.gamesPlayed = gamesPlayed;
     }
 
     public String getToken() {
