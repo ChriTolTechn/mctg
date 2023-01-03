@@ -4,6 +4,11 @@ import bif3.tolan.swe1.mcg.enums.ElementType;
 
 import java.util.Map;
 
+/**
+ * Static class the helps with type based damage calculations
+ *
+ * @author Christopher Tolan
+ */
 public final class DamageMap {
 
     private static final Map<ElementType, Map<ElementType, Float>> damageMap = Map.of(
@@ -22,6 +27,13 @@ public final class DamageMap {
             )
     );
 
+    /**
+     * Gets the damage multiplicator of the attackers element based on the defenders element
+     *
+     * @param attack The attacking cards element type
+     * @param defend The defending cards element type
+     * @return the multiplicator
+     */
     public static float GetDamageMultiplicator(ElementType attack, ElementType defend) {
         return damageMap.get(attack).get(defend);
     }

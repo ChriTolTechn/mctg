@@ -1,5 +1,10 @@
 package bif3.tolan.swe1.mcg.constants;
 
+/**
+ * Constants for the server implementation
+ *
+ * @author Christopher Tolan
+ */
 public final class ServerConstants {
     public final static String KEY_CONTENT_LENGTH = "Content-Length";
     public final static String REGEX_SPLIT_PARAMETERS = "&";

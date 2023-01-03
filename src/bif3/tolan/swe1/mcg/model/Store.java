@@ -25,7 +25,7 @@ public class Store {
         var wantedPackage = packages.get(packageName);
 
         if (wantedPackage != null) {
-            user.payForPackages(DefaultValues.DEFAULT_PACKAGE_COST);
+            user.payCoins(DefaultValues.DEFAULT_PACKAGE_COST);
             user.addCardsToStack(wantedPackage);
             return;
         }
