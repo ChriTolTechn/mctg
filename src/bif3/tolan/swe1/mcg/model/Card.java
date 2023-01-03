@@ -5,7 +5,14 @@ import bif3.tolan.swe1.mcg.enums.ElementType;
 
 import java.util.Objects;
 
+/**
+ * Card class
+ *
+ * @author Christopher Tolan
+ */
 public class Card {
+
+    private final String cardId;
     private final String name;
 
     private final ElementType element;
@@ -14,18 +21,12 @@ public class Card {
 
     private final float damage;
 
-    public Card(String name, ElementType element, float damage, CardType cardType) {
+    public Card(String cardId, String name, ElementType element, float damage, CardType cardType) {
+        this.cardId = cardId;
         this.name = name;
         this.element = element;
         this.damage = damage;
         this.cardType = cardType;
-    }
-
-    public Card(String name, ElementType element, float damage) {
-        this.name = name;
-        this.element = element;
-        this.damage = damage;
-        this.cardType = null;
     }
 
     public String getName() {
@@ -44,16 +45,24 @@ public class Card {
         return cardType;
     }
 
+    public String getCardId() {
+        return cardId;
+    }
+
+    public CardType getCardType() {
+        return cardType;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Card card = (Card) o;
-        return name.equals(card.name);
+        return cardId.equals(card.cardId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return Objects.hash(cardId);
     }
 }

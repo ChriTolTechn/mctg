@@ -1,5 +1,10 @@
 package bif3.tolan.swe1.mcg.enums;
 
+/**
+ * Enum that handles Card Types
+ *
+ * @author Christopher Tolan
+ */
 public enum CardType {
     Goblin(CardGroup.Monster),
     Dragon(CardGroup.Monster),
@@ -20,6 +25,11 @@ public enum CardType {
         return this.cardGroup == cardGroup;
     }
 
+    /**
+     * Enum that is used to assign the CardType enum to a group
+     *
+     * @author Christopher Tolan
+     */
     public enum CardGroup {
         Monster,
         Spell;
