@@ -11,15 +11,16 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
-public class UserWorker implements Workable {
+public class UserWorker extends BaseWorker {
 
     private List<User> users;
 
     public UserWorker() {
-        users = loadFromDatabase();
+        //Todo load from db
+        users = new ArrayList<>();
     }
 
     @Override
@@ -53,8 +54,8 @@ public class UserWorker implements Workable {
             if (userExists) {
                 return new HttpResponse(HttpStatus.BAD_REQUEST, ContentType.PLAIN_TEXT, "User with the username \"" + user.getUsername() + "\" already exists");
             } else {
+                //TODO db store
                 users.add(user);
-                saveToDatabase();
                 return new HttpResponse(HttpStatus.CREATED, ContentType.PLAIN_TEXT, "User successfully created. Token:" + user.getToken());
             }
         } catch (JsonParseException e) {
@@ -66,14 +67,5 @@ public class UserWorker implements Workable {
         }
 
         return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The json string is not formatted properly");
-    }
-
-    private List<User> loadFromDatabase() {
-        //TODO
-        return new Vector<>();
-    }
-
-    private void saveToDatabase() {
-        //TODO
     }
 }

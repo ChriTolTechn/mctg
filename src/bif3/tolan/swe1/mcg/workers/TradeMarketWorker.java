@@ -1,52 +1,38 @@
-package bif3.tolan.swe1.mcg.model;
+package bif3.tolan.swe1.mcg.workers;
 
-import bif3.tolan.swe1.mcg.constants.DefaultValues;
-import bif3.tolan.swe1.mcg.exceptions.*;
+import bif3.tolan.swe1.mcg.exceptions.CardsNotInStackException;
+import bif3.tolan.swe1.mcg.exceptions.HasActiveTradeException;
+import bif3.tolan.swe1.mcg.exceptions.TradeDeniedException;
+import bif3.tolan.swe1.mcg.exceptions.TradeOfferNotFoundException;
+import bif3.tolan.swe1.mcg.httpserver.ContentType;
+import bif3.tolan.swe1.mcg.httpserver.HttpRequest;
+import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
+import bif3.tolan.swe1.mcg.httpserver.HttpStatus;
+import bif3.tolan.swe1.mcg.model.Card;
+import bif3.tolan.swe1.mcg.model.TradeOffer;
+import bif3.tolan.swe1.mcg.model.User;
 
-import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Class that represents the store
- *
- * @author Christopher Tolan
- */
-public class Store {
-    //TODO delete this later
-    private ConcurrentHashMap<String, Vector<Card>> packageMap;
+public class TradeMarketWorker extends BaseWorker {
     private ConcurrentHashMap<String, TradeOffer> openTradeOfferMap;
-    private ConcurrentHashMap<String, User> tradeOfferToUserMap;
 
-    public Store() {
-        packageMap = new ConcurrentHashMap<>();
+    public TradeMarketWorker() {
+        //TODO load from database
         openTradeOfferMap = new ConcurrentHashMap<>();
-        tradeOfferToUserMap = new ConcurrentHashMap<>();
     }
 
-    /**
-     * Buys a package for a user
-     *
-     * @param user        the user the package will be bought for
-     * @param packageName the name of the package
-     * @throws PackageNotFoundException   if no package with the specified name was found
-     * @throws InsufficientFundsException if the user does not have enough coins to buy the package
-     */
-    public void buyPackage(
-            User user,
-            String packageName)
-            throws PackageNotFoundException, InsufficientFundsException {
-        
-        Vector<Card> wantedPackage = packageMap.get(packageName);
+    @Override
+    public HttpResponse executeRequest(HttpRequest request) {
+        String requestedMethod = "";
+        if (request.getPathArray().length > 1) {
+            requestedMethod = request.getPathArray()[1];
+        }
 
-        if (wantedPackage != null) {
-            if (user.canPurchase(DefaultValues.DEFAULT_PACKAGE_COST)) {
-                user.addCardsToStack(wantedPackage);
-                user.payCoins(DefaultValues.DEFAULT_PACKAGE_COST);
-            } else {
-                throw new InsufficientFundsException();
-            }
-        } else {
-            throw new PackageNotFoundException();
+        // Executes requested methods
+        switch (requestedMethod) {
+            default:
+                return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "Unknown path");
         }
     }
 
@@ -62,7 +48,6 @@ public class Store {
         if (openTradeOfferMap.get(user) == null) {
             user.removeCardFromStack(tradeOffer.getTradeCard().getCardId());
             openTradeOfferMap.put(tradeOffer.getTradeId(), tradeOffer);
-            tradeOfferToUserMap.put(tradeOffer.getTradeId(), user);
         } else {
             throw new HasActiveTradeException();
         }
@@ -74,7 +59,7 @@ public class Store {
      * @param user The user that the trade offer shall be taken back
      * @throws NullPointerException if the user does not have an active trade
      */
-    public void removeFromTrade(User user) {
+    private void removeFromTrade(User user) {
         if (hasActiveTrade(user)) {
             TradeOffer trade = openTradeOfferMap.get(user);
             if (trade != null) {
@@ -92,10 +77,9 @@ public class Store {
      * @param user The user the trade offer should be checked for
      * @return True if the user has an active trade offer
      */
-    public boolean hasActiveTrade(User user) {
+    private boolean hasActiveTrade(User user) {
         return openTradeOfferMap.get(user) != null;
     }
-
 
     /**
      * Trades the buyers card with the offerers card
@@ -108,7 +92,7 @@ public class Store {
      * @throws TradeOfferNotFoundException
      * @throws TradeDeniedException
      */
-    public void trade(User user, Card tradeForId, String wantedTradeOfferId) throws NullPointerException, CardsNotInStackException, TradeOfferNotFoundException, TradeDeniedException {
+    private void trade(User user, Card tradeForId, String wantedTradeOfferId) throws NullPointerException, CardsNotInStackException, TradeOfferNotFoundException, TradeDeniedException {
         if (user == null || tradeForId == null || wantedTradeOfferId == null) throw new NullPointerException();
 
         if (user.hasUserCardInStack(tradeForId.getCardId())) {
@@ -116,7 +100,8 @@ public class Store {
             if (tradeOffer != null) {
                 if (cardMeetsRequirement(tradeForId, tradeOffer)) {
                     user.addCardToStack(tradeOffer.getTradeCard());
-                    tradeOfferToUserMap.get(wantedTradeOfferId).addCardToStack(tradeForId);
+                    //TODO load trading user from db and assign card
+                    //tradeOfferToUserMap.get(wantedTradeOfferId).addCardToStack(tradeForId);
                     user.removeCardFromStack(tradeOffer.getTradeCard().getCardId());
                 } else {
                     throw new TradeDeniedException();
@@ -144,18 +129,5 @@ public class Store {
                                 ^
                                 (tradeOffer.getCardType() == null && card.getMonsterType().isInGroup(tradeOffer.getCardGroup()))
                 );
-    }
-
-    // Getter
-    public ConcurrentHashMap<String, Vector<Card>> getPackageMap() {
-        return packageMap;
-    }
-
-    public ConcurrentHashMap<String, TradeOffer> getOpenTradeOfferMap() {
-        return openTradeOfferMap;
-    }
-
-    public ConcurrentHashMap<String, User> getTradeOfferToUserMap() {
-        return tradeOfferToUserMap;
     }
 }

@@ -2,7 +2,6 @@ package bif3.tolan.swe1.mcg.utils;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -40,8 +39,8 @@ public class MapUtils {
      */
     public static <K, V> V getRandomValue(Map<K, V> map) {
         ThreadLocalRandom random = ThreadLocalRandom.current();
-        Vector<K> keys = new Vector<>(map.keySet());
-        K randomKey = keys.get(random.nextInt(keys.size()));
+        Object[] keys = map.keySet().toArray();
+        K randomKey = (K) keys[random.nextInt(keys.length)];
         return map.get(randomKey);
     }
 }
