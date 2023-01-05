@@ -2,6 +2,7 @@ package bif3.tolan.swe1.mcg.httpserver;
 
 import bif3.tolan.swe1.mcg.constants.Paths;
 import bif3.tolan.swe1.mcg.constants.ServerConstants;
+import bif3.tolan.swe1.mcg.database.DbConnection;
 import bif3.tolan.swe1.mcg.workers.UserWorker;
 import bif3.tolan.swe1.mcg.workers.Workable;
 
@@ -26,8 +27,6 @@ public class HttpServer {
     public void start() throws IOException {
         ExecutorService executorService = Executors.newFixedThreadPool(ServerConstants.DEFAULT_THREAD_COUNT);
 
-        initializeWorkers();
-
         try (ServerSocket serverSocket = new ServerSocket(this.port)) {
             System.out.println("----------------------------------------------");
             System.out.println("Server started...");
@@ -39,9 +38,9 @@ public class HttpServer {
         }
     }
 
-    private void initializeWorkers() {
+    public void initializeWorkers(DbConnection dbConnection) {
         workers = new HashMap<>();
 
-        workers.put(Paths.USER_WORKER_MAIN_PATH, new UserWorker());
+        workers.put(Paths.USER_WORKER_MAIN_PATH, new UserWorker(dbConnection.getUserRepository()));
     }
 }
