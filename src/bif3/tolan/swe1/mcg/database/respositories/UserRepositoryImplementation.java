@@ -14,21 +14,6 @@ public class UserRepositoryImplementation extends BaseRepository implements User
         super(connection);
     }
 
-    private User extractUser(ResultSet res) throws SQLException {
-        if (res.first()) {
-            String username = res.getString("username");
-            String passwordHash = res.getString("password_hash");
-            int elo = res.getInt("elo");
-            int coins = res.getInt("coins");
-            int gamesPlayed = res.getInt("games_played");
-
-
-            return new User(username, passwordHash, elo, coins, gamesPlayed);
-        } else {
-            return null;
-        }
-    }
-
     @Override
     public User getById(int id) throws SQLException {
         String sql = "SELECT username, password_hash, elo, coins, games_played FROM mctg_user WHERE id = ?";
@@ -82,5 +67,19 @@ public class UserRepositoryImplementation extends BaseRepository implements User
         if (user.getUsername().length() > 50) return false;
 
         return true;
+    }
+
+    private User extractUser(ResultSet res) throws SQLException {
+        if (res.first()) {
+            String username = res.getString("username");
+            String passwordHash = res.getString("password_hash");
+            int elo = res.getInt("elo");
+            int coins = res.getInt("coins");
+            int gamesPlayed = res.getInt("games_played");
+
+            return new User(username, passwordHash, elo, coins, gamesPlayed);
+        } else {
+            return null;
+        }
     }
 }

@@ -52,22 +52,6 @@ public class DbConnection {
             System.out.println("The database did not reset!");
             System.out.println("----------------------------------------------");
         }
-        /*
-        PreparedStatement statement = connection.prepareStatement("SELECT * from mctg_user");
-        ResultSet resultSet = statement.executeQuery();
-
-        while (resultSet.next()) {
-            int id = resultSet.getInt("id");
-            String username = resultSet.getString("username");
-            String password_hash = resultSet.getString("password_hash");
-            String token = resultSet.getString("token");
-            int elo = resultSet.getInt("elo");
-            int coins = resultSet.getInt("coins");
-            int games_played = resultSet.getInt("games_played");
-
-            System.out.println(id + " " + username + " " + password_hash + " " + token + " " + elo + " " + coins + " " + games_played);
-        }
-         */
     }
 
     public Connection getConnection() {
