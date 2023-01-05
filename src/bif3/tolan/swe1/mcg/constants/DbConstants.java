@@ -5,4 +5,6 @@ public final class DbConstants {
     public static final String DB_NAME = "mctg_db";
     public static final String DB_USERNAME = "postgres";
     public static final String DB_PASSWORD = "";
+
+    public static final boolean RESET_DATABASE_ON_START = true;
 }

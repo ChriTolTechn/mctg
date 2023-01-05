@@ -8,9 +8,8 @@
 
 CREATE TABLE IF NOT EXISTS mctg_user (
   id SERIAL PRIMARY KEY,
-  username TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  token TEXT NOT NULL,
+  username VARCHAR(50) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
   elo INTEGER NOT NULL,
   coins INTEGER NOT NULL,
   games_played INTEGER NOT NULL
@@ -26,8 +25,7 @@ CREATE TYPE card_type AS ENUM ('Goblin', 'Dragon', 'Wizard', 'Ork', 'Knight', 'K
 CREATE TYPE card_group AS ENUM ('Monster', 'Spell');
 
 CREATE TABLE IF NOT EXISTS mctg_trade_offer (
-  id SERIAL PRIMARY KEY,
-  trade_id TEXT UNIQUE NOT NULL,
+  id VARCHAR(50) PRIMARY KEY,
   min_damage INTEGER NOT NULL,
   card_type card_type,
   card_group card_group,
@@ -40,11 +38,16 @@ CREATE TABLE IF NOT EXISTS mctg_package (
 );
 
 CREATE TABLE IF NOT EXISTS mctg_card (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  damage REAL NOT NULL,
-  belongs_to INTEGER NOT NULL,
-  FOREIGN KEY (belongs_to) REFERENCES mctg_user(id),
-  FOREIGN KEY (belongs_to) REFERENCES mctg_trade_offer(id),
-  FOREIGN KEY (belongs_to) REFERENCES mctg_package(id)
+  id VARCHAR(50) PRIMARY KEY,
+  name VARCHAR(50) NOT NULL,
+  damage FLOAT NOT NULL,
+  mctg_user_id INTEGER,
+  mctg_trade_offer_id VARCHAR(50),
+  mctg_package INTEGER,
+  FOREIGN KEY (mctg_user_id) REFERENCES mctg_user(id),
+  FOREIGN KEY (mctg_trade_offer_id) REFERENCES mctg_trade_offer(id),
+  FOREIGN KEY (mctg_package) REFERENCES mctg_package(id),
+  CHECK ((mctg_user_id IS NOT NULL AND mctg_trade_offer_id IS NULL AND mctg_package IS NULL) OR 
+        (mctg_user_id IS NULL AND mctg_trade_offer_id IS NOT NULL AND mctg_package IS NULL) OR 
+        (mctg_user_id IS NULL AND mctg_trade_offer_id IS NULL AND mctg_package IS NOT NULL))
 );

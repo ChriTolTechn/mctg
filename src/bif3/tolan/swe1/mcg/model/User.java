@@ -28,8 +28,6 @@ public class User {
     @JsonIgnore
     private String passwordHash;
     @JsonIgnore
-    private String token;
-    @JsonIgnore
     private ConcurrentHashMap<String, Card> stack;
     @JsonIgnore
     private int elo;
@@ -41,14 +39,14 @@ public class User {
     private int gamesPlayed;
 
     // Constructors
-    public User(String username, String password) {
+
+
+    public User(String username, String passwordHash, int elo, int coins, int gamesPlayed) {
         this.username = username;
-        this.passwordHash = hashPassword(password);
-        this.coins = DefaultValues.DEFAULT_USER_BALANCE;
-        this.elo = DefaultValues.DEFAULT_ELO;
-        this.stack = new ConcurrentHashMap<>();
-        this.deck = new ConcurrentHashMap<>();
-        this.gamesPlayed = 0;
+        this.passwordHash = passwordHash;
+        this.elo = elo;
+        this.coins = coins;
+        this.gamesPlayed = gamesPlayed;
     }
 
     public User() {
@@ -80,7 +78,6 @@ public class User {
     @JsonSetter("Username")
     private void setUsername(String username) {
         this.username = username;
-        setToken("Basic " + this.username + "-mtcgToken");
     }
 
     public int getElo() {
@@ -100,15 +97,20 @@ public class User {
     }
 
     public String getToken() {
-        return token;
-    }
-
-    private void setToken(String token) {
-        this.token = token;
+        return "Basic " + this.username + "-mtcgToken";
     }
 
     public int getCoins() {
         return coins;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    @JsonSetter("Password")
+    private void setPasswordHash(String password) {
+        this.passwordHash = hashPassword(password);
     }
 
     /**
@@ -218,11 +220,6 @@ public class User {
     private void returnCardsFromDeckToStackAndClearDeck() {
         stack.putAll(deck);
         deck.clear();
-    }
-
-    @JsonSetter("Password")
-    private void setPasswordHash(String password) {
-        this.passwordHash = hashPassword(password);
     }
 
     /**
