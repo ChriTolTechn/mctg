@@ -1,6 +1,9 @@
 package bif3.tolan.swe1.mcg.workers;
 
 import bif3.tolan.swe1.mcg.constants.Paths;
+import bif3.tolan.swe1.mcg.database.respositories.UserRepository;
+import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
+import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.httpserver.ContentType;
 import bif3.tolan.swe1.mcg.httpserver.HttpRequest;
 import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
@@ -11,16 +14,14 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.SQLException;
 
-public class UserWorker extends BaseWorker {
+public class UserWorker implements Workable {
 
-    private List<User> users;
+    private UserRepository userRepository;
 
-    public UserWorker() {
-        //Todo load from db
-        users = new ArrayList<>();
+    public UserWorker(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -48,14 +49,11 @@ public class UserWorker extends BaseWorker {
             User user = mapper.readValue(jsonString, User.class);
 
             //Check if user already exists
-            boolean userExists = users.stream()
-                    .anyMatch(u -> u.getUsername().equals(user.getUsername()));
-
-            if (userExists) {
+            User dbUser = userRepository.getByUsername(user.getUsername());
+            if (dbUser != null) {
                 return new HttpResponse(HttpStatus.BAD_REQUEST, ContentType.PLAIN_TEXT, "User with the username \"" + user.getUsername() + "\" already exists");
             } else {
-                //TODO db store
-                users.add(user);
+                userRepository.add(user);
                 return new HttpResponse(HttpStatus.CREATED, ContentType.PLAIN_TEXT, "User successfully created. Token:" + user.getToken());
             }
         } catch (JsonParseException e) {
@@ -63,6 +61,12 @@ public class UserWorker extends BaseWorker {
         } catch (JsonMappingException e) {
             e.printStackTrace();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (InvalidInputException e) {
+            e.printStackTrace();
+        } catch (IdExistsException e) {
             e.printStackTrace();
         }
 

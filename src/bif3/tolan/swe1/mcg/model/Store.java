@@ -35,7 +35,7 @@ public class Store {
             User user,
             String packageName)
             throws PackageNotFoundException, InsufficientFundsException {
-        
+
         Vector<Card> wantedPackage = packageMap.get(packageName);
 
         if (wantedPackage != null) {
@@ -60,7 +60,7 @@ public class Store {
      */
     private void addForTrade(User user, TradeOffer tradeOffer) throws HasActiveTradeException, CardsNotInStackException {
         if (openTradeOfferMap.get(user) == null) {
-            user.removeCardFromStack(tradeOffer.getTradeCard().getCardId());
+            user.removeCardFromStack(tradeOffer.getTradeCardId());
             openTradeOfferMap.put(tradeOffer.getTradeId(), tradeOffer);
             tradeOfferToUserMap.put(tradeOffer.getTradeId(), user);
         } else {
@@ -75,6 +75,7 @@ public class Store {
      * @throws NullPointerException if the user does not have an active trade
      */
     public void removeFromTrade(User user) {
+        /*
         if (hasActiveTrade(user)) {
             TradeOffer trade = openTradeOfferMap.get(user);
             if (trade != null) {
@@ -84,6 +85,8 @@ public class Store {
         } else {
             throw new NullPointerException();
         }
+
+         */
     }
 
     /**
@@ -111,6 +114,7 @@ public class Store {
     public void trade(User user, Card tradeForId, String wantedTradeOfferId) throws NullPointerException, CardsNotInStackException, TradeOfferNotFoundException, TradeDeniedException {
         if (user == null || tradeForId == null || wantedTradeOfferId == null) throw new NullPointerException();
 
+        /*
         if (user.hasUserCardInStack(tradeForId.getCardId())) {
             TradeOffer tradeOffer = openTradeOfferMap.get(wantedTradeOfferId);
             if (tradeOffer != null) {
@@ -127,6 +131,8 @@ public class Store {
         } else {
             throw new CardsNotInStackException();
         }
+
+         */
     }
 
     /**

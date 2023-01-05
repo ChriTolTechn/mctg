@@ -46,10 +46,10 @@ public class UserRepositoryTest {
         when(mockResultSet.getString("username")).thenReturn(user.getUsername());
         when(mockResultSet.getString("password_hash")).thenReturn(user.getPasswordHash());
 
-        doAnswer(invocationOnMock -> when(mockResultSet.first()).thenReturn(true)).when(mockStatement).setInt(eq(1), eq(1));
-        doAnswer(invocationOnMock -> when(mockResultSet.first()).thenReturn(false)).when(mockStatement).setInt(eq(1), eq(2));
-        doAnswer(invocationOnMock -> when(mockResultSet.first()).thenReturn(true)).when(mockStatement).setString(eq(1), eq("test"));
-        doAnswer(invocationOnMock -> when(mockResultSet.first()).thenReturn(false)).when(mockStatement).setString(eq(1), eq("notTest"));
+        doAnswer(invocationOnMock -> when(mockResultSet.next()).thenReturn(true)).when(mockStatement).setInt(eq(1), eq(1));
+        doAnswer(invocationOnMock -> when(mockResultSet.next()).thenReturn(false)).when(mockStatement).setInt(eq(1), eq(2));
+        doAnswer(invocationOnMock -> when(mockResultSet.next()).thenReturn(true)).when(mockStatement).setString(eq(1), eq("test"));
+        doAnswer(invocationOnMock -> when(mockResultSet.next()).thenReturn(false)).when(mockStatement).setString(eq(1), eq("notTest"));
         when(mockStatement.executeQuery()).thenReturn(mockResultSet);
 
         userRepository = new UserRepositoryImplementation(mockConnection);

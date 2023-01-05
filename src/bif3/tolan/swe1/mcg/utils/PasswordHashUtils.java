@@ -1,12 +1,13 @@
 package bif3.tolan.swe1.mcg.utils;
 
+import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 /**
  * Static class that helps with password hashing
  *
- * @author Christopher Tolan
+ * @author Christopher Tolan, https://www.baeldung.com/sha-256-hashing-java
  */
 public class PasswordHashUtils {
 
@@ -17,14 +18,33 @@ public class PasswordHashUtils {
      * @return hashed password
      */
     public static String hashPassword(String passwordToHash) {
-        MessageDigest messageDigest = null;
         try {
-            messageDigest = MessageDigest.getInstance("SHA-256");
+            MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = messageDigest.digest(passwordToHash.getBytes("UTF-8"));
+            return bytesToHex(hash);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
         }
-        messageDigest.update(passwordToHash.getBytes());
-        return new String(messageDigest.digest());
+    }
+
+    /**
+     * Converts a byte hash to a hex string
+     *
+     * @param hash hashed byte array
+     * @return hex string
+     */
+    private static String bytesToHex(byte[] hash) {
+        StringBuilder hexString = new StringBuilder(2 * hash.length);
+        for (int i = 0; i < hash.length; i++) {
+            String hex = Integer.toHexString(0xff & hash[i]);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
     }
 
     /**

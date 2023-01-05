@@ -10,8 +10,7 @@ import bif3.tolan.swe1.mcg.model.Card;
 import bif3.tolan.swe1.mcg.utils.CardUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class CardWorker extends BaseWorker {
-    @Override
+public class CardWorker {
     public HttpResponse executeRequest(HttpRequest request) {
         return null;
     }

@@ -237,12 +237,12 @@ public class Battle {
      * @return damage that the attacker deals to the defender as float value
      */
     private float calculateRegularDamage(Card attacker, Card defender) {
-        if (attacker.getMonsterType().isInGroup(CardType.CardGroup.Monster)
-                && defender.getMonsterType().isInGroup(CardType.CardGroup.Monster)) {
+        if (attacker.getMonsterType().isInGroup(CardType.CardGroup.MONSTER)
+                && defender.getMonsterType().isInGroup(CardType.CardGroup.MONSTER)) {
             // Fights between Monster don't affect their damage output
             return attacker.getDamage();
-        } else if (attacker.getMonsterType().isInGroup(CardType.CardGroup.Spell)
-                || defender.getMonsterType().isInGroup(CardType.CardGroup.Spell)) {
+        } else if (attacker.getMonsterType().isInGroup(CardType.CardGroup.SPELL)
+                || defender.getMonsterType().isInGroup(CardType.CardGroup.SPELL)) {
             // Fights with at least one spell card involved will trigger effectiveness
             float damageMultiplicator = DamageMap.GetDamageMultiplicator(attacker.getElement(), defender.getElement());
             return attacker.getDamage() * damageMultiplicator;
@@ -261,27 +261,27 @@ public class Battle {
     private float calculateSpecialCaseDamage(Card attacker, Card defender) {
         switch (attacker.getMonsterType()) {
             // goblins cant attack dragons
-            case Goblin:
-                if (defender.getMonsterType() == CardType.Dragon)
+            case GOBLIN:
+                if (defender.getMonsterType() == CardType.DRAGON)
                     return 0;
                 return -1;
             // orks cant attack wizards
-            case Ork:
-                if (defender.getMonsterType() == CardType.Wizard)
+            case ORK:
+                if (defender.getMonsterType() == CardType.WIZARD)
                     return 0;
                 return -1;
             // dragons cant attack elves with a fire type
-            case Dragon:
-                if (defender.getMonsterType() == CardType.Elf && defender.getElement() == ElementType.FIRE)
+            case DRAGON:
+                if (defender.getMonsterType() == CardType.ELF && defender.getElement() == ElementType.FIRE)
                     return 0;
                 return -1;
-            case Spell:
+            case SPELL:
                 // Knights are instant K.O.'d by Water spells
                 if (attacker.getElement() == ElementType.WATER) {
-                    if (defender.getMonsterType() == CardType.Knight)
+                    if (defender.getMonsterType() == CardType.KNIGHT)
                         return Float.MAX_VALUE;
                     // Kraken dont get damaged by spell cards
-                } else if (defender.getMonsterType() == CardType.Kraken)
+                } else if (defender.getMonsterType() == CardType.KRAKEN)
                     return 0;
                 return -1;
             default:

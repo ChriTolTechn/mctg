@@ -6,14 +6,14 @@ package bif3.tolan.swe1.mcg.enums;
  * @author Christopher Tolan
  */
 public enum CardType {
-    Goblin(CardGroup.Monster),
-    Dragon(CardGroup.Monster),
-    Wizard(CardGroup.Monster),
-    Ork(CardGroup.Monster),
-    Knight(CardGroup.Monster),
-    Kraken(CardGroup.Monster),
-    Elf(CardGroup.Monster),
-    Spell(CardGroup.Spell);
+    GOBLIN(CardGroup.MONSTER),
+    DRAGON(CardGroup.MONSTER),
+    WIZARD(CardGroup.MONSTER),
+    ORK(CardGroup.MONSTER),
+    KNIGHT(CardGroup.MONSTER),
+    KRAKEN(CardGroup.MONSTER),
+    ELF(CardGroup.MONSTER),
+    SPELL(CardGroup.SPELL);
 
     private CardGroup cardGroup;
 
@@ -31,7 +31,7 @@ public enum CardType {
      * @author Christopher Tolan
      */
     public enum CardGroup {
-        Monster,
-        Spell;
+        MONSTER,
+        SPELL;
     }
 }

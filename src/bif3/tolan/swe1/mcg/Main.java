@@ -8,8 +8,10 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        DbConnection database = new DbConnection();
+        DbConnection dbConnection = new DbConnection();
         HttpServer server = new HttpServer(ServerConstants.DEFAULT_SERVER_PORT);
+
+        server.initializeWorkers(dbConnection);
         server.start();
     }
 }

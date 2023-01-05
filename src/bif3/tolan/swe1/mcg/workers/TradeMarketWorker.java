@@ -14,7 +14,7 @@ import bif3.tolan.swe1.mcg.model.User;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-public class TradeMarketWorker extends BaseWorker {
+public class TradeMarketWorker {
     private ConcurrentHashMap<String, TradeOffer> openTradeOfferMap;
 
     public TradeMarketWorker() {
@@ -22,7 +22,6 @@ public class TradeMarketWorker extends BaseWorker {
         openTradeOfferMap = new ConcurrentHashMap<>();
     }
 
-    @Override
     public HttpResponse executeRequest(HttpRequest request) {
         String requestedMethod = "";
         if (request.getPathArray().length > 1) {
@@ -46,7 +45,7 @@ public class TradeMarketWorker extends BaseWorker {
      */
     private void addForTrade(User user, TradeOffer tradeOffer) throws HasActiveTradeException, CardsNotInStackException {
         if (openTradeOfferMap.get(user) == null) {
-            user.removeCardFromStack(tradeOffer.getTradeCard().getCardId());
+            user.removeCardFromStack(tradeOffer.getTradeCardId());
             openTradeOfferMap.put(tradeOffer.getTradeId(), tradeOffer);
         } else {
             throw new HasActiveTradeException();
@@ -60,6 +59,7 @@ public class TradeMarketWorker extends BaseWorker {
      * @throws NullPointerException if the user does not have an active trade
      */
     private void removeFromTrade(User user) {
+        /*
         if (hasActiveTrade(user)) {
             TradeOffer trade = openTradeOfferMap.get(user);
             if (trade != null) {
@@ -69,6 +69,8 @@ public class TradeMarketWorker extends BaseWorker {
         } else {
             throw new NullPointerException();
         }
+
+         */
     }
 
     /**
@@ -95,6 +97,7 @@ public class TradeMarketWorker extends BaseWorker {
     private void trade(User user, Card tradeForId, String wantedTradeOfferId) throws NullPointerException, CardsNotInStackException, TradeOfferNotFoundException, TradeDeniedException {
         if (user == null || tradeForId == null || wantedTradeOfferId == null) throw new NullPointerException();
 
+        /*
         if (user.hasUserCardInStack(tradeForId.getCardId())) {
             TradeOffer tradeOffer = openTradeOfferMap.get(wantedTradeOfferId);
             if (tradeOffer != null) {
@@ -112,6 +115,8 @@ public class TradeMarketWorker extends BaseWorker {
         } else {
             throw new CardsNotInStackException();
         }
+
+         */
     }
 
     /**

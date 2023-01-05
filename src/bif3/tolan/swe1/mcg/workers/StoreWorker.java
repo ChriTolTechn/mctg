@@ -13,7 +13,7 @@ import bif3.tolan.swe1.mcg.model.User;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class StoreWorker extends BaseWorker {
+public class StoreWorker {
     private ConcurrentHashMap<String, Vector<Card>> packageMap;
 
     public StoreWorker() {
@@ -21,7 +21,6 @@ public final class StoreWorker extends BaseWorker {
         packageMap = new ConcurrentHashMap<>();
     }
 
-    @Override
     public HttpResponse executeRequest(HttpRequest request) {
         String requestedMethod = "";
         if (request.getPathArray().length > 1) {

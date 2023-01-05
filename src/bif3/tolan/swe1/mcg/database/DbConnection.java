@@ -1,5 +1,7 @@
 package bif3.tolan.swe1.mcg.database;
 
+import bif3.tolan.swe1.mcg.database.respositories.*;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -11,8 +13,24 @@ import static bif3.tolan.swe1.mcg.constants.DbConstants.*;
 public class DbConnection {
     private Connection connection;
 
+    private UserRepository userRepository;
+    private CardRepository cardRepository;
+    private DeckRepository deckRepository;
+    private PackageRepository packageRepository;
+    private TradeOfferRepository tradeOfferRepository;
+
     public DbConnection() {
         establishConnection();
+        initializeRepositories();
+    }
+
+    private void initializeRepositories() {
+        userRepository = new UserRepositoryImplementation(connection);
+        cardRepository = new CardRepositoryImplementation(connection);
+        deckRepository = new DeckRepositoryImplementation(connection);
+        packageRepository = new PackageRepositoryImplementation(connection);
+        tradeOfferRepository = new TradeOfferRepositoryImplementation(connection);
+        //TODO add other repositories
     }
 
     private void establishConnection() {
@@ -56,5 +74,25 @@ public class DbConnection {
 
     public Connection getConnection() {
         return connection;
+    }
+
+    public UserRepository getUserRepository() {
+        return userRepository;
+    }
+
+    public CardRepository getCardRepository() {
+        return cardRepository;
+    }
+
+    public DeckRepository getDeckRepository() {
+        return deckRepository;
+    }
+
+    public PackageRepository getPackageRepository() {
+        return packageRepository;
+    }
+
+    public TradeOfferRepository getTradeOfferRepository() {
+        return tradeOfferRepository;
     }
 }
