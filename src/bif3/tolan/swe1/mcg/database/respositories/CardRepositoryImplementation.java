@@ -10,8 +10,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Vector;
 
 public class CardRepositoryImplementation extends BaseRepository implements CardRepository {
     public CardRepositoryImplementation(Connection connection) {
@@ -31,7 +30,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     @Override
-    public List<Card> getCardsByUserId(int userId) throws SQLException, InvalidCardParameterException {
+    public Vector<Card> getCardsByUserId(int userId) throws SQLException, InvalidCardParameterException {
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_user_id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -55,7 +54,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     @Override
-    public List<Card> getCardsByDeckId(int deckId) throws SQLException, InvalidCardParameterException {
+    public Vector<Card> getCardsByDeckId(int deckId) throws SQLException, InvalidCardParameterException {
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_deck_id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -67,11 +66,11 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     @Override
-    public List<Card> getCardPackageByPackageId(String packageId) throws SQLException, InvalidCardParameterException {
+    public Vector<Card> getCardPackageByPackageId(int packageId) throws SQLException, InvalidCardParameterException {
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_package_id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-        preparedStatement.setString(1, packageId);
+        preparedStatement.setInt(1, packageId);
 
         ResultSet res = preparedStatement.executeQuery();
 
@@ -128,7 +127,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     public void assignCardToPackage(String cardId, int packageId) throws InvalidInputException, SQLException, InvalidCardParameterException {
         resetCardRelations(cardId);
 
-        String sql = "UPDATE mctg_card SET mctg_package = ? WHERE id = ?";
+        String sql = "UPDATE mctg_card SET mctg_package_id = ? WHERE id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
         preparedStatement.setInt(1, packageId);
@@ -155,7 +154,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
             String sql = "UPDATE mctg_card " +
                     "SET mctg_user_id = NULL, " +
                     "mctg_trade_offer_id = NULL, " +
-                    "mctg_package = NULL, " +
+                    "mctg_package_id = NULL, " +
                     "mctg_deck_id = NULL WHERE id = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -175,8 +174,8 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         }
     }
 
-    private List<Card> extractManyCards(ResultSet res) throws SQLException, InvalidCardParameterException {
-        List<Card> cards = new ArrayList<>();
+    private Vector<Card> extractManyCards(ResultSet res) throws SQLException, InvalidCardParameterException {
+        Vector<Card> cards = new Vector<>();
         while (res.next()) {
             cards.add(convertCardToModel(res));
         }

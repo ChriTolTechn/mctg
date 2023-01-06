@@ -12,4 +12,6 @@ public interface UserRepository {
     User getByUsername(String username) throws SQLException;
 
     void add(User user) throws SQLException, InvalidInputException, IdExistsException;
+
+    public User updateUser(User user) throws SQLException;
 }

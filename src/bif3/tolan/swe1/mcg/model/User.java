@@ -25,6 +25,9 @@ import static bif3.tolan.swe1.mcg.utils.PasswordHashUtils.hashPassword;
 public class User {
 
     private String username;
+
+    @JsonIgnore
+    private int id;
     @JsonIgnore
     private String passwordHash;
     @JsonIgnore
@@ -41,12 +44,13 @@ public class User {
     // Constructors
 
 
-    public User(String username, String passwordHash, int elo, int coins, int gamesPlayed) {
+    public User(String username, String passwordHash, int elo, int coins, int gamesPlayed, int id) {
         this.username = username;
         this.passwordHash = passwordHash;
         this.elo = elo;
         this.coins = coins;
         this.gamesPlayed = gamesPlayed;
+        this.id = id;
     }
 
     public User() {
@@ -86,6 +90,10 @@ public class User {
 
     public void setElo(int elo) {
         this.elo = elo;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public int getGamesPlayed() {

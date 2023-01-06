@@ -16,4 +16,7 @@ public final class Paths {
     public static final String LOGIN_WORKER_LOGIN = "";
 
     public static final String PACKAGE_WORKER_CREATE = "";
+
+    public static final String SHOP_WORKER_DEFAULT_PATH = "transactions";
+    public static final String SHOP_WORKER_BUY_PACKAGE = "packages";
 }

@@ -1,7 +1,14 @@
 package bif3.tolan.swe1.mcg.workers;
 
 import bif3.tolan.swe1.mcg.constants.DefaultValues;
+import bif3.tolan.swe1.mcg.constants.Headers;
+import bif3.tolan.swe1.mcg.constants.Paths;
+import bif3.tolan.swe1.mcg.database.respositories.CardRepository;
+import bif3.tolan.swe1.mcg.database.respositories.PackageRepository;
+import bif3.tolan.swe1.mcg.database.respositories.UserRepository;
 import bif3.tolan.swe1.mcg.exceptions.InsufficientFundsException;
+import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
+import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.exceptions.PackageNotFoundException;
 import bif3.tolan.swe1.mcg.httpserver.ContentType;
 import bif3.tolan.swe1.mcg.httpserver.HttpRequest;
@@ -9,16 +16,21 @@ import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
 import bif3.tolan.swe1.mcg.httpserver.HttpStatus;
 import bif3.tolan.swe1.mcg.model.Card;
 import bif3.tolan.swe1.mcg.model.User;
+import bif3.tolan.swe1.mcg.utils.UserUtils;
 
+import java.sql.SQLException;
 import java.util.Vector;
-import java.util.concurrent.ConcurrentHashMap;
 
-public class StoreWorker {
-    private ConcurrentHashMap<String, Vector<Card>> packageMap;
+public class StoreWorker implements Workable {
 
-    public StoreWorker() {
-        //TODO load from database
-        packageMap = new ConcurrentHashMap<>();
+    private UserRepository userRepository;
+    private CardRepository cardRepository;
+    private PackageRepository packageRepository;
+
+    public StoreWorker(UserRepository userRepository, CardRepository cardRepository, PackageRepository packageRepository) {
+        this.userRepository = userRepository;
+        this.cardRepository = cardRepository;
+        this.packageRepository = packageRepository;
     }
 
     public HttpResponse executeRequest(HttpRequest request) {
@@ -29,6 +41,8 @@ public class StoreWorker {
 
         // Executes requested methods
         switch (requestedMethod) {
+            case Paths.SHOP_WORKER_BUY_PACKAGE:
+                return buyPackage(request);
             default:
                 return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "Unknown path");
         }
@@ -36,24 +50,41 @@ public class StoreWorker {
 
     /**
      * Buys a package for a user
-     *
-     * @param user        the user the package will be bought for
-     * @param packageName the name of the package
-     * @throws PackageNotFoundException   if no package with the specified name was found
-     * @throws InsufficientFundsException if the user does not have enough coins to buy the package
      */
-    private void buyPackage(User user, String packageName) throws PackageNotFoundException, InsufficientFundsException {
-        Vector<Card> wantedPackage = packageMap.get(packageName);
+    private HttpResponse buyPackage(HttpRequest request) {
+        String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
+        String username = UserUtils.getUsernameFromToken(authorizationToken);
 
-        if (wantedPackage != null) {
-            if (user.canPurchase(DefaultValues.DEFAULT_PACKAGE_COST)) {
-                user.addCardsToStack(wantedPackage);
-                user.payCoins(DefaultValues.DEFAULT_PACKAGE_COST);
+        try {
+            User dbUser = userRepository.getByUsername(username);
+            if (dbUser != null) {
+                if (dbUser.canPurchase(DefaultValues.DEFAULT_PACKAGE_COST)) {
+                    int nextPackage = packageRepository.getPackageWithLowestId();
+                    Vector<Card> cards = cardRepository.getCardPackageByPackageId(nextPackage);
+                    for (Card c : cards) {
+                        cardRepository.assignCardToUserStack(c.getCardId(), dbUser.getId());
+                    }
+                    packageRepository.deletePackage(nextPackage);
+                    dbUser.payCoins(DefaultValues.DEFAULT_PACKAGE_COST);
+                    userRepository.updateUser(dbUser);
+                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, "Successfully acquired new cards");
+                } else {
+                    return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "Not enough coins");
+                }
             } else {
-                throw new InsufficientFundsException();
+                return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "User not found");
             }
-        } else {
-            throw new PackageNotFoundException();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (InvalidCardParameterException e) {
+            e.printStackTrace();
+        } catch (InvalidInputException e) {
+            e.printStackTrace();
+        } catch (InsufficientFundsException e) {
+            e.printStackTrace();
+        } catch (PackageNotFoundException e) {
+            return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "No packages available at the moment");
         }
+        return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The json string is not formatted properly");
     }
 }

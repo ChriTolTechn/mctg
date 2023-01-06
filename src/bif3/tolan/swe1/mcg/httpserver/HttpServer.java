@@ -3,10 +3,7 @@ package bif3.tolan.swe1.mcg.httpserver;
 import bif3.tolan.swe1.mcg.constants.Paths;
 import bif3.tolan.swe1.mcg.constants.ServerConstants;
 import bif3.tolan.swe1.mcg.database.DbConnection;
-import bif3.tolan.swe1.mcg.workers.LoginWorker;
-import bif3.tolan.swe1.mcg.workers.PackageWorker;
-import bif3.tolan.swe1.mcg.workers.RegistrationWorker;
-import bif3.tolan.swe1.mcg.workers.Workable;
+import bif3.tolan.swe1.mcg.workers.*;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -46,5 +43,6 @@ public class HttpServer {
         workers.put(Paths.REGISTRATION_WORKER_MAIN_PATH, new RegistrationWorker(dbConnection.getUserRepository()));
         workers.put(Paths.LOGIN_WORKER_MAIN_PATH, new LoginWorker(dbConnection.getUserRepository()));
         workers.put(Paths.PACKAGES_WORKER_MAIN_PATH, new PackageWorker(dbConnection.getUserRepository(), dbConnection.getCardRepository(), dbConnection.getPackageRepository()));
+        workers.put(Paths.SHOP_WORKER_DEFAULT_PATH, new StoreWorker(dbConnection.getUserRepository(), dbConnection.getCardRepository(), dbConnection.getPackageRepository()));
     }
 }
