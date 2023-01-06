@@ -20,7 +20,11 @@ public class CardUtils {
         try {
             if (nameSplit.size() > 0) {
                 if (nameSplit.size() == 2) {
-                    element = ElementType.valueOf(nameSplit.get(0).toUpperCase());
+                    if (nameSplit.get(0).toLowerCase().equals("regular")) {
+                        element = ElementType.NORMAL;
+                    } else {
+                        element = ElementType.valueOf(nameSplit.get(0).toUpperCase());
+                    }
                     nameSplit.remove(0);
                 }
 

@@ -16,11 +16,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.sql.SQLException;
 
-public class UserWorker implements Workable {
+public class RegistrationWorker implements Workable {
 
     private UserRepository userRepository;
 
-    public UserWorker(UserRepository userRepository) {
+    public RegistrationWorker(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
@@ -33,14 +33,14 @@ public class UserWorker implements Workable {
 
         // Executes requested methods
         switch (requestedMethod) {
-            case Paths.USER_WORKER_REGISTRATION:
-                return RegisterUsers(request);
+            case Paths.REGISTRATION_WORKER_REGISTRATION:
+                return registerUser(request);
             default:
                 return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "Unknown path");
         }
     }
 
-    private HttpResponse RegisterUsers(HttpRequest request) {
+    private HttpResponse registerUser(HttpRequest request) {
         ObjectMapper mapper = new ObjectMapper();
         String jsonString = request.getBody();
 
@@ -54,7 +54,7 @@ public class UserWorker implements Workable {
                 return new HttpResponse(HttpStatus.BAD_REQUEST, ContentType.PLAIN_TEXT, "User with the username \"" + user.getUsername() + "\" already exists");
             } else {
                 userRepository.add(user);
-                return new HttpResponse(HttpStatus.CREATED, ContentType.PLAIN_TEXT, "User successfully created. Token:" + user.getToken());
+                return new HttpResponse(HttpStatus.CREATED, ContentType.PLAIN_TEXT, "User " + user.getUsername() + " successfully created.");
             }
         } catch (JsonParseException e) {
             e.printStackTrace();
