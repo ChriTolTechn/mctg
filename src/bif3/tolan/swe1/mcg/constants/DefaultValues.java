@@ -14,4 +14,6 @@ public final class DefaultValues {
      * Since the projected uses elo calculation based on chess, the default elo is now 1000
      */
     public static final int DEFAULT_ELO = 1000;
+
+    public static final String ADMIN_USERNAME = "admin";
 }

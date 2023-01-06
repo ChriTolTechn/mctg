@@ -4,5 +4,5 @@ public final class CommonRegex {
 
     public static String SPLIT_STRING_BY_UPPERCASE_LETTERS = "(?=[A-Z])";
 
-    public static String TOKEN_READ_REGEX = "^Basic (.*)-mctgToken$";
+    public static String TOKEN_READ_REGEX = "^Basic (.*)-mtcgToken$";
 }

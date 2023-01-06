@@ -14,4 +14,6 @@ public final class Paths {
     public static final String REGISTRATION_WORKER_REGISTRATION = "";
 
     public static final String LOGIN_WORKER_LOGIN = "";
+
+    public static final String PACKAGE_WORKER_CREATE = "";
 }

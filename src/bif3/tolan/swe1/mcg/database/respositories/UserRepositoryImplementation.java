@@ -65,6 +65,7 @@ public class UserRepositoryImplementation extends BaseRepository implements User
         if (user == null) return false;
         if (user.getUsername() == null) return false;
         if (user.getUsername().length() > 50) return false;
+        if (user.getUsername().isEmpty()) return false;
 
         return true;
     }

@@ -168,7 +168,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     private Card extractSingleCard(ResultSet res) throws SQLException, InvalidCardParameterException {
-        if (res.first()) {
+        if (res.next()) {
             return convertCardToModel(res);
         } else {
             return null;
