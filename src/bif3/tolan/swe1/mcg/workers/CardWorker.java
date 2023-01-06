@@ -1,43 +1,70 @@
 package bif3.tolan.swe1.mcg.workers;
 
-import bif3.tolan.swe1.mcg.exceptions.DuplicateItemException;
+import bif3.tolan.swe1.mcg.constants.Headers;
+import bif3.tolan.swe1.mcg.constants.Paths;
+import bif3.tolan.swe1.mcg.database.respositories.CardRepository;
+import bif3.tolan.swe1.mcg.database.respositories.UserRepository;
 import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
-import bif3.tolan.swe1.mcg.httpserver.ContentType;
-import bif3.tolan.swe1.mcg.httpserver.HttpRequest;
-import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
-import bif3.tolan.swe1.mcg.httpserver.HttpStatus;
+import bif3.tolan.swe1.mcg.httpserver.*;
 import bif3.tolan.swe1.mcg.model.Card;
-import bif3.tolan.swe1.mcg.utils.CardUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import bif3.tolan.swe1.mcg.model.User;
+import bif3.tolan.swe1.mcg.utils.UserUtils;
 
-public class CardWorker {
-    public HttpResponse executeRequest(HttpRequest request) {
-        return null;
+import java.sql.SQLException;
+import java.util.Vector;
+
+public class CardWorker implements Workable {
+
+    private UserRepository userRepository;
+    private CardRepository cardRepository;
+
+    public CardWorker(UserRepository userRepository, CardRepository cardRepository) {
+        this.userRepository = userRepository;
+        this.cardRepository = cardRepository;
     }
 
-    private HttpResponse addNewPackage(HttpRequest request) {
-        ObjectMapper mapper = new ObjectMapper();
-        String jsonString = request.getBody();
+    public HttpResponse executeRequest(HttpRequest request) {
+        String requestedPath = "";
+        Method method = request.getMethod();
 
-        //TODO change
+        if (request.getPathArray().length > 1) {
+            requestedPath = request.getPathArray()[1];
+        }
+
+        // Executes requested methods
+        switch (method) {
+            case GET:
+                switch (requestedPath) {
+                    case Paths.CARD_WORKER_SHOW_CARDS:
+                        return showCards(request);
+                }
+        }
+
         return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "Unknown path");
     }
 
-    private Card createNewCard(String cardId, String cardName, String cardDamage) throws InvalidCardParameterException, DuplicateItemException {
-        if (checkIfCardWithIdExists(cardId))
-            throw new DuplicateItemException();
-        if (cardName != null && cardDamage != null) {
-            try {
-                float cardDamageAsFloat = Float.parseFloat(cardDamage);
-                return CardUtils.buildCard(cardId, cardName, cardDamageAsFloat);
-            } catch (NumberFormatException e) {
-            }
-        }
-        throw new InvalidCardParameterException();
-    }
+    private HttpResponse showCards(HttpRequest request) {
+        String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
+        String username = UserUtils.getUsernameFromToken(authorizationToken);
 
-    private boolean checkIfCardWithIdExists(String cardId) {
-        //TODO
-        return true;
+        try {
+            User dbUser = userRepository.getByUsername(username);
+            if (dbUser != null) {
+                Vector<Card> cards = cardRepository.getCardsByUserId(dbUser.getId());
+                StringBuilder cardsAsString = new StringBuilder("Cards of user:" + dbUser.getUsername());
+                for (Card c : cards) {
+                    cardsAsString.append("\n");
+                    cardsAsString.append(c.toString());
+                }
+                return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, cardsAsString.toString());
+            } else {
+                return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Not logged in");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (InvalidCardParameterException e) {
+            e.printStackTrace();
+        }
+        return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The json string is not formatted properly");
     }
 }

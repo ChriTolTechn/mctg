@@ -112,4 +112,13 @@ public class Card {
     public int hashCode() {
         return Objects.hash(cardId);
     }
+
+    @Override
+    public String toString() {
+        return "Id = " + cardId +
+                ", Name = " + name +
+                ", Element = " + element +
+                ", Type = " + cardType +
+                ", Damage = " + damage;
+    }
 }

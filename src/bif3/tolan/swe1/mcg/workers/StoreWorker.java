@@ -10,10 +10,7 @@ import bif3.tolan.swe1.mcg.exceptions.InsufficientFundsException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.exceptions.PackageNotFoundException;
-import bif3.tolan.swe1.mcg.httpserver.ContentType;
-import bif3.tolan.swe1.mcg.httpserver.HttpRequest;
-import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
-import bif3.tolan.swe1.mcg.httpserver.HttpStatus;
+import bif3.tolan.swe1.mcg.httpserver.*;
 import bif3.tolan.swe1.mcg.model.Card;
 import bif3.tolan.swe1.mcg.model.User;
 import bif3.tolan.swe1.mcg.utils.UserUtils;
@@ -34,18 +31,23 @@ public class StoreWorker implements Workable {
     }
 
     public HttpResponse executeRequest(HttpRequest request) {
-        String requestedMethod = "";
+        String requestedPath = "";
+        Method method = request.getMethod();
+
         if (request.getPathArray().length > 1) {
-            requestedMethod = request.getPathArray()[1];
+            requestedPath = request.getPathArray()[1];
         }
 
         // Executes requested methods
-        switch (requestedMethod) {
-            case Paths.SHOP_WORKER_BUY_PACKAGE:
-                return buyPackage(request);
-            default:
-                return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "Unknown path");
+        switch (method) {
+            case POST:
+                switch (requestedPath) {
+                    case Paths.SHOP_WORKER_BUY_PACKAGE:
+                        return buyPackage(request);
+                }
         }
+
+        return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "Unknown path");
     }
 
     /**
@@ -72,7 +74,7 @@ public class StoreWorker implements Workable {
                     return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "Not enough coins");
                 }
             } else {
-                return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "User not found");
+                return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Not logged in");
             }
         } catch (SQLException e) {
             e.printStackTrace();

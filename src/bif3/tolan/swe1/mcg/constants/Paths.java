@@ -19,4 +19,8 @@ public final class Paths {
 
     public static final String SHOP_WORKER_DEFAULT_PATH = "transactions";
     public static final String SHOP_WORKER_BUY_PACKAGE = "packages";
+
+    public static final String CARD_WORKER_DEFAULT_PATH = "cards";
+
+    public static final String CARD_WORKER_SHOW_CARDS = "";
 }
