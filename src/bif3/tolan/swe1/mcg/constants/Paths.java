@@ -23,4 +23,6 @@ public final class Paths {
     public static final String STATISTICS_WORKER_GET_STATS = "";
     public static final String SCOREBOARD_WORKER_MAIN_PATH = "score";
     public static final String SCOREBOARD_WORKER_GET_SCOREBOARD = "";
+    public static final String BATTLE_WORKER_MAIN_PATH = "battles";
+    public static final String BATTLE_WORKER_BATTLE = "";
 }

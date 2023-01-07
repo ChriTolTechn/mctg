@@ -16,4 +16,6 @@ public final class DefaultValues {
     public static final int DEFAULT_ELO = 1000;
 
     public static final String ADMIN_USERNAME = "admin";
+
+    public static final int DEFAULT_TIMEOUT = 20000;
 }

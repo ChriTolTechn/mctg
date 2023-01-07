@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CardRepositoryImplementation extends BaseRepository implements CardRepository {
     public CardRepositoryImplementation(Connection connection) {
@@ -63,6 +64,18 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         ResultSet res = preparedStatement.executeQuery();
 
         return extractManyCards(res);
+    }
+
+    @Override
+    public ConcurrentHashMap<String, Card> getCardsByDeckIdAsMap(int deckId) throws SQLException, InvalidCardParameterException {
+        String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_deck_id = ?";
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+
+        preparedStatement.setInt(1, deckId);
+
+        ResultSet res = preparedStatement.executeQuery();
+
+        return extractManyCardsAsMap(res);
     }
 
     @Override
@@ -191,6 +204,15 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         Vector<Card> cards = new Vector<>();
         while (res.next()) {
             cards.add(convertCardToModel(res));
+        }
+        return cards;
+    }
+
+    private ConcurrentHashMap<String, Card> extractManyCardsAsMap(ResultSet res) throws SQLException, InvalidCardParameterException {
+        ConcurrentHashMap<String, Card> cards = new ConcurrentHashMap();
+        while (res.next()) {
+            Card card = convertCardToModel(res);
+            cards.put(card.getCardId(), card);
         }
         return cards;
     }

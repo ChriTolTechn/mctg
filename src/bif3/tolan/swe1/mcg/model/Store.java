@@ -40,7 +40,7 @@ public class Store {
 
         if (wantedPackage != null) {
             if (user.canPurchase(DefaultValues.DEFAULT_PACKAGE_COST)) {
-                user.addCardsToStack(wantedPackage);
+                //user.addCardsToStack(wantedPackage);
                 user.payCoins(DefaultValues.DEFAULT_PACKAGE_COST);
             } else {
                 throw new InsufficientFundsException();

@@ -53,7 +53,7 @@ public class PackageWorker implements Workable {
         return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "Unknown path");
     }
 
-    private HttpResponse createPackage(HttpRequest request) {
+    private synchronized HttpResponse createPackage(HttpRequest request) {
         ObjectMapper mapper = new ObjectMapper();
         String jsonString = request.getBody();
 

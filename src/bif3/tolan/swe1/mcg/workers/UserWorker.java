@@ -53,7 +53,7 @@ public class UserWorker implements Workable {
         return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "Unknown path");
     }
 
-    private HttpResponse registerUser(HttpRequest request) {
+    private synchronized HttpResponse registerUser(HttpRequest request) {
         ObjectMapper mapper = new ObjectMapper();
         String jsonString = request.getBody();
 
@@ -109,7 +109,7 @@ public class UserWorker implements Workable {
         return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The json string is not formatted properly");
     }
 
-    private HttpResponse editUserData(HttpRequest request, String requestedUser) {
+    private synchronized HttpResponse editUserData(HttpRequest request, String requestedUser) {
         String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
         String username = UserUtils.getUsernameFromToken(authorizationToken);
 

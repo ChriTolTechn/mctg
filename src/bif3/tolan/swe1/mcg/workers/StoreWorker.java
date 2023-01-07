@@ -53,7 +53,7 @@ public class StoreWorker implements Workable {
     /**
      * Buys a package for a user
      */
-    private HttpResponse buyPackage(HttpRequest request) {
+    private synchronized HttpResponse buyPackage(HttpRequest request) {
         String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
         String username = UserUtils.getUsernameFromToken(authorizationToken);
 

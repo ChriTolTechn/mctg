@@ -1,19 +1,13 @@
 package bif3.tolan.swe1.mcg.model;
 
 import bif3.tolan.swe1.mcg.constants.DefaultValues;
-import bif3.tolan.swe1.mcg.exceptions.CardStackNullException;
 import bif3.tolan.swe1.mcg.exceptions.CardsNotInStackException;
 import bif3.tolan.swe1.mcg.exceptions.InsufficientFundsException;
-import bif3.tolan.swe1.mcg.exceptions.InvalidDeckSizeException;
-import bif3.tolan.swe1.mcg.utils.MapUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
-import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static bif3.tolan.swe1.mcg.utils.PasswordHashUtils.hashPassword;
@@ -23,7 +17,7 @@ import static bif3.tolan.swe1.mcg.utils.PasswordHashUtils.hashPassword;
  *
  * @author Christopher Tolan
  */
-public class User {
+public class User implements Cloneable {
 
     private String username;
     @JsonIgnore
@@ -48,8 +42,6 @@ public class User {
     private String image;
     @JsonProperty("Name")
     private String name;
-    // Constructors
-
     public User(String username, String passwordHash, int elo, int coins, int gamesPlayed, int id, int wins, String name, String bio, String image) {
         this.username = username;
         this.passwordHash = passwordHash;
@@ -62,6 +54,7 @@ public class User {
         this.bio = bio;
         this.image = image;
     }
+    // Constructors
 
     public User() {
         this.coins = DefaultValues.DEFAULT_USER_BALANCE;
@@ -75,18 +68,26 @@ public class User {
         this.image = "";
     }
 
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
     // Getter and setter
     public ConcurrentHashMap<String, Card> getStack() {
         return stack;
+    }
+
+    public void setStack(ConcurrentHashMap<String, Card> stack) {
+        this.stack = stack;
     }
 
     public ConcurrentHashMap<String, Card> getDeck() {
         return deck;
     }
 
-    // Sets cards from the stack to the active deck of the user.
-    public void setDeck(Vector<String> deck) throws CardsNotInStackException, CardStackNullException, InvalidDeckSizeException {
-        assignDeckIfValid(deck);
+    public void setDeck(ConcurrentHashMap<String, Card> deck) {
+        this.deck = deck;
     }
 
     public String getUsername() {
@@ -168,39 +169,6 @@ public class User {
     }
 
     /**
-     * Adds cards to the users stack. Throws exception if provided cards are emtpy or null
-     *
-     * @param newCards cards that should be added to the users stack
-     * @throws NullPointerException   if the given cards are null
-     * @throws NoSuchElementException if there are no cards to be added
-     */
-    public void addCardsToStack(List<Card> newCards) throws NullPointerException, NoSuchElementException {
-        if (newCards == null) {
-            throw new NullPointerException("newCards cannot be null");
-        } else if (newCards.isEmpty()) {
-            throw new NoSuchElementException("There are no cards found to be added");
-        } else {
-            for (Card card : newCards) {
-                stack.put(card.getCardId(), card);
-            }
-        }
-    }
-
-    /**
-     * Adds a card to the users card stack
-     *
-     * @param card The card that is added
-     * @throws NullPointerException if the given card is null
-     */
-    public void addCardToStack(Card card) throws NullPointerException {
-        if (card == null) {
-            throw new NullPointerException("Card cannot be null");
-        } else {
-            stack.put(card.getCardId(), card);
-        }
-    }
-
-    /**
      * Checks if the user has enough money to buy something
      *
      * @param cost given cost
@@ -225,20 +193,6 @@ public class User {
         } else {
             throw new CardsNotInStackException();
         }
-    }
-
-    /**
-     * Checks if user has a specific card in his stack
-     *
-     * @param cardId Id for card that is looked after in the users stack
-     * @return True if the card is in the stack, False if it is not
-     * @throws NullPointerException if the given card is null
-     */
-    public boolean hasUserCardInStack(String cardId) throws NullPointerException {
-        if (cardId == null)
-            throw new NullPointerException("Card cannot be null");
-
-        return stack.containsKey(cardId);
     }
 
     @Override
@@ -268,14 +222,6 @@ public class User {
         }
     }
 
-    /**
-     * Adds all cards in the deck back to the stack and clears the deck
-     */
-    private void returnCardsFromDeckToStackAndClearDeck() {
-        stack.putAll(deck);
-        deck.clear();
-    }
-
     @Override
     public String toString() {
         return "Username:     " + username + "\n" +
@@ -287,33 +233,5 @@ public class User {
                 "Games played: " + gamesPlayed + "\n" +
                 "Wins:         " + wins + "\n"
                 ;
-    }
-
-    /**
-     * Checks the validity of a given deck and assigns it if it meets all criterias
-     *
-     * @param newDeckKeys The ids of the card to be assigned to the deck
-     * @throws InvalidDeckSizeException if the deck size is not 4
-     * @throws CardStackNullException   if the card stack of the user is null
-     * @throws CardsNotInStackException if the cards from the deck are not in the users stack
-     * @throws NullPointerException     if the deck is null
-     */
-    private void assignDeckIfValid(List<String> newDeckKeys) throws InvalidDeckSizeException, NullPointerException, CardStackNullException, CardsNotInStackException {
-        if (stack == null) {
-            throw new CardStackNullException();
-        } else if (newDeckKeys == null) {
-            throw new NullPointerException();
-        } else if (newDeckKeys.size() != 4) {
-            throw new InvalidDeckSizeException();
-        } else if (MapUtils.stackContainsAllKeys(stack, newDeckKeys) == false) {
-            throw new CardsNotInStackException();
-        } else {
-            returnCardsFromDeckToStackAndClearDeck();
-            for (String key : newDeckKeys) {
-                Card card = stack.get(key);
-                deck.put(card.getCardId(), card);
-                stack.remove(key);
-            }
-        }
     }
 }

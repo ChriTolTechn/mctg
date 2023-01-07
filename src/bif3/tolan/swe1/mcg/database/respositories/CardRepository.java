@@ -7,6 +7,7 @@ import bif3.tolan.swe1.mcg.model.Card;
 
 import java.sql.SQLException;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 
 public interface CardRepository {
     Card getCardById(String cardId) throws SQLException, InvalidCardParameterException;
@@ -30,4 +31,6 @@ public interface CardRepository {
     void assignCardToPackage(String cardId, int packageId) throws InvalidInputException, SQLException, InvalidCardParameterException;
 
     void assignCardToTradeOffer(String cardId, String tradeOfferId) throws InvalidInputException, SQLException, InvalidCardParameterException;
+
+    ConcurrentHashMap<String, Card> getCardsByDeckIdAsMap(int deckId) throws SQLException, InvalidCardParameterException;
 }

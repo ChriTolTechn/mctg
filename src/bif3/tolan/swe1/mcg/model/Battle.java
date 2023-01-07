@@ -6,10 +6,8 @@ import bif3.tolan.swe1.mcg.enums.ElementType;
 import bif3.tolan.swe1.mcg.exceptions.BattleFinishedException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidDeckException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidUserException;
-import bif3.tolan.swe1.mcg.utils.EloUtils;
 import bif3.tolan.swe1.mcg.utils.MapUtils;
 
-import java.util.Random;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -24,11 +22,14 @@ public class Battle {
     private final User user2;
     private int round;
     private boolean gameFinished;
-    private String winnerUsername;
+    private User winner;
+
+    private User loser;
     private ConcurrentHashMap<String, Card> user1Deck;
     private ConcurrentHashMap<String, Card> user2Deck;
     private Vector<String> battleLog;
-    private Random random;
+
+    private boolean draw;
 
     public Battle(User user1, User user2) throws InvalidUserException, InvalidDeckException {
         if (user1 == null || user2 == null || user1 == user2)
@@ -37,8 +38,10 @@ public class Battle {
         this.user2 = user2;
         this.round = 0;
         this.gameFinished = false;
-        this.random = new Random();
+        this.draw = false;
         this.battleLog = new Vector<>();
+        this.winner = null;
+        this.loser = null;
 
         prepareBattle();
     }
@@ -54,6 +57,8 @@ public class Battle {
 
         if (user1Deck == null || user2Deck == null)
             throw new InvalidDeckException();
+
+        battleLog.add("------- Battle: " + user1.getUsername() + " VS " + user2.getUsername() + "-------");
     }
 
     /**
@@ -95,26 +100,26 @@ public class Battle {
      */
     private void concludeRound(Card user1Card, Card user2Card, float damageU1, float damageU2) {
         // Prepare message for log
-        String logMessage = user1.getUsername() + ": " + user1Card.getName() + " ( " + user1Card.getDamage() + " BaseDamage" + " )" + " vs " +
-                user2.getUsername() + ": " + user2Card.getName() + " ( " + user2Card.getDamage() + " BaseDamage" + " )" + " => ";
+        String logMessage = "Round " + round + " - " + user1.getUsername() + "(" + user1Deck.size() + ")" + ": " + user1Card.getName() + " (" + user1Card.getDamage() + " BaseDamage" + ")" + " vs " +
+                user2.getUsername() + "(" + user2Deck.size() + ")" + ": " + user2Card.getName() + " (" + user2Card.getDamage() + " BaseDamage" + ")" + " => ";
 
         // Transfer losing card to the winners deck
         if (damageU1 > damageU2) {
-            user2Deck.remove(user2Card);
+            user2Deck.remove(user2Card.getCardId());
             user1Deck.put(user2Card.getCardId(), user2Card);
 
-            logMessage += user1Card.getName() + " ( " + damageU1 + " FinalDamage " + " )" + " defeats " +
-                    user2Card.getName() + " ( " + damageU2 + " FinalDamage " + " )";
+            logMessage += user1Card.getName() + " (" + damageU1 + "FinalDamage" + ")" + " defeats " +
+                    user2Card.getName() + " (" + damageU2 + " FinalDamage" + ")";
         } else if (damageU2 > damageU1) {
-            user1Deck.remove(user1Card);
+            user1Deck.remove(user1Card.getCardId());
             user2Deck.put(user1Card.getCardId(), user1Card);
 
-            logMessage += user2Card.getName() + " ( " + damageU2 + " FinalDamage" + " )" + " defeats " +
-                    user1Card.getName() + " ( " + damageU1 + " FinalDamage" + " )";
+            logMessage += user2Card.getName() + " (" + damageU2 + " FinalDamage" + ")" + " defeats " +
+                    user1Card.getName() + " (" + damageU1 + " FinalDamage" + ")";
         } else {
             // In case of a draw (damageU1 == damageU2) nothing happens
-            logMessage += user2Card.getName() + " ( " + damageU2 + " FinalDamage" + " )" + " is in draw with " +
-                    user1Card.getName() + " ( " + damageU1 + " FinalDamage" + " )";
+            logMessage += user2Card.getName() + " (" + damageU2 + " FinalDamage" + ")" + " is in draw with " +
+                    user1Card.getName() + " (" + damageU1 + " FinalDamage" + ")";
         }
         battleLog.add(logMessage);
     }
@@ -123,7 +128,7 @@ public class Battle {
      * @return Returns the battle log as a string
      */
     public String getBattleLog() {
-        return String.join("\n", battleLog);
+        return String.join(" \n", battleLog);
     }
 
     /**
@@ -140,11 +145,6 @@ public class Battle {
      */
     private void checkVictoryForUser() {
         if (round > 99 || user1Deck.isEmpty() || user2Deck.isEmpty()) {
-            User winner;
-            User loser;
-            EloUtils.NewEloValues newEloValues;
-            boolean draw = false;
-
             if (round > 99) {
                 //Draw
                 winner = user1;
@@ -160,7 +160,7 @@ public class Battle {
                 loser = user1;
             }
 
-            concludeGame(winner, loser, draw);
+            concludeGame(winner, loser);
         }
     }
 
@@ -170,34 +170,36 @@ public class Battle {
      * Game is set as finished
      *
      * @param winner User that won the game
-     * @param loser  User that lost
-     * @param draw   If there is neither a winner nor a loser (in this case assignment of winner and loser doesnt matter)
      */
-    private void concludeGame(User winner, User loser, boolean draw) {
-        EloUtils.NewEloValues newEloValues;
-        newEloValues = EloUtils.calculateNewElo(
-                winner.getElo(),
-                loser.getElo(),
-                winner.getGamesPlayed(),
-                loser.getGamesPlayed(),
-                draw);
+    private void concludeGame(User winner, User loser) {
+        this.winner = winner;
+        this.loser = loser;
 
-        winner.setElo(newEloValues.winnerElo());
-        loser.setElo(newEloValues.loserElo());
-
-        winner.setGamesPlayed(user1.getGamesPlayed() + 1);
-        loser.setGamesPlayed(user2.getGamesPlayed() + 1);
+        battleLog.add("--------------");
+        if (draw) {
+            battleLog.add("Game ended in a draw");
+        } else {
+            battleLog.add("Winner:" + winner.getUsername());
+        }
+        battleLog.add("--------------");
 
         gameFinished = true;
-        winnerUsername = winner.getUsername();
     }
 
 
     /**
      * @return The name of the user that has won
      */
-    public String getWinnerUsername() {
-        return winnerUsername;
+    public User getWinner() {
+        return winner;
+    }
+
+    public User getLoser() {
+        return loser;
+    }
+
+    public boolean isDraw() {
+        return draw;
     }
 
     /**

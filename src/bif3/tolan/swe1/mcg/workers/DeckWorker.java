@@ -88,7 +88,7 @@ public class DeckWorker implements Workable {
         return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The json string is not formatted properly");
     }
 
-    private HttpResponse configureDeck(HttpRequest request) {
+    private synchronized HttpResponse configureDeck(HttpRequest request) {
         String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
         String username = UserUtils.getUsernameFromToken(authorizationToken);
 
