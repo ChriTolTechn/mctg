@@ -98,7 +98,7 @@ public class UserRepositoryImplementation extends BaseRepository implements User
 
     @Override
     public Vector<User> getUsersOrderedByElo() throws SQLException {
-        String sql = "SELECT username, elo, games_played, wins FROM mctg_user ORDER BY elo";
+        String sql = "SELECT username, elo, games_played, wins FROM mctg_user ORDER BY elo DESC";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
         ResultSet resultSet = preparedStatement.executeQuery();

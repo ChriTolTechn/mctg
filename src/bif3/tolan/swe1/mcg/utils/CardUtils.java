@@ -48,7 +48,7 @@ public class CardUtils {
     }
 
     public static String getCardsAsStringForDisplayPlain(String username, List<Card> cards) {
-        StringBuilder cardsAsString = new StringBuilder("Cards in deck of user" + username + ":");
+        StringBuilder cardsAsString = new StringBuilder("Cards of user" + username + ":");
         if (cards.size() == 0) {
             cardsAsString.append("\nNo cards available");
         }
@@ -60,7 +60,7 @@ public class CardUtils {
     }
 
     public static String getCardsAsStringForDisplay(String username, List<Card> cards) {
-        StringBuilder cardsAsString = new StringBuilder("Cards in deck of user" + username + ":");
+        StringBuilder cardsAsString = new StringBuilder("Cards of user" + username + ":");
         if (cards.size() == 0) {
             cardsAsString.append("\nNo cards available");
         }
