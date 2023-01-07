@@ -12,11 +12,15 @@ public final class Paths {
     public static final String PACKAGES_WORKER_MAIN_PATH = "packages";
     public static final String LOGIN_WORKER_LOGIN = "";
     public static final String PACKAGE_WORKER_CREATE = "";
-    public static final String SHOP_WORKER_DEFAULT_PATH = "transactions";
+    public static final String SHOP_WORKER_MAIN_PATH = "transactions";
     public static final String SHOP_WORKER_BUY_PACKAGE = "packages";
-    public static final String CARD_WORKER_DEFAULT_PATH = "cards";
+    public static final String CARD_WORKER_MAIN_PATH = "cards";
     public static final String CARD_WORKER_SHOW_CARDS = "";
-    public static final String DECK_WORKER_DEFAULT_PATH = "deck";
+    public static final String DECK_WORKER_MAIN_PATH = "deck";
     public static final String DECK_WORKER_SHOW_DECK = "";
     public static final String DECK_WORKER_CONFIGURE_DECK = "";
+
+    public static final String STATISTICS_WORKER_MAIN_PATH = "stats";
+
+    public static final String STATISTICS_WORKER_GET_STATS = "";
 }
