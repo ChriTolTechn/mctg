@@ -73,8 +73,7 @@ public class DeckWorker implements Workable {
                 String formatParameter = request.getParameterMap().get("format");
 
                 if (formatParameter != null && formatParameter.equals("plain")) {
-                    //TODO implement other display method for cards
-                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, "TEST");
+                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, CardUtils.getCardsAsStringForDisplayPlain(dbUser.getUsername(), cards));
                 } else {
                     return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, CardUtils.getCardsAsStringForDisplay(dbUser.getUsername(), cards));
                 }

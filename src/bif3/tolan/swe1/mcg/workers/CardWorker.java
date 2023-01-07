@@ -53,7 +53,7 @@ public class CardWorker implements Workable {
             if (dbUser != null) {
                 Vector<Card> cards = cardRepository.getCardsByUserId(dbUser.getId());
 
-                return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, CardUtils.getCardsAsStringForDisplay(dbUser.getUsername(), cards));
+                return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, CardUtils.getCardsAsStringForDisplayPlain(dbUser.getUsername(), cards));
             } else {
                 return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Not logged in");
             }

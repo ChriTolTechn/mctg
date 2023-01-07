@@ -47,7 +47,7 @@ public class CardUtils {
         return new Card(cardId, name, element, damage, type);
     }
 
-    public static String getCardsAsStringForDisplay(String username, List<Card> cards) {
+    public static String getCardsAsStringForDisplayPlain(String username, List<Card> cards) {
         StringBuilder cardsAsString = new StringBuilder("Cards in deck of user" + username + ":");
         if (cards.size() == 0) {
             cardsAsString.append("\nNo cards available");
@@ -55,6 +55,22 @@ public class CardUtils {
         for (Card c : cards) {
             cardsAsString.append("\n");
             cardsAsString.append(c.toString());
+        }
+        return cardsAsString.toString();
+    }
+
+    public static String getCardsAsStringForDisplay(String username, List<Card> cards) {
+        StringBuilder cardsAsString = new StringBuilder("Cards in deck of user" + username + ":");
+        if (cards.size() == 0) {
+            cardsAsString.append("\nNo cards available");
+        }
+        for (Card c : cards) {
+            cardsAsString.append("\n-------- Card " + (cards.indexOf(c) + 1) + " --------");
+            cardsAsString.append("\n Id:      " + c.getCardId());
+            cardsAsString.append("\n Name:    " + c.getName());
+            cardsAsString.append("\n Element: " + c.getElement());
+            cardsAsString.append("\n Type:    " + c.getCardType());
+            cardsAsString.append("\n Damage:  " + c.getDamage());
         }
         return cardsAsString.toString();
     }
