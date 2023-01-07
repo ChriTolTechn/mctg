@@ -25,4 +25,10 @@ public final class Paths {
     public static final String SCOREBOARD_WORKER_GET_SCOREBOARD = "";
     public static final String BATTLE_WORKER_MAIN_PATH = "battles";
     public static final String BATTLE_WORKER_BATTLE = "";
+
+    public static final String TRADE_WORKER_MAIN_PATH = "tradings";
+
+    public static final String TRADE_WORKER_GET_TRADES = "";
+
+    public static final String TRADE_WORKER_ADD_TRADE = "";
 }

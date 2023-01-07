@@ -54,15 +54,15 @@ public class PackageWorker implements Workable {
     }
 
     private synchronized HttpResponse createPackage(HttpRequest request) {
-        ObjectMapper mapper = new ObjectMapper();
-        String jsonString = request.getBody();
-
         String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
         String username = UserUtils.getUsernameFromToken(authorizationToken);
 
         try {
             User dbUser = userRepository.getByUsername(username);
             if (dbUser != null && dbUser.getUsername().equals(DefaultValues.ADMIN_USERNAME)) {
+                ObjectMapper mapper = new ObjectMapper();
+                String jsonString = request.getBody();
+
                 Vector<Card> cards = mapper.readValue(
                         jsonString,
                         mapper.getTypeFactory().constructCollectionType(Vector.class, Card.class));

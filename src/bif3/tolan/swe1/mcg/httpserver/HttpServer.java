@@ -68,5 +68,9 @@ public class HttpServer {
                 dbConnection.getUserRepository(),
                 dbConnection.getCardRepository(),
                 dbConnection.getDeckRepository()));
+        workers.put(Paths.TRADE_WORKER_MAIN_PATH, new TradeWorker(
+                dbConnection.getUserRepository(),
+                dbConnection.getTradeOfferRepository(),
+                dbConnection.getCardRepository()));
     }
 }

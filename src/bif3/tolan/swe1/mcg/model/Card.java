@@ -34,7 +34,7 @@ public class Card {
     private CardType cardType;
 
 
-    @JsonIgnore
+    @JsonProperty("Damage")
     private float damage;
 
     public Card(String cardId, String name, ElementType element, float damage, CardType cardType) {
@@ -79,9 +79,8 @@ public class Card {
         return damage;
     }
 
-    @JsonSetter("Damage")
-    public void setDamage(double damage) {
-        this.damage = (float) damage;
+    public void setDamage(float damage) {
+        this.damage = damage;
     }
 
     public CardType getMonsterType() {
