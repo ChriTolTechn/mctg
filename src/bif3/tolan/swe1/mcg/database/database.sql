@@ -12,7 +12,11 @@ CREATE TABLE mctg_user (
   password_hash VARCHAR(255) NOT NULL,
   elo INTEGER NOT NULL,
   coins INTEGER NOT NULL,
-  games_played INTEGER NOT NULL
+  games_played INTEGER NOT NULL,
+  wins INTEGER NOT NULL,
+  name VARCHAR(50),
+  bio VARCHAR(255),
+  image VARCHAR(255)
 );
 
 CREATE TABLE mctg_deck (
@@ -41,15 +45,15 @@ CREATE TABLE mctg_card (
   damage FLOAT NOT NULL,
   mctg_user_id INTEGER,
   mctg_trade_offer_id VARCHAR(50),
-  mctg_package INTEGER,
+  mctg_package_id INTEGER,
   mctg_deck_id INTEGER,
   FOREIGN KEY (mctg_user_id) REFERENCES mctg_user(id),
   FOREIGN KEY (mctg_trade_offer_id) REFERENCES mctg_trade_offer(id),
-  FOREIGN KEY (mctg_package) REFERENCES mctg_package(id),
+  FOREIGN KEY (mctg_package_id) REFERENCES mctg_package(id),
   FOREIGN KEY (mctg_deck_id) REFERENCES mctg_deck(id),
-  CHECK ((mctg_user_id IS NOT NULL AND mctg_trade_offer_id IS NULL AND mctg_package IS NULL AND mctg_deck_id IS NULL) OR 
-        (mctg_user_id IS NULL AND mctg_trade_offer_id IS NOT NULL AND mctg_package IS NULL AND mctg_deck_id IS NULL) OR 
-        (mctg_user_id IS NULL AND mctg_trade_offer_id IS NULL AND mctg_package IS NOT NULL AND mctg_deck_id IS NULL) OR 
-        (mctg_user_id IS NULL AND mctg_trade_offer_id IS NULL AND mctg_package IS NULL AND mctg_deck_id IS NOT NULL) OR
-        (mctg_user_id IS NULL AND mctg_trade_offer_id IS NULL AND mctg_package IS NULL AND mctg_deck_id IS NULL))
+  CHECK ((mctg_user_id IS NOT NULL AND mctg_trade_offer_id IS NULL AND mctg_package_id IS NULL AND mctg_deck_id IS NULL) OR 
+        (mctg_user_id IS NULL AND mctg_trade_offer_id IS NOT NULL AND mctg_package_id IS NULL AND mctg_deck_id IS NULL) OR 
+        (mctg_user_id IS NULL AND mctg_trade_offer_id IS NULL AND mctg_package_id IS NOT NULL AND mctg_deck_id IS NULL) OR 
+        (mctg_user_id IS NULL AND mctg_trade_offer_id IS NULL AND mctg_package_id IS NULL AND mctg_deck_id IS NOT NULL) OR
+        (mctg_user_id IS NULL AND mctg_trade_offer_id IS NULL AND mctg_package_id IS NULL AND mctg_deck_id IS NULL))
 );

@@ -1,6 +1,9 @@
 package bif3.tolan.swe1.mcg.model;
 
 import bif3.tolan.swe1.mcg.enums.CardType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 
 /**
  * Class that represents a trade offer
@@ -9,12 +12,21 @@ import bif3.tolan.swe1.mcg.enums.CardType;
  */
 public class TradeOffer {
 
-    private final String tradeId;
-    private final int userId;
-    private final int minDamage;
-    private final CardType cardType;
-    private final CardType.CardGroup cardGroup;
+    @JsonProperty("Id")
+    private String tradeId;
+    @JsonIgnore
+    private int userId;
+    @JsonProperty("MinimumDamage")
+    private int minDamage;
+    @JsonIgnore
+    private CardType cardType;
+    @JsonIgnore
+    private CardType.CardGroup cardGroup;
+    @JsonProperty("CardToTrade")
     private String tradeCardId;
+
+    @JsonIgnore
+    private Card card;
 
     /**
      * This constructor accepts a card type as requirement
@@ -68,6 +80,9 @@ public class TradeOffer {
         this.minDamage = minDamage;
     }
 
+    public TradeOffer() {
+    }
+
     private void checkParameterValidity(String tradeId, int userId, int minDamage, boolean b) throws NullPointerException, IllegalArgumentException {
         if (tradeId == null || userId < 0 || b)
             throw new NullPointerException();
@@ -83,16 +98,34 @@ public class TradeOffer {
         return minDamage;
     }
 
+    public void setMinDamage(int minDamage) {
+        this.minDamage = minDamage;
+    }
+
     public CardType getCardType() {
         return cardType;
+    }
+
+    @JsonSetter("Card")
+    public void setCardType(String cardType) throws IllegalArgumentException {
+        this.cardType = CardType.valueOf(cardType.toUpperCase());
     }
 
     public CardType.CardGroup getCardGroup() {
         return cardGroup;
     }
 
+    @JsonSetter("Type")
+    public void setCardGroup(String cardGroup) throws IllegalArgumentException {
+        this.cardGroup = CardType.CardGroup.valueOf(cardGroup.toUpperCase());
+    }
+
     public int getUserId() {
         return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 
     public String getTradeCardId() {
@@ -101,5 +134,22 @@ public class TradeOffer {
 
     public void setTradeCardId(String tradeCardId) {
         this.tradeCardId = tradeCardId;
+    }
+
+    public Card getCard() {
+        return card;
+    }
+
+    public void setCard(Card card) {
+        this.card = card;
+    }
+
+    @Override
+    public String toString() {
+        return "TradeId: " + tradeId + ", " +
+                "UserId: " + userId + ", " +
+                "MinDamae: " + minDamage + ", " +
+                "CardType: " + (cardType == null ? "n/a" : cardType) + ", " +
+                "CardGroup: " + (cardGroup == null ? "n/a" : cardGroup);
     }
 }

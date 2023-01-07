@@ -1,18 +1,13 @@
 package bif3.tolan.swe1.mcg.model;
 
 import bif3.tolan.swe1.mcg.constants.DefaultValues;
-import bif3.tolan.swe1.mcg.exceptions.CardStackNullException;
 import bif3.tolan.swe1.mcg.exceptions.CardsNotInStackException;
 import bif3.tolan.swe1.mcg.exceptions.InsufficientFundsException;
-import bif3.tolan.swe1.mcg.exceptions.InvalidDeckSizeException;
-import bif3.tolan.swe1.mcg.utils.MapUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
-import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static bif3.tolan.swe1.mcg.utils.PasswordHashUtils.hashPassword;
@@ -22,9 +17,11 @@ import static bif3.tolan.swe1.mcg.utils.PasswordHashUtils.hashPassword;
  *
  * @author Christopher Tolan
  */
-public class User {
+public class User implements Cloneable {
 
     private String username;
+    @JsonIgnore
+    private int id;
     @JsonIgnore
     private String passwordHash;
     @JsonIgnore
@@ -37,17 +34,27 @@ public class User {
     private int coins;
     @JsonIgnore
     private int gamesPlayed;
-
-    // Constructors
-
-
-    public User(String username, String passwordHash, int elo, int coins, int gamesPlayed) {
+    @JsonIgnore
+    private int wins;
+    @JsonProperty("Bio")
+    private String bio;
+    @JsonProperty("Image")
+    private String image;
+    @JsonProperty("Name")
+    private String name;
+    public User(String username, String passwordHash, int elo, int coins, int gamesPlayed, int id, int wins, String name, String bio, String image) {
         this.username = username;
         this.passwordHash = passwordHash;
         this.elo = elo;
         this.coins = coins;
         this.gamesPlayed = gamesPlayed;
+        this.id = id;
+        this.wins = wins;
+        this.name = name;
+        this.bio = bio;
+        this.image = image;
     }
+    // Constructors
 
     public User() {
         this.coins = DefaultValues.DEFAULT_USER_BALANCE;
@@ -55,6 +62,15 @@ public class User {
         this.stack = new ConcurrentHashMap<>();
         this.deck = new ConcurrentHashMap<>();
         this.gamesPlayed = 0;
+        this.wins = 0;
+        this.name = "";
+        this.bio = "";
+        this.image = "";
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 
     // Getter and setter
@@ -62,13 +78,16 @@ public class User {
         return stack;
     }
 
+    public void setStack(ConcurrentHashMap<String, Card> stack) {
+        this.stack = stack;
+    }
+
     public ConcurrentHashMap<String, Card> getDeck() {
         return deck;
     }
 
-    // Sets cards from the stack to the active deck of the user.
-    public void setDeck(Vector<String> deck) throws CardsNotInStackException, CardStackNullException, InvalidDeckSizeException {
-        assignDeckIfValid(deck);
+    public void setDeck(ConcurrentHashMap<String, Card> deck) {
+        this.deck = deck;
     }
 
     public String getUsername() {
@@ -86,6 +105,10 @@ public class User {
 
     public void setElo(int elo) {
         this.elo = elo;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public int getGamesPlayed() {
@@ -113,37 +136,36 @@ public class User {
         this.passwordHash = hashPassword(password);
     }
 
-    /**
-     * Adds cards to the users stack. Throws exception if provided cards are emtpy or null
-     *
-     * @param newCards cards that should be added to the users stack
-     * @throws NullPointerException   if the given cards are null
-     * @throws NoSuchElementException if there are no cards to be added
-     */
-    public void addCardsToStack(List<Card> newCards) throws NullPointerException, NoSuchElementException {
-        if (newCards == null) {
-            throw new NullPointerException("newCards cannot be null");
-        } else if (newCards.isEmpty()) {
-            throw new NoSuchElementException("There are no cards found to be added");
-        } else {
-            for (Card card : newCards) {
-                stack.put(card.getCardId(), card);
-            }
-        }
+    public int getWins() {
+        return wins;
     }
 
-    /**
-     * Adds a card to the users card stack
-     *
-     * @param card The card that is added
-     * @throws NullPointerException if the given card is null
-     */
-    public void addCardToStack(Card card) throws NullPointerException {
-        if (card == null) {
-            throw new NullPointerException("Card cannot be null");
-        } else {
-            stack.put(card.getCardId(), card);
-        }
+    public void setWins(int wins) {
+        this.wins = wins;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**
@@ -173,26 +195,12 @@ public class User {
         }
     }
 
-    /**
-     * Checks if user has a specific card in his stack
-     *
-     * @param cardId Id for card that is looked after in the users stack
-     * @return True if the card is in the stack, False if it is not
-     * @throws NullPointerException if the given card is null
-     */
-    public boolean hasUserCardInStack(String cardId) throws NullPointerException {
-        if (cardId == null)
-            throw new NullPointerException("Card cannot be null");
-
-        return stack.containsKey(cardId);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return username.equals(user.username);
+        return id == user.id || username.equals(user.username);
     }
 
     @Override
@@ -214,39 +222,16 @@ public class User {
         }
     }
 
-    /**
-     * Adds all cards in the deck back to the stack and clears the deck
-     */
-    private void returnCardsFromDeckToStackAndClearDeck() {
-        stack.putAll(deck);
-        deck.clear();
-    }
-
-    /**
-     * Checks the validity of a given deck and assigns it if it meets all criterias
-     *
-     * @param newDeckKeys The ids of the card to be assigned to the deck
-     * @throws InvalidDeckSizeException if the deck size is not 4
-     * @throws CardStackNullException   if the card stack of the user is null
-     * @throws CardsNotInStackException if the cards from the deck are not in the users stack
-     * @throws NullPointerException     if the deck is null
-     */
-    private void assignDeckIfValid(List<String> newDeckKeys) throws InvalidDeckSizeException, NullPointerException, CardStackNullException, CardsNotInStackException {
-        if (stack == null) {
-            throw new CardStackNullException();
-        } else if (newDeckKeys == null) {
-            throw new NullPointerException();
-        } else if (newDeckKeys.size() != 4) {
-            throw new InvalidDeckSizeException();
-        } else if (MapUtils.stackContainsAllKeys(stack, newDeckKeys) == false) {
-            throw new CardsNotInStackException();
-        } else {
-            returnCardsFromDeckToStackAndClearDeck();
-            for (String key : newDeckKeys) {
-                Card card = stack.get(key);
-                deck.put(card.getCardId(), card);
-                stack.remove(key);
-            }
-        }
+    @Override
+    public String toString() {
+        return "Username:     " + username + "\n" +
+                "Name:         " + name + "\n" +
+                "Bio:          " + bio + "\n" +
+                "Image:        " + image + "\n" +
+                "Coins:        " + coins + "\n" +
+                "Elo:          " + elo + "\n" +
+                "Games played: " + gamesPlayed + "\n" +
+                "Wins:         " + wins + "\n"
+                ;
     }
 }
