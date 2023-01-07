@@ -47,5 +47,6 @@ public class HttpServer {
         workers.put(Paths.CARD_WORKER_MAIN_PATH, new CardWorker(dbConnection.getUserRepository(), dbConnection.getCardRepository()));
         workers.put(Paths.DECK_WORKER_MAIN_PATH, new DeckWorker(dbConnection.getUserRepository(), dbConnection.getDeckRepository(), dbConnection.getCardRepository()));
         workers.put(Paths.STATISTICS_WORKER_MAIN_PATH, new StatisticsWorker(dbConnection.getUserRepository()));
+        workers.put(Paths.SCOREBOARD_WORKER_MAIN_PATH, new ScoreboardWorker(dbConnection.getUserRepository()));
     }
 }

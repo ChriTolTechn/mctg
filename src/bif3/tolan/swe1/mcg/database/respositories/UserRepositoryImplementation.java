@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Vector;
 
 public class UserRepositoryImplementation extends BaseRepository implements UserRepository {
 
@@ -93,6 +94,25 @@ public class UserRepositoryImplementation extends BaseRepository implements User
 
         preparedStatement.executeUpdate();
         return getById(user.getId());
+    }
+
+    @Override
+    public Vector<User> getUsersOrderedByElo() throws SQLException {
+        String sql = "SELECT username, elo, games_played, wins FROM mctg_user ORDER BY elo";
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        Vector<User> users = new Vector<>();
+        while (resultSet.next()) {
+            String username = resultSet.getString("username");
+            int elo = resultSet.getInt("elo");
+            int gamesPlayed = resultSet.getInt("games_played");
+            int wins = resultSet.getInt("wins");
+
+            users.add(new User(username, "", elo, 0, gamesPlayed, 0, wins, "", "", ""));
+        }
+        return users;
     }
 
     private boolean isValidNewUser(User user) {

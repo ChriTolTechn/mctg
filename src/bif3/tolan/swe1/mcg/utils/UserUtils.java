@@ -3,6 +3,7 @@ package bif3.tolan.swe1.mcg.utils;
 import bif3.tolan.swe1.mcg.constants.CommonRegex;
 import bif3.tolan.swe1.mcg.model.User;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,11 +26,37 @@ public class UserUtils {
         stringBuilder.append("Games played:   " + user.getGamesPlayed() + "\n");
         stringBuilder.append("Wins:           " + user.getWins() + "\n");
 
-        double winPercentage = 0;
-        if (user.getGamesPlayed() > 0)
-            winPercentage = (user.getWins() * 100.0) / user.getGamesPlayed();
+        double winPercentage = calculateWinPercentage(user.getGamesPlayed(), user.getWins());
 
         stringBuilder.append("Win-Percentage: " + String.format(CommonRegex.WIN_PERCENTAGE_FORMAT_REGEX, winPercentage));
         return stringBuilder.toString();
+    }
+
+    public static String getScoreboard(List<User> users) {
+        StringBuilder stringBuilder = new StringBuilder();
+        int place = 1;
+
+        for (User user : users) {
+            stringBuilder.append("#" + place + " ");
+            stringBuilder.append("Username: " + user.getUsername() + ", ");
+            stringBuilder.append("Elo: " + user.getElo() + ", ");
+            stringBuilder.append("Games played: " + user.getGamesPlayed() + ", ");
+            stringBuilder.append("Wins: " + user.getWins() + ", ");
+
+            double winPercentage = calculateWinPercentage(user.getGamesPlayed(), user.getWins());
+
+            stringBuilder.append("Win-Percentage: " + String.format(CommonRegex.WIN_PERCENTAGE_FORMAT_REGEX, winPercentage));
+            stringBuilder.append("\n");
+
+            place++;
+        }
+        return stringBuilder.toString();
+    }
+
+    private static double calculateWinPercentage(int gamesPlayed, int gamesWon) {
+        double winPercentage = 0;
+        if (gamesPlayed > 0)
+            winPercentage = (gamesWon * 100.0) / gamesPlayed;
+        return winPercentage;
     }
 }

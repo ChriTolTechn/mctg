@@ -19,8 +19,8 @@ public final class Paths {
     public static final String DECK_WORKER_MAIN_PATH = "deck";
     public static final String DECK_WORKER_SHOW_DECK = "";
     public static final String DECK_WORKER_CONFIGURE_DECK = "";
-
     public static final String STATISTICS_WORKER_MAIN_PATH = "stats";
-
     public static final String STATISTICS_WORKER_GET_STATS = "";
+    public static final String SCOREBOARD_WORKER_MAIN_PATH = "score";
+    public static final String SCOREBOARD_WORKER_GET_SCOREBOARD = "";
 }
