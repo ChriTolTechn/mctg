@@ -17,7 +17,7 @@ public class UserRepositoryImplementation extends BaseRepository implements User
 
     @Override
     public User getById(int id) throws SQLException {
-        String sql = "SELECT id, username, password_hash, elo, coins, games_played FROM mctg_user WHERE id = ?";
+        String sql = "SELECT id, username, password_hash, elo, coins, games_played, wins, name, bio, image FROM mctg_user WHERE id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
         preparedStatement.setInt(1, id);
@@ -29,7 +29,7 @@ public class UserRepositoryImplementation extends BaseRepository implements User
 
     @Override
     public User getByUsername(String username) throws SQLException {
-        String sql = "SELECT id, username, password_hash, elo, coins, games_played FROM mctg_user WHERE username = ?";
+        String sql = "SELECT id, username, password_hash, elo, coins, games_played, wins, name, bio, image FROM mctg_user WHERE username = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
         preparedStatement.setString(1, username);
@@ -46,7 +46,7 @@ public class UserRepositoryImplementation extends BaseRepository implements User
                 throw new IdExistsException();
             }
 
-            String sql = "INSERT INTO mctg_user (username, password_hash, elo, coins, games_played) VALUES (?, ?, ?, ?, ?);";
+            String sql = "INSERT INTO mctg_user (username, password_hash, elo, coins, games_played, wins, name, bio, image) VALUES (?, ?, ?, ?, ?, ?, ?, ? ,?);";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
             preparedStatement.setString(1, user.getUsername());
@@ -54,6 +54,10 @@ public class UserRepositoryImplementation extends BaseRepository implements User
             preparedStatement.setInt(3, user.getElo());
             preparedStatement.setInt(4, user.getCoins());
             preparedStatement.setInt(5, user.getGamesPlayed());
+            preparedStatement.setInt(6, user.getWins());
+            preparedStatement.setString(7, user.getName());
+            preparedStatement.setString(8, user.getBio());
+            preparedStatement.setString(9, user.getImage());
 
             preparedStatement.executeUpdate();
         } else {
@@ -68,7 +72,11 @@ public class UserRepositoryImplementation extends BaseRepository implements User
                 "elo = ?, " +
                 "coins = ?, " +
                 "games_played = ?, " +
-                "username = ? " +
+                "username = ?, " +
+                "wins = ?, " +
+                "name = ?, " +
+                "bio = ?, " +
+                "image = ? " +
                 "WHERE id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -77,7 +85,11 @@ public class UserRepositoryImplementation extends BaseRepository implements User
         preparedStatement.setInt(3, user.getCoins());
         preparedStatement.setInt(4, user.getGamesPlayed());
         preparedStatement.setString(5, user.getUsername());
-        preparedStatement.setInt(6, user.getId());
+        preparedStatement.setInt(6, user.getWins());
+        preparedStatement.setString(7, user.getName());
+        preparedStatement.setString(8, user.getBio());
+        preparedStatement.setString(9, user.getImage());
+        preparedStatement.setInt(10, user.getId());
 
         preparedStatement.executeUpdate();
         return getById(user.getId());
@@ -85,9 +97,11 @@ public class UserRepositoryImplementation extends BaseRepository implements User
 
     private boolean isValidNewUser(User user) {
         if (user == null) return false;
-        if (user.getUsername() == null) return false;
-        if (user.getUsername().length() > 50) return false;
+        if (user.getUsername() == null || user.getName() == null || user.getBio() == null || user.getImage() == null)
+            return false;
+        if (user.getUsername().length() > 50 || user.getName().length() > 50) return false;
         if (user.getUsername().isEmpty()) return false;
+        if (user.getName().length() > 255 || user.getBio().length() > 255) return false;
 
         return true;
     }
@@ -100,8 +114,12 @@ public class UserRepositoryImplementation extends BaseRepository implements User
             int coins = res.getInt("coins");
             int gamesPlayed = res.getInt("games_played");
             int id = res.getInt("id");
+            int wins = res.getInt("wins");
+            String name = res.getString("name");
+            String bio = res.getString("bio");
+            String image = res.getString("image");
 
-            return new User(username, passwordHash, elo, coins, gamesPlayed, id);
+            return new User(username, passwordHash, elo, coins, gamesPlayed, id, wins, name, bio, image);
         } else {
             return null;
         }

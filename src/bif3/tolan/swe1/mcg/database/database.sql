@@ -12,7 +12,11 @@ CREATE TABLE mctg_user (
   password_hash VARCHAR(255) NOT NULL,
   elo INTEGER NOT NULL,
   coins INTEGER NOT NULL,
-  games_played INTEGER NOT NULL
+  games_played INTEGER NOT NULL,
+  wins INTEGER NOT NULL,
+  name VARCHAR(50),
+  bio VARCHAR(255),
+  image VARCHAR(255)
 );
 
 CREATE TABLE mctg_deck (

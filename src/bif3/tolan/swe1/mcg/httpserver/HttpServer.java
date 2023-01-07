@@ -40,7 +40,7 @@ public class HttpServer {
     public void initializeWorkers(DbConnection dbConnection) {
         workers = new ConcurrentHashMap<>();
 
-        workers.put(Paths.REGISTRATION_WORKER_MAIN_PATH, new RegistrationWorker(dbConnection.getUserRepository(), dbConnection.getDeckRepository()));
+        workers.put(Paths.USER_WORKER_MAIN_PATH, new UserWorker(dbConnection.getUserRepository(), dbConnection.getDeckRepository()));
         workers.put(Paths.LOGIN_WORKER_MAIN_PATH, new LoginWorker(dbConnection.getUserRepository()));
         workers.put(Paths.PACKAGES_WORKER_MAIN_PATH, new PackageWorker(dbConnection.getUserRepository(), dbConnection.getCardRepository(), dbConnection.getPackageRepository()));
         workers.put(Paths.SHOP_WORKER_DEFAULT_PATH, new StoreWorker(dbConnection.getUserRepository(), dbConnection.getCardRepository(), dbConnection.getPackageRepository()));

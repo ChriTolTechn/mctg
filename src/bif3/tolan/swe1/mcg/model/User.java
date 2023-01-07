@@ -7,6 +7,7 @@ import bif3.tolan.swe1.mcg.exceptions.InsufficientFundsException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidDeckSizeException;
 import bif3.tolan.swe1.mcg.utils.MapUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
 import java.util.List;
@@ -25,7 +26,6 @@ import static bif3.tolan.swe1.mcg.utils.PasswordHashUtils.hashPassword;
 public class User {
 
     private String username;
-
     @JsonIgnore
     private int id;
     @JsonIgnore
@@ -40,17 +40,27 @@ public class User {
     private int coins;
     @JsonIgnore
     private int gamesPlayed;
-
+    @JsonIgnore
+    private int wins;
+    @JsonProperty("Bio")
+    private String bio;
+    @JsonProperty("Image")
+    private String image;
+    @JsonProperty("Name")
+    private String name;
     // Constructors
 
-
-    public User(String username, String passwordHash, int elo, int coins, int gamesPlayed, int id) {
+    public User(String username, String passwordHash, int elo, int coins, int gamesPlayed, int id, int wins, String name, String bio, String image) {
         this.username = username;
         this.passwordHash = passwordHash;
         this.elo = elo;
         this.coins = coins;
         this.gamesPlayed = gamesPlayed;
         this.id = id;
+        this.wins = wins;
+        this.name = name;
+        this.bio = bio;
+        this.image = image;
     }
 
     public User() {
@@ -59,6 +69,10 @@ public class User {
         this.stack = new ConcurrentHashMap<>();
         this.deck = new ConcurrentHashMap<>();
         this.gamesPlayed = 0;
+        this.wins = 0;
+        this.name = "";
+        this.bio = "";
+        this.image = "";
     }
 
     // Getter and setter
@@ -119,6 +133,38 @@ public class User {
     @JsonSetter("Password")
     private void setPasswordHash(String password) {
         this.passwordHash = hashPassword(password);
+    }
+
+    public int getWins() {
+        return wins;
+    }
+
+    public void setWins(int wins) {
+        this.wins = wins;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**
@@ -200,7 +246,7 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return username.equals(user.username);
+        return id == user.id || username.equals(user.username);
     }
 
     @Override
@@ -228,6 +274,19 @@ public class User {
     private void returnCardsFromDeckToStackAndClearDeck() {
         stack.putAll(deck);
         deck.clear();
+    }
+
+    @Override
+    public String toString() {
+        return "Username:     " + username + "\n" +
+                "Name:         " + name + "\n" +
+                "Bio:          " + bio + "\n" +
+                "Image:        " + image + "\n" +
+                "Coins:        " + coins + "\n" +
+                "Elo:          " + elo + "\n" +
+                "Games played: " + gamesPlayed + "\n" +
+                "Wins:         " + wins + "\n"
+                ;
     }
 
     /**
