@@ -31,8 +31,8 @@ public class DeckRepositoryImplementation extends BaseRepository implements Deck
 
         ResultSet res = preparedStatement.executeQuery();
 
-        if (res.first()) {
-            return res.getInt("user_id");
+        if (res.next()) {
+            return res.getInt("id");
         } else return -1;
     }
 }

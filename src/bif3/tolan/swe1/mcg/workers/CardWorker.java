@@ -8,6 +8,7 @@ import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
 import bif3.tolan.swe1.mcg.httpserver.*;
 import bif3.tolan.swe1.mcg.model.Card;
 import bif3.tolan.swe1.mcg.model.User;
+import bif3.tolan.swe1.mcg.utils.CardUtils;
 import bif3.tolan.swe1.mcg.utils.UserUtils;
 
 import java.sql.SQLException;
@@ -51,12 +52,8 @@ public class CardWorker implements Workable {
             User dbUser = userRepository.getByUsername(username);
             if (dbUser != null) {
                 Vector<Card> cards = cardRepository.getCardsByUserId(dbUser.getId());
-                StringBuilder cardsAsString = new StringBuilder("Cards of user:" + dbUser.getUsername());
-                for (Card c : cards) {
-                    cardsAsString.append("\n");
-                    cardsAsString.append(c.toString());
-                }
-                return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, cardsAsString.toString());
+
+                return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, CardUtils.getCardsAsStringForDisplay(dbUser.getUsername(), cards));
             } else {
                 return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Not logged in");
             }

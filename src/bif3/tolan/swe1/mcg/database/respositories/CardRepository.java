@@ -23,6 +23,8 @@ public interface CardRepository {
 
     void assignCardToUserStack(String cardId, int userId) throws SQLException, InvalidCardParameterException, InvalidInputException;
 
+    boolean doesCardBelongToUser(String cardId, int userId) throws SQLException;
+
     void assignCardToUserDeck(String cardId, int deckId) throws InvalidInputException, SQLException, InvalidCardParameterException;
 
     void assignCardToPackage(String cardId, int packageId) throws InvalidInputException, SQLException, InvalidCardParameterException;

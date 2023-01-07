@@ -1,6 +1,7 @@
 package bif3.tolan.swe1.mcg.workers;
 
 import bif3.tolan.swe1.mcg.constants.Paths;
+import bif3.tolan.swe1.mcg.database.respositories.DeckRepository;
 import bif3.tolan.swe1.mcg.database.respositories.UserRepository;
 import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
@@ -17,8 +18,11 @@ public class RegistrationWorker implements Workable {
 
     private UserRepository userRepository;
 
-    public RegistrationWorker(UserRepository userRepository) {
+    private DeckRepository deckRepository;
+
+    public RegistrationWorker(UserRepository userRepository, DeckRepository deckRepository) {
         this.userRepository = userRepository;
+        this.deckRepository = deckRepository;
     }
 
     @Override
@@ -56,6 +60,8 @@ public class RegistrationWorker implements Workable {
                 return new HttpResponse(HttpStatus.BAD_REQUEST, ContentType.PLAIN_TEXT, "User with the username \"" + user.getUsername() + "\" already exists");
             } else {
                 userRepository.add(user);
+                dbUser = userRepository.getByUsername(user.getUsername());
+                deckRepository.createDeckForUser(dbUser.getId());
                 return new HttpResponse(HttpStatus.CREATED, ContentType.PLAIN_TEXT, "User " + user.getUsername() + " successfully created.");
             }
         } catch (JsonParseException e) {

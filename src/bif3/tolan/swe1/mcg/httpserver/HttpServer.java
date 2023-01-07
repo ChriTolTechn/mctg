@@ -8,8 +8,8 @@ import bif3.tolan.swe1.mcg.workers.*;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -38,12 +38,13 @@ public class HttpServer {
     }
 
     public void initializeWorkers(DbConnection dbConnection) {
-        workers = new HashMap<>();
+        workers = new ConcurrentHashMap<>();
 
-        workers.put(Paths.REGISTRATION_WORKER_MAIN_PATH, new RegistrationWorker(dbConnection.getUserRepository()));
+        workers.put(Paths.REGISTRATION_WORKER_MAIN_PATH, new RegistrationWorker(dbConnection.getUserRepository(), dbConnection.getDeckRepository()));
         workers.put(Paths.LOGIN_WORKER_MAIN_PATH, new LoginWorker(dbConnection.getUserRepository()));
         workers.put(Paths.PACKAGES_WORKER_MAIN_PATH, new PackageWorker(dbConnection.getUserRepository(), dbConnection.getCardRepository(), dbConnection.getPackageRepository()));
         workers.put(Paths.SHOP_WORKER_DEFAULT_PATH, new StoreWorker(dbConnection.getUserRepository(), dbConnection.getCardRepository(), dbConnection.getPackageRepository()));
         workers.put(Paths.CARD_WORKER_DEFAULT_PATH, new CardWorker(dbConnection.getUserRepository(), dbConnection.getCardRepository()));
+        workers.put(Paths.DECK_WORKER_DEFAULT_PATH, new DeckWorker(dbConnection.getUserRepository(), dbConnection.getDeckRepository(), dbConnection.getCardRepository()));
     }
 }

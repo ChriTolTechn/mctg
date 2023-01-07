@@ -46,4 +46,16 @@ public class CardUtils {
 
         return new Card(cardId, name, element, damage, type);
     }
+
+    public static String getCardsAsStringForDisplay(String username, List<Card> cards) {
+        StringBuilder cardsAsString = new StringBuilder("Cards in deck of user" + username + ":");
+        if (cards.size() == 0) {
+            cardsAsString.append("\nNo cards available");
+        }
+        for (Card c : cards) {
+            cardsAsString.append("\n");
+            cardsAsString.append(c.toString());
+        }
+        return cardsAsString.toString();
+    }
 }

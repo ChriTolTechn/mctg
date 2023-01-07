@@ -111,6 +111,19 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     @Override
+    public boolean doesCardBelongToUser(String cardId, int userId) throws SQLException {
+        String sql = "SELECT * FROM mctg_card WHERE id = ? AND mctg_user_id = ?";
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+
+        preparedStatement.setString(1, cardId);
+        preparedStatement.setInt(2, userId);
+
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        return resultSet.next();
+    }
+
+    @Override
     public void assignCardToUserDeck(String cardId, int deckId) throws InvalidInputException, SQLException, InvalidCardParameterException {
         resetCardRelations(cardId);
 
