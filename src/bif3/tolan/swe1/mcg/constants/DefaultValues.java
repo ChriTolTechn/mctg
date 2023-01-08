@@ -18,4 +18,6 @@ public final class DefaultValues {
     public static final String ADMIN_USERNAME = "admin";
 
     public static final int BATTLE_TIMEOUT = 20000;
+
+    public static final int DECK_SIZE = 4;
 }

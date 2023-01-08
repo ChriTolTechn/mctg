@@ -1,9 +1,6 @@
 package bif3.tolan.swe1.mcg.database.respositories.interfaces;
 
-import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
-import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
-import bif3.tolan.swe1.mcg.exceptions.UnsupportedCardTypeException;
-import bif3.tolan.swe1.mcg.exceptions.UnsupportedElementTypeException;
+import bif3.tolan.swe1.mcg.exceptions.*;
 import bif3.tolan.swe1.mcg.model.Card;
 
 import java.sql.SQLException;
@@ -25,7 +22,7 @@ public interface CardRepository {
 
     void assignCardToUserStack(String cardId, int userId) throws SQLException, InvalidInputException, UnsupportedCardTypeException, UnsupportedElementTypeException;
 
-    boolean doesCardBelongToUser(String cardId, int userId) throws SQLException;
+    void checkCardBelongsToUser(String cardId, int userId) throws SQLException, ItemDoesNotBelongToUserException;
 
     void assignCardToUserDeck(String cardId, int deckId) throws InvalidInputException, SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException;
 

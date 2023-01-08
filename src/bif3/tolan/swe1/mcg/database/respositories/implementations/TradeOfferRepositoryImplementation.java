@@ -3,6 +3,8 @@ package bif3.tolan.swe1.mcg.database.respositories.implementations;
 import bif3.tolan.swe1.mcg.database.respositories.BaseRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.TradeOfferRepository;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
+import bif3.tolan.swe1.mcg.exceptions.NoActiveTradeOffersException;
+import bif3.tolan.swe1.mcg.exceptions.TradeOfferNotFoundException;
 import bif3.tolan.swe1.mcg.model.TradeOffer;
 import bif3.tolan.swe1.mcg.model.enums.CardType;
 import bif3.tolan.swe1.mcg.utils.TradeUtils;
@@ -36,7 +38,7 @@ public class TradeOfferRepositoryImplementation extends BaseRepository implement
     }
 
     @Override
-    public Vector<TradeOffer> getAllTradeOffersAsList() throws SQLException {
+    public Vector<TradeOffer> getAllTradeOffersAsList() throws SQLException, NoActiveTradeOffersException {
         String sql = "SELECT id, min_damage, card_type, card_group, user_id FROM mctg_trade_offer";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -47,6 +49,8 @@ public class TradeOfferRepositoryImplementation extends BaseRepository implement
         resultSet.close();
         preparedStatement.close();
 
+        if (tradeOffers.isEmpty())
+            throw new NoActiveTradeOffersException();
         return tradeOffers;
     }
 
@@ -70,7 +74,7 @@ public class TradeOfferRepositoryImplementation extends BaseRepository implement
     }
 
     @Override
-    public TradeOffer getTradeOfferById(String tradeId) throws SQLException {
+    public TradeOffer getTradeOfferById(String tradeId) throws SQLException, TradeOfferNotFoundException {
         String sql = "SELECT id, min_damage, card_type, card_group, user_id FROM mctg_trade_offer WHERE id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -82,6 +86,9 @@ public class TradeOfferRepositoryImplementation extends BaseRepository implement
 
         resultSet.close();
         preparedStatement.close();
+
+        if (tradeOffer == null)
+            throw new TradeOfferNotFoundException();
 
         return tradeOffer;
     }

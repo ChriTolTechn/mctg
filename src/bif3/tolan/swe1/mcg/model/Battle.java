@@ -1,10 +1,9 @@
 package bif3.tolan.swe1.mcg.model;
 
 import bif3.tolan.swe1.mcg.constants.DamageMap;
+import bif3.tolan.swe1.mcg.exceptions.InvalidDeckException;
 import bif3.tolan.swe1.mcg.model.enums.CardType;
 import bif3.tolan.swe1.mcg.model.enums.ElementType;
-import bif3.tolan.swe1.mcg.exceptions.BattleFinishedException;
-import bif3.tolan.swe1.mcg.exceptions.InvalidDeckException;
 import bif3.tolan.swe1.mcg.utils.MapUtils;
 
 import java.util.Vector;
@@ -57,8 +56,6 @@ public class Battle {
      * Picks a random card from each users deck and calculates damage for each card
      * Then the values are passed to a method that concludes the round and logs everything
      * At the end it is checked wether the game has finished or continues
-     *
-     * @throws BattleFinishedException if the game has ended but the method is still called again
      */
     public void nextRound() {
         if (gameFinished == false) {

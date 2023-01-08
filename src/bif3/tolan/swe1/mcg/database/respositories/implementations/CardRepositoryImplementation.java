@@ -2,10 +2,7 @@ package bif3.tolan.swe1.mcg.database.respositories.implementations;
 
 import bif3.tolan.swe1.mcg.database.respositories.BaseRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.CardRepository;
-import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
-import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
-import bif3.tolan.swe1.mcg.exceptions.UnsupportedCardTypeException;
-import bif3.tolan.swe1.mcg.exceptions.UnsupportedElementTypeException;
+import bif3.tolan.swe1.mcg.exceptions.*;
 import bif3.tolan.swe1.mcg.model.Card;
 import bif3.tolan.swe1.mcg.utils.CardUtils;
 
@@ -160,7 +157,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     @Override
-    public boolean doesCardBelongToUser(String cardId, int userId) throws SQLException {
+    public void checkCardBelongsToUser(String cardId, int userId) throws SQLException, ItemDoesNotBelongToUserException {
         String sql = "SELECT * FROM mctg_card WHERE id = ? AND mctg_user_id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -173,7 +170,8 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
 
         preparedStatement.close();
 
-        return doesCardBelongToUser;
+        if (doesCardBelongToUser == false)
+            throw new ItemDoesNotBelongToUserException();
     }
 
     @Override

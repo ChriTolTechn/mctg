@@ -1,15 +1,13 @@
 package bif3.tolan.swe1.mcg.workers;
 
+import bif3.tolan.swe1.mcg.constants.DefaultValues;
 import bif3.tolan.swe1.mcg.constants.GenericHttpResponses;
 import bif3.tolan.swe1.mcg.constants.RequestHeaders;
 import bif3.tolan.swe1.mcg.constants.RequestPaths;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.CardRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.DeckRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
-import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
-import bif3.tolan.swe1.mcg.exceptions.UnsupportedCardTypeException;
-import bif3.tolan.swe1.mcg.exceptions.UnsupportedElementTypeException;
-import bif3.tolan.swe1.mcg.exceptions.UserDoesNotExistException;
+import bif3.tolan.swe1.mcg.exceptions.*;
 import bif3.tolan.swe1.mcg.httpserver.HttpRequest;
 import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpContentType;
@@ -109,12 +107,10 @@ public class DeckWorker implements Workable {
             });
 
             // check if there are 4 ids
-            if (requestedCardIdsForDeck.size() == 4) {
+            if (requestedCardIdsForDeck.size() == DefaultValues.DECK_SIZE) {
                 // check if all cards belong to user
                 for (String cardId : requestedCardIdsForDeck) {
-                    if (cardRepository.doesCardBelongToUser(cardId, requestingUser.getId()) == false) {
-                        return GenericHttpResponses.ITEM_NOT_OWNED;
-                    }
+                    cardRepository.checkCardBelongsToUser(cardId, requestingUser.getId());
                 }
 
                 // assign old cards in deck to user stack
@@ -142,6 +138,8 @@ public class DeckWorker implements Workable {
             return GenericHttpResponses.INVALID_INPUT;
         } catch (UserDoesNotExistException e) {
             return GenericHttpResponses.INVALID_TOKEN;
+        } catch (ItemDoesNotBelongToUserException e) {
+            return GenericHttpResponses.ITEM_NOT_OWNED;
         }
     }
 }
