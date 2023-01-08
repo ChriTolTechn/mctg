@@ -1,13 +1,19 @@
 package bif3.tolan.swe1.mcg.workers;
 
+import bif3.tolan.swe1.mcg.constants.GenericHttpResponses;
 import bif3.tolan.swe1.mcg.constants.RequestHeaders;
 import bif3.tolan.swe1.mcg.constants.RequestPaths;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.CardRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.DeckRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
-import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
-import bif3.tolan.swe1.mcg.httpserver.*;
+import bif3.tolan.swe1.mcg.exceptions.UnsupportedCardTypeException;
+import bif3.tolan.swe1.mcg.exceptions.UnsupportedElementTypeException;
+import bif3.tolan.swe1.mcg.httpserver.HttpRequest;
+import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
+import bif3.tolan.swe1.mcg.httpserver.enums.HttpContentType;
+import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
+import bif3.tolan.swe1.mcg.httpserver.enums.HttpStatus;
 import bif3.tolan.swe1.mcg.model.Card;
 import bif3.tolan.swe1.mcg.model.User;
 import bif3.tolan.swe1.mcg.utils.CardUtils;
@@ -37,14 +43,13 @@ public class DeckWorker implements Workable {
     @Override
     public HttpResponse executeRequest(HttpRequest request) {
         String requestedPath = "";
-        Method method = request.getMethod();
+        HttpMethod httpMethod = request.getMethod();
 
         if (request.getPathArray().length > 1) {
             requestedPath = request.getPathArray()[1];
         }
 
-        // Executes requested methods
-        switch (method) {
+        switch (httpMethod) {
             case PUT:
                 switch (requestedPath) {
                     case RequestPaths.DECK_WORKER_CONFIGURE_DECK:
@@ -57,86 +62,106 @@ public class DeckWorker implements Workable {
                 }
         }
 
-        return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "Unknown path");
+        return GenericHttpResponses.INVALID_PATH;
     }
 
     private HttpResponse getDeck(HttpRequest request) {
+        // get username from token
         String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
             User requestingUser = userRepository.getUserByUsername(username);
+            // check if user is valid
             if (requestingUser != null) {
+                // get deck of user
                 int deckIdOfRequestingUser = deckRepository.getDeckIdByUserId(requestingUser.getId());
                 Vector<Card> cardDeckOfRequestingUser = cardRepository.getAllCardsByDeckIdAsList(deckIdOfRequestingUser);
 
+                // check what format the user wants the cards to be displayed with
                 String formatParameter = request.getParameterMap().get("format");
 
+                // return cards with requested format
                 if (formatParameter != null && formatParameter.equals("plain")) {
-                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, CardUtils.getMultipleCardDisplayForUser(requestingUser.getUsername(), cardDeckOfRequestingUser));
+                    return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, CardUtils.getMultipleCardDisplayForUser(requestingUser.getUsername(), cardDeckOfRequestingUser));
                 } else {
-                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, CardUtils.getCardDetails(requestingUser.getUsername(), cardDeckOfRequestingUser));
+                    return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, CardUtils.getCardDetails(requestingUser.getUsername(), cardDeckOfRequestingUser));
                 }
             } else {
-                return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Not logged in");
+                return GenericHttpResponses.NOT_LOGGED_IN;
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        } catch (InvalidCardParameterException e) {
+            return GenericHttpResponses.INTERNAL_ERROR;
+        } catch (UnsupportedCardTypeException e) {
             e.printStackTrace();
+            return GenericHttpResponses.INTERNAL_ERROR;
+        } catch (UnsupportedElementTypeException e) {
+            e.printStackTrace();
+            return GenericHttpResponses.INTERNAL_ERROR;
         }
-        return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The json string is not formatted properly");
     }
 
     private synchronized HttpResponse configureDeck(HttpRequest request) {
+        // get username from token
         String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
             User requestingUser = userRepository.getUserByUsername(username);
+            // check if user exists
             if (requestingUser != null) {
+                // init object mapper and read json strings of requested cardIds
                 ObjectMapper mapper = new ObjectMapper();
                 String jsonString = request.getBody();
-
                 Vector<String> requestedCardIdsForDeck = mapper.readValue(jsonString, new TypeReference<>() {
                 });
 
+                // check if there are 4 ids
                 if (requestedCardIdsForDeck.size() == 4) {
-                    int deckIdOfRequestingUser = deckRepository.getDeckIdByUserId(requestingUser.getId());
-
+                    // check if all cards belong to user
                     for (String cardId : requestedCardIdsForDeck) {
                         if (cardRepository.doesCardBelongToUser(cardId, requestingUser.getId()) == false) {
-                            return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "At least one of the card IDs provided is not in the users card stack. Please enter valid ids");
+                            return GenericHttpResponses.ITEM_NOT_OWNED;
                         }
                     }
 
+                    // assign old cards in deck to user stack
+                    int deckIdOfRequestingUser = deckRepository.getDeckIdByUserId(requestingUser.getId());
                     Vector<Card> currentCardDeckOfRequestingUser = cardRepository.getAllCardsByDeckIdAsList(deckIdOfRequestingUser);
                     for (Card c : currentCardDeckOfRequestingUser) {
                         cardRepository.assignCardToUserStack(c.getCardId(), requestingUser.getId());
                     }
 
+                    // assign new cards to user deck
                     for (String cardId : requestedCardIdsForDeck) {
                         cardRepository.assignCardToUserDeck(cardId, deckIdOfRequestingUser);
                     }
-                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, "Successfully updated deck");
+                    return GenericHttpResponses.SUCCESS_UPDATE;
                 } else {
-                    return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "You must define exactly 4 cards");
+                    return GenericHttpResponses.INVALID_DECK;
                 }
             } else {
-                return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Not logged in");
+                return GenericHttpResponses.NOT_LOGGED_IN;
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            return GenericHttpResponses.INTERNAL_ERROR;
         } catch (JsonMappingException e) {
             e.printStackTrace();
+            return GenericHttpResponses.INVALID_INPUT;
         } catch (JsonProcessingException e) {
             e.printStackTrace();
+            return GenericHttpResponses.INVALID_INPUT;
         } catch (InvalidInputException e) {
             e.printStackTrace();
-        } catch (InvalidCardParameterException e) {
+            return GenericHttpResponses.INTERNAL_ERROR;
+        } catch (UnsupportedCardTypeException e) {
             e.printStackTrace();
+            return GenericHttpResponses.INTERNAL_ERROR;
+        } catch (UnsupportedElementTypeException e) {
+            e.printStackTrace();
+            return GenericHttpResponses.INTERNAL_ERROR;
         }
-
-        return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The json string is not formatted properly");
     }
 }

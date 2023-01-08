@@ -1,6 +1,6 @@
 package bif3.tolan.swe1.mcg.model;
 
-import bif3.tolan.swe1.mcg.enums.CardType;
+import bif3.tolan.swe1.mcg.model.enums.CardType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;

@@ -1,8 +1,12 @@
 package bif3.tolan.swe1.mcg.workers;
 
+import bif3.tolan.swe1.mcg.constants.GenericHttpResponses;
 import bif3.tolan.swe1.mcg.constants.RequestPaths;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.httpserver.*;
+import bif3.tolan.swe1.mcg.httpserver.enums.HttpContentType;
+import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
+import bif3.tolan.swe1.mcg.httpserver.enums.HttpStatus;
 import bif3.tolan.swe1.mcg.model.User;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -22,14 +26,13 @@ public class LoginWorker implements Workable {
     @Override
     public HttpResponse executeRequest(HttpRequest request) {
         String requestedPath = "";
-        Method method = request.getMethod();
+        HttpMethod httpMethod = request.getMethod();
 
         if (request.getPathArray().length > 1) {
             requestedPath = request.getPathArray()[1];
         }
 
-        // Executes requested methods
-        switch (method) {
+        switch (httpMethod) {
             case POST:
                 switch (requestedPath) {
                     case RequestPaths.LOGIN_WORKER_LOGIN:
@@ -37,7 +40,7 @@ public class LoginWorker implements Workable {
                 }
         }
 
-        return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "Unknown path");
+        return GenericHttpResponses.INVALID_PATH;
     }
 
     private HttpResponse loginUser(HttpRequest request) {
@@ -45,29 +48,28 @@ public class LoginWorker implements Workable {
         String jsonString = request.getBody();
 
         try {
-            // Create user from jsonString
+            // create user from input data
             User loginValues = mapper.readValue(jsonString, User.class);
 
-            // Get user from the database
             User requestedUser = userRepository.getUserByUsername(loginValues.getUsername());
-
-            if (requestedUser == null) {
-                return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "User with name: " + loginValues.getUsername() + " does not exist");
-            } else if (loginValues.getPasswordHash().equals(requestedUser.getPasswordHash())) {
-                return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, "Successfully logged in. Session token: " + requestedUser.getToken());
+            // Check if user exists and passwords match
+            if (requestedUser != null && loginValues.getPasswordHash().equals(requestedUser.getPasswordHash())) {
+                return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, "Successfully logged in. Session token: " + requestedUser.getToken());
             } else {
-                return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Invalid credentials");
+                return GenericHttpResponses.WRONG_CREDENTIALS;
             }
         } catch (JsonParseException e) {
             e.printStackTrace();
+            return GenericHttpResponses.INVALID_INPUT;
         } catch (SQLException e) {
             e.printStackTrace();
+            return GenericHttpResponses.INTERNAL_ERROR;
         } catch (JsonMappingException e) {
             e.printStackTrace();
+            return GenericHttpResponses.INVALID_INPUT;
         } catch (JsonProcessingException e) {
             e.printStackTrace();
+            return GenericHttpResponses.INVALID_INPUT;
         }
-
-        return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The json string is not formatted properly");
     }
 }

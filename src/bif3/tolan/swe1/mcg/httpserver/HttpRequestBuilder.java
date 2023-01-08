@@ -2,6 +2,7 @@ package bif3.tolan.swe1.mcg.httpserver;
 
 import bif3.tolan.swe1.mcg.constants.CommonRegex;
 import bif3.tolan.swe1.mcg.constants.ServerConstants;
+import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -105,8 +106,8 @@ public class HttpRequestBuilder {
      * @param rawMethodString method as string
      * @return Method as enum
      */
-    private Method extractMethod(String rawMethodString) {
-        return Method.valueOf(rawMethodString.toUpperCase());
+    private HttpMethod extractMethod(String rawMethodString) {
+        return HttpMethod.valueOf(rawMethodString.toUpperCase());
     }
 
     /**

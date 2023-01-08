@@ -1,15 +1,17 @@
 package bif3.tolan.swe1.mcg.workers;
 
+import bif3.tolan.swe1.mcg.constants.GenericHttpResponses;
 import bif3.tolan.swe1.mcg.constants.RequestHeaders;
 import bif3.tolan.swe1.mcg.constants.RequestPaths;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.CardRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.TradeOfferRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
-import bif3.tolan.swe1.mcg.exceptions.HasActiveTradeException;
-import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
-import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
-import bif3.tolan.swe1.mcg.exceptions.TradeOfferNotFoundException;
-import bif3.tolan.swe1.mcg.httpserver.*;
+import bif3.tolan.swe1.mcg.exceptions.*;
+import bif3.tolan.swe1.mcg.httpserver.HttpRequest;
+import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
+import bif3.tolan.swe1.mcg.httpserver.enums.HttpContentType;
+import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
+import bif3.tolan.swe1.mcg.httpserver.enums.HttpStatus;
 import bif3.tolan.swe1.mcg.model.Card;
 import bif3.tolan.swe1.mcg.model.TradeOffer;
 import bif3.tolan.swe1.mcg.model.User;
@@ -36,14 +38,13 @@ public class TradeWorker implements Workable {
 
     public HttpResponse executeRequest(HttpRequest request) {
         String requestedPath = "";
-        Method method = request.getMethod();
+        HttpMethod httpMethod = request.getMethod();
 
         if (request.getPathArray().length > 1) {
             requestedPath = request.getPathArray()[1];
         }
 
-        // Executes requested methods
-        switch (method) {
+        switch (httpMethod) {
             case GET:
                 switch (requestedPath) {
                     case RequestPaths.TRADE_WORKER_GET_TRADES:
@@ -60,52 +61,68 @@ public class TradeWorker implements Workable {
                 return deleteTrade(request, requestedPath);
         }
 
-        return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "Unknown path");
+        return GenericHttpResponses.INVALID_PATH;
     }
 
-    private synchronized HttpResponse getAllTradeDeals(HttpRequest request) {
+    private HttpResponse getAllTradeDeals(HttpRequest request) {
+        // get username from token
         String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
             User requestingUser = userRepository.getUserByUsername(username);
+            // check if user is logged in
             if (requestingUser != null) {
+                // get all trade offers
                 Vector<TradeOffer> allTradeOffers = tradeOfferRepository.getAllTradeOffersAsList();
                 if (allTradeOffers.isEmpty() == false) {
+                    // load card details for trade offers
                     for (TradeOffer tradeOffer : allTradeOffers) {
                         tradeOffer.setCard(cardRepository.getCardByTradeOfferId(tradeOffer.getTradeId()));
                     }
-                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, TradeUtils.printAllTradeOffers(allTradeOffers));
+
+                    // print all trade offers including the cards
+                    return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, TradeUtils.printAllTradeOffers(allTradeOffers));
                 } else {
-                    return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "No active trade offers");
+                    return GenericHttpResponses.NO_ACTIVE_TRADES;
                 }
             } else {
-                return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Not logged in");
+                return GenericHttpResponses.NOT_LOGGED_IN;
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        } catch (InvalidCardParameterException e) {
+            return GenericHttpResponses.INTERNAL_ERROR;
+        } catch (UnsupportedCardTypeException e) {
             e.printStackTrace();
+            return GenericHttpResponses.INTERNAL_ERROR;
+        } catch (UnsupportedElementTypeException e) {
+            e.printStackTrace();
+            return GenericHttpResponses.INTERNAL_ERROR;
         }
-
-        return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The json string is not formatted properly");
     }
 
     private synchronized HttpResponse acceptTrade(HttpRequest request, String requestedTradeId) {
+        // get username from token
         String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
             User requestingUser = userRepository.getUserByUsername(username);
+            // check if user is logged in
             if (requestingUser != null) {
                 TradeOffer wantedTrade = tradeOfferRepository.getTradeOfferById(requestedTradeId);
+                // check if trade exists
                 if (wantedTrade != null) {
+                    // check to not trade with yourself
                     if (wantedTrade.getUserId() != requestingUser.getId()) {
-                        String offerCardIdOfRequestingUser = extractStringFromJson(request.getBody());
+                        // get card offered by user
+                        String offerCardIdOfRequestingUser = TradeUtils.extractStringFromJson(request.getBody());
                         Card offerCardOfRequestingUser = cardRepository.getCardById(offerCardIdOfRequestingUser);
 
+                        // check if the card belongs to the user
                         if (cardRepository.doesCardBelongToUser(offerCardOfRequestingUser.getCardId(), requestingUser.getId())) {
-                            if (cardMeetsRequirement(offerCardOfRequestingUser, wantedTrade)) {
+                            // check requirements
+                            if (TradeUtils.cardMeetsRequirement(offerCardOfRequestingUser, wantedTrade)) {
                                 wantedTrade.setCard(cardRepository.getCardByTradeOfferId(wantedTrade.getTradeId()));
 
                                 cardRepository.assignCardToUserStack(wantedTrade.getCard().getCardId(), requestingUser.getId());
@@ -113,70 +130,82 @@ public class TradeWorker implements Workable {
 
                                 tradeOfferRepository.deleteTrade(wantedTrade.getTradeId());
 
-                                return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, "Successfully traded cards");
+                                return GenericHttpResponses.SUCCESS_TRADE;
                             } else {
-                                return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The card you want to trade in does not meet the trade criteria");
+                                return GenericHttpResponses.TRADE_CRITERIA_NOT_MET;
                             }
                         } else {
-                            return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "The card you are trying to trade in does not belong to you");
+                            return GenericHttpResponses.ITEM_NOT_OWNED;
                         }
                     } else {
-                        return new HttpResponse(HttpStatus.BAD_REQUEST, ContentType.PLAIN_TEXT, "You cannot trade with yourself");
+                        return GenericHttpResponses.IDENTICAL_USER;
                     }
                 } else {
-                    return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "Trade not found");
+                    return GenericHttpResponses.TRADE_NOT_FOUND;
                 }
             } else {
-                return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Not logged in");
+                return GenericHttpResponses.NOT_LOGGED_IN;
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            return GenericHttpResponses.INTERNAL_ERROR;
         } catch (JsonMappingException e) {
             e.printStackTrace();
+            return GenericHttpResponses.INVALID_INPUT;
         } catch (JsonProcessingException e) {
             e.printStackTrace();
-        } catch (InvalidCardParameterException e) {
-            e.printStackTrace();
+            return GenericHttpResponses.INVALID_INPUT;
         } catch (InvalidInputException e) {
             e.printStackTrace();
+            return GenericHttpResponses.INVALID_INPUT;
         } catch (TradeOfferNotFoundException e) {
             e.printStackTrace();
+            return GenericHttpResponses.TRADE_NOT_FOUND;
+        } catch (UnsupportedCardTypeException e) {
+            e.printStackTrace();
+            return GenericHttpResponses.INTERNAL_ERROR;
+        } catch (UnsupportedElementTypeException e) {
+            e.printStackTrace();
+            return GenericHttpResponses.INTERNAL_ERROR;
         }
-
-        return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The json string is not formatted properly");
     }
 
     private synchronized HttpResponse createTrade(HttpRequest request) {
+        // get username from token
         String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
             User dbUser = userRepository.getUserByUsername(username);
+            // check if user is logged in
             if (dbUser != null) {
+                // check if user has already a trade
                 if (tradeOfferRepository.getTradeOfferByUserId(dbUser.getId()) == null) {
+                    // create trade offer from jsonString
                     ObjectMapper mapper = new ObjectMapper();
                     String jsonString = request.getBody();
-
                     TradeOffer tradeOffer = mapper.readValue(jsonString, TradeOffer.class);
 
+                    // check if trade with ID exists
                     if (tradeOfferRepository.getTradeOfferById(tradeOffer.getTradeId()) == null) {
+                        // check if card belongs to user
                         if (cardRepository.doesCardBelongToUser(tradeOffer.getTradeCardId(), dbUser.getId())) {
+                            // create trade and remove card from user deck
                             tradeOffer.setUserId(dbUser.getId());
-
                             tradeOfferRepository.createTradeOffer(tradeOffer);
                             cardRepository.assignCardToTradeOffer(tradeOffer.getTradeCardId(), tradeOffer.getTradeId());
-                            return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, "Successfully created trade offer");
+                            return GenericHttpResponses.SUCCESS_CREATE;
                         } else {
-                            return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "The card you try to create a trade with does not belong to you");
+                            return GenericHttpResponses.ITEM_NOT_OWNED;
                         }
                     } else {
-                        return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "A trade with this ID already exists");
+                        return GenericHttpResponses.ID_EXISTS;
                     }
                 } else {
-                    return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "You can only have one active trade at the same time");
+                    return GenericHttpResponses.HAS_ACTIVE_TRADE;
                 }
             } else {
-                return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Not logged in");
+                return GenericHttpResponses.NOT_LOGGED_IN;
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -188,69 +217,56 @@ public class TradeWorker implements Workable {
             e.printStackTrace();
         } catch (HasActiveTradeException e) {
             e.printStackTrace();
-        } catch (InvalidCardParameterException e) {
+        } catch (UnsupportedCardTypeException e) {
+            e.printStackTrace();
+        } catch (UnsupportedElementTypeException e) {
             e.printStackTrace();
         }
 
-        return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The json string is not formatted properly");
+        return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, HttpContentType.PLAIN_TEXT, "The json string is not formatted properly");
     }
 
     private synchronized HttpResponse deleteTrade(HttpRequest request, String requestedTradeId) {
+        // get username from token
         String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
             User dbUser = userRepository.getUserByUsername(username);
+            // check if user is logged in
             if (dbUser != null) {
+                // check if trade offer exists
                 TradeOffer tradeOffer = tradeOfferRepository.getTradeOfferById(requestedTradeId);
                 if (tradeOffer != null) {
+                    // check if trade belongs to user
                     if (tradeOffer.getUserId() == dbUser.getId()) {
+                        // delete trade and put card back to user deck
                         tradeOffer.setCard(cardRepository.getCardByTradeOfferId(tradeOffer.getTradeId()));
                         cardRepository.assignCardToUserStack(tradeOffer.getCard().getCardId(), dbUser.getId());
                         tradeOfferRepository.deleteTrade(tradeOffer.getTradeId());
-                        return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, "Trade offer deleted");
+                        return GenericHttpResponses.SUCCESS_DELETE;
                     } else {
-                        return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "You cannot delete a trade that does not belong to you");
+                        return GenericHttpResponses.ITEM_NOT_OWNED;
                     }
                 } else {
-                    return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "The trade does not exist");
+                    return GenericHttpResponses.TRADE_NOT_FOUND;
                 }
             } else {
-                return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Not logged in");
+                return GenericHttpResponses.NOT_LOGGED_IN;
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            return GenericHttpResponses.INTERNAL_ERROR;
         } catch (InvalidInputException e) {
-            e.printStackTrace();
-        } catch (InvalidCardParameterException e) {
-            e.printStackTrace();
+            return GenericHttpResponses.INVALID_INPUT;
         } catch (TradeOfferNotFoundException e) {
+            return GenericHttpResponses.TRADE_NOT_FOUND;
+        } catch (UnsupportedCardTypeException e) {
             e.printStackTrace();
+            return GenericHttpResponses.INTERNAL_ERROR;
+        } catch (UnsupportedElementTypeException e) {
+            e.printStackTrace();
+            return GenericHttpResponses.INTERNAL_ERROR;
         }
-
-        return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The json string is not formatted properly");
-    }
-
-    private String extractStringFromJson(String jsonString) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        String tradeInCardId = mapper.readValue(jsonString, String.class);
-        return tradeInCardId;
-    }
-
-    /**
-     * Checks if the requirement for the trade is met.
-     * Since a trade offer can be specified by either monster type or card grouop, an XOR is used to check
-     *
-     * @param card       Card offering from the buyer
-     * @param tradeOffer Requirements from the seller
-     * @return True if the requirements are met
-     */
-    private boolean cardMeetsRequirement(Card card, TradeOffer tradeOffer) {
-        return card.getDamage() >= tradeOffer.getMinDamage() &&
-                (
-                        (tradeOffer.getCardGroup() == null && tradeOffer.getCardType() == card.getMonsterType())
-                                ^
-                                (tradeOffer.getCardType() == null && card.getMonsterType().isInGroup(tradeOffer.getCardGroup()))
-                );
     }
 }

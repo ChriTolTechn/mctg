@@ -1,15 +1,19 @@
 package bif3.tolan.swe1.mcg.workers;
 
 import bif3.tolan.swe1.mcg.constants.DefaultValues;
+import bif3.tolan.swe1.mcg.constants.GenericHttpResponses;
 import bif3.tolan.swe1.mcg.constants.RequestHeaders;
 import bif3.tolan.swe1.mcg.constants.RequestPaths;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.CardRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.PackageRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
-import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.exceptions.PackageNotFoundException;
-import bif3.tolan.swe1.mcg.httpserver.*;
+import bif3.tolan.swe1.mcg.exceptions.UnsupportedCardTypeException;
+import bif3.tolan.swe1.mcg.exceptions.UnsupportedElementTypeException;
+import bif3.tolan.swe1.mcg.httpserver.HttpRequest;
+import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
+import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
 import bif3.tolan.swe1.mcg.model.Card;
 import bif3.tolan.swe1.mcg.model.User;
 import bif3.tolan.swe1.mcg.utils.UserUtils;
@@ -31,14 +35,13 @@ public class StoreWorker implements Workable {
 
     public HttpResponse executeRequest(HttpRequest request) {
         String requestedPath = "";
-        Method method = request.getMethod();
+        HttpMethod httpMethod = request.getMethod();
 
         if (request.getPathArray().length > 1) {
             requestedPath = request.getPathArray()[1];
         }
 
-        // Executes requested methods
-        switch (method) {
+        switch (httpMethod) {
             case POST:
                 switch (requestedPath) {
                     case RequestPaths.SHOP_WORKER_BUY_PACKAGE:
@@ -46,48 +49,55 @@ public class StoreWorker implements Workable {
                 }
         }
 
-        return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "Unknown path");
+        return GenericHttpResponses.INVALID_PATH;
     }
-
-    /**
-     * Buys a package for a user
-     */
+    
     private synchronized HttpResponse buyPackage(HttpRequest request) {
+        // get username from token
         String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
             User requestingUser = userRepository.getUserByUsername(username);
+            // check if user is logged in
             if (requestingUser != null) {
+                // check if user has enough funds
                 if (requestingUser.getCoins() >= DefaultValues.PACKAGE_COST) {
+                    // get next available package and its cards and assign it to the user
                     int nextAvailablePackage = packageRepository.getNextAvailablePackage();
-
                     Vector<Card> cardsInPackage = cardRepository.getAllCardsByPackageIdAsList(nextAvailablePackage);
                     for (Card c : cardsInPackage) {
                         cardRepository.assignCardToUserStack(c.getCardId(), requestingUser.getId());
                     }
 
+                    // delete empty package
                     packageRepository.deletePackage(nextAvailablePackage);
 
+                    // subtract coins from user and update them
                     requestingUser.setCoins(requestingUser.getCoins() - DefaultValues.PACKAGE_COST);
                     userRepository.updateUser(requestingUser);
 
-                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, "Successfully acquired new cards");
+                    return GenericHttpResponses.SUCCESS_BUY;
                 } else {
-                    return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "Not enough coins");
+                    return GenericHttpResponses.NOT_ENOUGH_COINS;
                 }
             } else {
-                return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Not logged in");
+                return GenericHttpResponses.NOT_LOGGED_IN;
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        } catch (InvalidCardParameterException e) {
-            e.printStackTrace();
+            return GenericHttpResponses.INTERNAL_ERROR;
         } catch (InvalidInputException e) {
             e.printStackTrace();
+            return GenericHttpResponses.INTERNAL_ERROR;
         } catch (PackageNotFoundException e) {
-            return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "No packages available at the moment");
+            return GenericHttpResponses.NOT_AVAILABLE_FOR_PURCHASE;
+        } catch (UnsupportedCardTypeException e) {
+            e.printStackTrace();
+            return GenericHttpResponses.INTERNAL_ERROR;
+        } catch (UnsupportedElementTypeException e) {
+            e.printStackTrace();
+            return GenericHttpResponses.INTERNAL_ERROR;
         }
-        return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The json string is not formatted properly");
     }
 }

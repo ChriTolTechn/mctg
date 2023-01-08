@@ -3,8 +3,9 @@ package bif3.tolan.swe1.mcg.database.respositories.implementations;
 import bif3.tolan.swe1.mcg.database.respositories.BaseRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.CardRepository;
 import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
-import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
+import bif3.tolan.swe1.mcg.exceptions.UnsupportedCardTypeException;
+import bif3.tolan.swe1.mcg.exceptions.UnsupportedElementTypeException;
 import bif3.tolan.swe1.mcg.model.Card;
 import bif3.tolan.swe1.mcg.utils.CardUtils;
 
@@ -21,7 +22,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     @Override
-    public Card getCardById(String cardId) throws SQLException, InvalidCardParameterException {
+    public Card getCardById(String cardId) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         String sql = "SELECT id, name, damage FROM mctg_card WHERE id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -33,7 +34,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     @Override
-    public Vector<Card> getAllCardsByUserIdAsList(int userId) throws SQLException, InvalidCardParameterException {
+    public Vector<Card> getAllCardsByUserIdAsList(int userId) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_user_id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -45,7 +46,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     @Override
-    public Card getCardByTradeOfferId(String tradeId) throws SQLException, InvalidCardParameterException {
+    public Card getCardByTradeOfferId(String tradeId) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_trade_offer_id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -57,7 +58,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     @Override
-    public Vector<Card> getAllCardsByDeckIdAsList(int deckId) throws SQLException, InvalidCardParameterException {
+    public Vector<Card> getAllCardsByDeckIdAsList(int deckId) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_deck_id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -69,7 +70,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     @Override
-    public ConcurrentHashMap<String, Card> getAllCardsByDeckIdAsMap(int deckId) throws SQLException, InvalidCardParameterException {
+    public ConcurrentHashMap<String, Card> getAllCardsByDeckIdAsMap(int deckId) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_deck_id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -81,7 +82,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     @Override
-    public Vector<Card> getAllCardsByPackageIdAsList(int packageId) throws SQLException, InvalidCardParameterException {
+    public Vector<Card> getAllCardsByPackageIdAsList(int packageId) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_package_id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -93,7 +94,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     @Override
-    public void addNewCard(Card card) throws SQLException, InvalidCardParameterException, IdExistsException, InvalidInputException {
+    public void addNewCard(Card card) throws SQLException, IdExistsException, InvalidInputException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         if (CardUtils.isValidNewCard(card)) {
             if (getCardById(card.getCardId()) != null) {
                 throw new IdExistsException();
@@ -113,7 +114,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     @Override
-    public void assignCardToUserStack(String cardId, int userId) throws SQLException, InvalidCardParameterException, InvalidInputException {
+    public void assignCardToUserStack(String cardId, int userId) throws SQLException, InvalidInputException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         resetCardRelations(cardId);
 
         String sql = "UPDATE mctg_card SET mctg_user_id = ? WHERE id = ?";
@@ -139,7 +140,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     @Override
-    public void assignCardToUserDeck(String cardId, int deckId) throws InvalidInputException, SQLException, InvalidCardParameterException {
+    public void assignCardToUserDeck(String cardId, int deckId) throws InvalidInputException, SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         resetCardRelations(cardId);
 
         String sql = "UPDATE mctg_card SET mctg_deck_id = ? WHERE id = ?";
@@ -152,7 +153,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     @Override
-    public void assignCardToPackage(String cardId, int packageId) throws InvalidInputException, SQLException, InvalidCardParameterException {
+    public void assignCardToPackage(String cardId, int packageId) throws InvalidInputException, SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         resetCardRelations(cardId);
 
         String sql = "UPDATE mctg_card SET mctg_package_id = ? WHERE id = ?";
@@ -165,7 +166,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     @Override
-    public void assignCardToTradeOffer(String cardId, String tradeOfferId) throws InvalidInputException, SQLException, InvalidCardParameterException {
+    public void assignCardToTradeOffer(String cardId, String tradeOfferId) throws InvalidInputException, SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         resetCardRelations(cardId);
 
         String sql = "UPDATE mctg_card SET mctg_trade_offer_id = ? WHERE id = ?";
@@ -177,7 +178,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         preparedStatement.executeUpdate();
     }
 
-    private void resetCardRelations(String cardId) throws SQLException, InvalidCardParameterException, InvalidInputException {
+    private void resetCardRelations(String cardId) throws SQLException, InvalidInputException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         if (getCardById(cardId) != null) {
             String sql = "UPDATE mctg_card " +
                     "SET mctg_user_id = NULL, " +
@@ -194,7 +195,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         }
     }
 
-    private Card extractSingleCard(ResultSet res) throws SQLException, InvalidCardParameterException {
+    private Card extractSingleCard(ResultSet res) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         if (res.next()) {
             return convertResultSetToCardModel(res);
         } else {
@@ -202,7 +203,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         }
     }
 
-    private Vector<Card> extractManyCards(ResultSet res) throws SQLException, InvalidCardParameterException {
+    private Vector<Card> extractManyCards(ResultSet res) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         Vector<Card> cards = new Vector<>();
         while (res.next()) {
             cards.add(convertResultSetToCardModel(res));
@@ -210,7 +211,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         return cards;
     }
 
-    private ConcurrentHashMap<String, Card> extractManyCardsAsMap(ResultSet res) throws SQLException, InvalidCardParameterException {
+    private ConcurrentHashMap<String, Card> extractManyCardsAsMap(ResultSet res) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         ConcurrentHashMap<String, Card> cards = new ConcurrentHashMap();
         while (res.next()) {
             Card card = convertResultSetToCardModel(res);
@@ -219,7 +220,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         return cards;
     }
 
-    private Card convertResultSetToCardModel(ResultSet res) throws SQLException, InvalidCardParameterException {
+    private Card convertResultSetToCardModel(ResultSet res) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         String cardId = res.getString("id");
         String cardName = res.getString("name");
         float cardDamage = res.getFloat("damage");

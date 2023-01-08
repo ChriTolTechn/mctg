@@ -1,6 +1,6 @@
 package bif3.tolan.swe1.mcg.constants;
 
-import bif3.tolan.swe1.mcg.enums.ElementType;
+import bif3.tolan.swe1.mcg.model.enums.ElementType;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

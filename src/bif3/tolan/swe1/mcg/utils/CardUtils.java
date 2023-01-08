@@ -1,23 +1,33 @@
 package bif3.tolan.swe1.mcg.utils;
 
-import bif3.tolan.swe1.mcg.enums.CardType;
-import bif3.tolan.swe1.mcg.enums.ElementType;
+import bif3.tolan.swe1.mcg.model.enums.CardType;
+import bif3.tolan.swe1.mcg.model.enums.ElementType;
+import bif3.tolan.swe1.mcg.exceptions.UnsupportedCardTypeException;
+import bif3.tolan.swe1.mcg.exceptions.UnsupportedElementTypeException;
 import bif3.tolan.swe1.mcg.model.Card;
 
 import java.util.List;
 
 public class CardUtils {
 
-    public static ElementType extractElementType(String element) {
+    public static ElementType extractElementType(String element) throws UnsupportedElementTypeException {
         if (element.equalsIgnoreCase("regular")) {
             return ElementType.NORMAL;
         } else {
-            return ElementType.valueOf(element.toUpperCase());
+            try {
+                return ElementType.valueOf(element.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new UnsupportedElementTypeException();
+            }
         }
     }
 
-    public static CardType extractCardType(String type) {
-        return CardType.valueOf(type.toUpperCase());
+    public static CardType extractCardType(String type) throws UnsupportedCardTypeException {
+        try {
+            return CardType.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new UnsupportedCardTypeException();
+        }
     }
 
     public static String getMultipleCardDisplayForUser(String username, List<Card> cards) {

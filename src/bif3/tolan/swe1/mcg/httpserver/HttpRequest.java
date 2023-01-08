@@ -1,10 +1,12 @@
 package bif3.tolan.swe1.mcg.httpserver;
 
+import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
+
 import java.util.HashMap;
 import java.util.Map;
 
 public class HttpRequest {
-    private Method method;
+    private HttpMethod httpMethod;
     private String[] pathArray;
     private Map<String, String> parameterMap = new HashMap<>();
     private Map<String, String> headerMap = new HashMap<>();
@@ -12,12 +14,12 @@ public class HttpRequest {
 
     private int contentLength = 0;
 
-    public Method getMethod() {
-        return method;
+    public HttpMethod getMethod() {
+        return httpMethod;
     }
 
-    public void setMethod(Method method) {
-        this.method = method;
+    public void setMethod(HttpMethod httpMethod) {
+        this.httpMethod = httpMethod;
     }
 
     public String[] getPathArray() {

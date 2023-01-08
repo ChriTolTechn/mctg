@@ -2,10 +2,9 @@ package bif3.tolan.swe1.mcg.database.respositories.implementations;
 
 import bif3.tolan.swe1.mcg.database.respositories.BaseRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.TradeOfferRepository;
-import bif3.tolan.swe1.mcg.enums.CardType;
-import bif3.tolan.swe1.mcg.exceptions.HasActiveTradeException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.model.TradeOffer;
+import bif3.tolan.swe1.mcg.model.enums.CardType;
 import bif3.tolan.swe1.mcg.utils.TradeUtils;
 
 import java.sql.Connection;
@@ -42,7 +41,7 @@ public class TradeOfferRepositoryImplementation extends BaseRepository implement
     }
 
     @Override
-    public void createTradeOffer(TradeOffer tradeOffer) throws SQLException, InvalidInputException, HasActiveTradeException {
+    public void createTradeOffer(TradeOffer tradeOffer) throws SQLException, InvalidInputException {
         if (TradeUtils.isValidTrade(tradeOffer)) {
             String sql = "INSERT INTO mctg_trade_offer (id, min_damage, user_id, card_type, card_group) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);

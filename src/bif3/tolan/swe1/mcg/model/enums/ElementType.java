@@ -1,4 +1,4 @@
-package bif3.tolan.swe1.mcg.enums;
+package bif3.tolan.swe1.mcg.model.enums;
 
 /**
  * Enum for element types of card
