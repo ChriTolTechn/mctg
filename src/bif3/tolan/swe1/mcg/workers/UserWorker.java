@@ -90,13 +90,13 @@ public class UserWorker implements Workable {
 
     private HttpResponse getUserData(HttpRequest request, String requestedUser) {
         String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
-        String username = UserUtils.getUsernameFromToken(authorizationToken);
+        String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
             User dbUser = userRepository.getByUsername(username);
             if (dbUser != null) {
                 if (dbUser.getUsername().equals(requestedUser)) {
-                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, dbUser.toString());
+                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, UserUtils.getUserProfile(dbUser));
                 } else {
                     return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "You are not authorized to access this information");
                 }
@@ -111,7 +111,7 @@ public class UserWorker implements Workable {
 
     private synchronized HttpResponse editUserData(HttpRequest request, String requestedUser) {
         String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
-        String username = UserUtils.getUsernameFromToken(authorizationToken);
+        String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
             User dbUser = userRepository.getByUsername(username);

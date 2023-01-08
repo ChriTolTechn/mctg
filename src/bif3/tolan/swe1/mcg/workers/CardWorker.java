@@ -46,7 +46,7 @@ public class CardWorker implements Workable {
 
     private HttpResponse showCards(HttpRequest request) {
         String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
-        String username = UserUtils.getUsernameFromToken(authorizationToken);
+        String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
             User dbUser = userRepository.getByUsername(username);

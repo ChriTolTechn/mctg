@@ -40,14 +40,14 @@ public class ScoreboardWorker implements Workable {
 
     private HttpResponse getScoreboard(HttpRequest request) {
         String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
-        String username = UserUtils.getUsernameFromToken(authorizationToken);
+        String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
             User dbUser = userRepository.getByUsername(username);
             if (dbUser != null) {
                 Vector<User> userStats = userRepository.getUsersOrderedByElo();
                 String scoreboard = UserUtils.getScoreboard(userStats);
-                
+
                 return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, scoreboard);
             } else {
                 return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Not logged in");

@@ -6,7 +6,6 @@ import bif3.tolan.swe1.mcg.constants.Paths;
 import bif3.tolan.swe1.mcg.database.respositories.CardRepository;
 import bif3.tolan.swe1.mcg.database.respositories.PackageRepository;
 import bif3.tolan.swe1.mcg.database.respositories.UserRepository;
-import bif3.tolan.swe1.mcg.exceptions.InsufficientFundsException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.exceptions.PackageNotFoundException;
@@ -55,19 +54,19 @@ public class StoreWorker implements Workable {
      */
     private synchronized HttpResponse buyPackage(HttpRequest request) {
         String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
-        String username = UserUtils.getUsernameFromToken(authorizationToken);
+        String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
             User dbUser = userRepository.getByUsername(username);
             if (dbUser != null) {
-                if (dbUser.canPurchase(DefaultValues.DEFAULT_PACKAGE_COST)) {
+                if (dbUser.getCoins() < DefaultValues.DEFAULT_PACKAGE_COST) {
                     int nextPackage = packageRepository.getPackageWithLowestId();
                     Vector<Card> cards = cardRepository.getCardPackageByPackageId(nextPackage);
                     for (Card c : cards) {
                         cardRepository.assignCardToUserStack(c.getCardId(), dbUser.getId());
                     }
                     packageRepository.deletePackage(nextPackage);
-                    dbUser.payCoins(DefaultValues.DEFAULT_PACKAGE_COST);
+                    dbUser.setCoins(dbUser.getCoins() - DefaultValues.DEFAULT_PACKAGE_COST);
                     userRepository.updateUser(dbUser);
                     return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, "Successfully acquired new cards");
                 } else {
@@ -81,8 +80,6 @@ public class StoreWorker implements Workable {
         } catch (InvalidCardParameterException e) {
             e.printStackTrace();
         } catch (InvalidInputException e) {
-            e.printStackTrace();
-        } catch (InsufficientFundsException e) {
             e.printStackTrace();
         } catch (PackageNotFoundException e) {
             return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "No packages available at the moment");

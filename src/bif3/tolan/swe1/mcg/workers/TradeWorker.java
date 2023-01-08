@@ -65,7 +65,7 @@ public class TradeWorker implements Workable {
 
     private HttpResponse getAllTradeDeals(HttpRequest request) {
         String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
-        String username = UserUtils.getUsernameFromToken(authorizationToken);
+        String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
             User dbUser = userRepository.getByUsername(username);
@@ -93,7 +93,7 @@ public class TradeWorker implements Workable {
 
     private synchronized HttpResponse acceptTrade(HttpRequest request, String requestedTradeId) {
         String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
-        String username = UserUtils.getUsernameFromToken(authorizationToken);
+        String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
             User dbUser = userRepository.getByUsername(username);
@@ -146,7 +146,7 @@ public class TradeWorker implements Workable {
 
     private synchronized HttpResponse createTrade(HttpRequest request) {
         String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
-        String username = UserUtils.getUsernameFromToken(authorizationToken);
+        String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
             User dbUser = userRepository.getByUsername(username);
@@ -195,7 +195,7 @@ public class TradeWorker implements Workable {
 
     private synchronized HttpResponse deleteTrade(HttpRequest request, String requestedTradeId) {
         String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
-        String username = UserUtils.getUsernameFromToken(authorizationToken);
+        String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
             User dbUser = userRepository.getByUsername(username);
