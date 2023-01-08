@@ -26,9 +26,14 @@ public class UserRepositoryImplementation extends BaseRepository implements User
 
         preparedStatement.setInt(1, id);
 
-        ResultSet res = preparedStatement.executeQuery();
+        ResultSet resultSet = preparedStatement.executeQuery();
 
-        return convertResultSetToUserModel(res);
+        User user = convertResultSetToUserModel(resultSet);
+
+        resultSet.close();
+        preparedStatement.close();
+
+        return user;
     }
 
     @Override
@@ -38,13 +43,18 @@ public class UserRepositoryImplementation extends BaseRepository implements User
 
         preparedStatement.setString(1, username);
 
-        ResultSet res = preparedStatement.executeQuery();
+        ResultSet resultSet = preparedStatement.executeQuery();
 
-        return convertResultSetToUserModel(res);
+        User user = convertResultSetToUserModel(resultSet);
+
+        resultSet.close();
+        preparedStatement.close();
+
+        return user;
     }
 
     @Override
-    public void addNewUser(User user) throws SQLException, InvalidInputException, IdExistsException {
+    public synchronized void addNewUser(User user) throws SQLException, InvalidInputException, IdExistsException {
         if (UserUtils.isValidNewUser(user)) {
             if (getUserByUsername(user.getUsername()) != null) {
                 throw new IdExistsException();
@@ -64,13 +74,14 @@ public class UserRepositoryImplementation extends BaseRepository implements User
             preparedStatement.setString(9, user.getImage());
 
             preparedStatement.executeUpdate();
+            preparedStatement.close();
         } else {
             throw new InvalidInputException();
         }
     }
 
     @Override
-    public User updateUser(User user) throws SQLException {
+    public synchronized void updateUser(User user) throws SQLException {
         String sql = "UPDATE mctg_user " +
                 "SET password_hash = ?, " +
                 "elo = ?, " +
@@ -96,7 +107,8 @@ public class UserRepositoryImplementation extends BaseRepository implements User
         preparedStatement.setInt(10, user.getId());
 
         preparedStatement.executeUpdate();
-        return getUserById(user.getId());
+
+        preparedStatement.close();
     }
 
     @Override
@@ -115,6 +127,10 @@ public class UserRepositoryImplementation extends BaseRepository implements User
 
             users.add(new User(username, "", elo, 0, gamesPlayed, 0, wins, "", "", ""));
         }
+
+        resultSet.close();
+        preparedStatement.close();
+
         return users;
     }
 

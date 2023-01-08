@@ -1,10 +1,10 @@
 package bif3.tolan.swe1.mcg.model;
 
 import bif3.tolan.swe1.mcg.constants.CommonRegex;
-import bif3.tolan.swe1.mcg.model.enums.CardType;
-import bif3.tolan.swe1.mcg.model.enums.ElementType;
 import bif3.tolan.swe1.mcg.exceptions.UnsupportedCardTypeException;
 import bif3.tolan.swe1.mcg.exceptions.UnsupportedElementTypeException;
+import bif3.tolan.swe1.mcg.model.enums.CardType;
+import bif3.tolan.swe1.mcg.model.enums.ElementType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
@@ -97,6 +97,8 @@ public class Card {
             if (nameSplit.size() == 2) {
                 this.element = extractElementType(nameSplit.get(0));
                 nameSplit.remove(0);
+            } else {
+                this.element = ElementType.NORMAL;
             }
 
             this.cardType = extractCardType(nameSplit.get(0));

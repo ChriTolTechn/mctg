@@ -14,7 +14,7 @@ public interface UserRepository {
 
     void addNewUser(User user) throws SQLException, InvalidInputException, IdExistsException;
 
-    User updateUser(User user) throws SQLException;
+    void updateUser(User user) throws SQLException;
 
     Vector<User> getUsersOrderedByEloDescendingAsList() throws SQLException;
 }

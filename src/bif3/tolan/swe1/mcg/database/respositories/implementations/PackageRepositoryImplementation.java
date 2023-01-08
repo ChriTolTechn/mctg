@@ -15,24 +15,49 @@ public class PackageRepositoryImplementation extends BaseRepository implements P
     }
 
     @Override
-    public int createNewPackageAndGetId() throws SQLException {
+    public synchronized int createNewPackageAndGetId() throws SQLException {
         String sql = "INSERT INTO mctg_package DEFAULT VALUES RETURNING *";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
         ResultSet resultSet = preparedStatement.executeQuery();
-        if (resultSet.next()) return resultSet.getInt("id");
-        throw new NullPointerException();
+
+        int packageId;
+
+        if (resultSet.next()) {
+            packageId = resultSet.getInt("id");
+        } else {
+            packageId = -1;
+        }
+
+        resultSet.close();
+        preparedStatement.close();
+
+        //TODO exception
+        return packageId;
     }
 
     @Override
     public int getNextAvailablePackage() throws SQLException, PackageNotFoundException {
         String sql = "SELECT id FROM mctg_package WHERE id = (SELECT MIN(id) FROM mctg_package)";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        ResultSet res = preparedStatement.executeQuery();
-        if (res.next()) {
-            return res.getInt("id");
+
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        int packageId;
+
+        if (resultSet.next()) {
+            packageId = resultSet.getInt("id");
         } else {
+            packageId = -1;
+        }
+
+        resultSet.close();
+        preparedStatement.close();
+
+        if (packageId == -1) {
             throw new PackageNotFoundException();
+        } else {
+            return packageId;
         }
     }
 
@@ -40,7 +65,11 @@ public class PackageRepositoryImplementation extends BaseRepository implements P
     public void deletePackage(int packageId) throws SQLException {
         String sql = "DELETE FROM mctg_package WHERE id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
+
         preparedStatement.setInt(1, packageId);
+
         preparedStatement.executeUpdate();
+
+        preparedStatement.close();
     }
 }

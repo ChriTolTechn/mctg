@@ -28,9 +28,15 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
 
         preparedStatement.setString(1, cardId);
 
-        ResultSet res = preparedStatement.executeQuery();
+        ResultSet resultSet = preparedStatement.executeQuery();
 
-        return extractSingleCard(res);
+        Card card = extractSingleCard(resultSet);
+
+        resultSet.close();
+        preparedStatement.close();
+
+        //TODO exception if null
+        return card;
     }
 
     @Override
@@ -40,9 +46,14 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
 
         preparedStatement.setInt(1, userId);
 
-        ResultSet res = preparedStatement.executeQuery();
+        ResultSet resultSet = preparedStatement.executeQuery();
 
-        return extractManyCards(res);
+        Vector<Card> cards = extractManyCards(resultSet);
+
+        resultSet.close();
+        preparedStatement.close();
+
+        return cards;
     }
 
     @Override
@@ -52,9 +63,14 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
 
         preparedStatement.setString(1, tradeId);
 
-        ResultSet res = preparedStatement.executeQuery();
+        ResultSet resultSet = preparedStatement.executeQuery();
 
-        return extractSingleCard(res);
+        Card card = extractSingleCard(resultSet);
+
+        resultSet.close();
+        preparedStatement.close();
+
+        return card;
     }
 
     @Override
@@ -64,9 +80,14 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
 
         preparedStatement.setInt(1, deckId);
 
-        ResultSet res = preparedStatement.executeQuery();
+        ResultSet resultSet = preparedStatement.executeQuery();
 
-        return extractManyCards(res);
+        Vector<Card> cards = extractManyCards(resultSet);
+
+        resultSet.close();
+        preparedStatement.close();
+
+        return cards;
     }
 
     @Override
@@ -76,9 +97,14 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
 
         preparedStatement.setInt(1, deckId);
 
-        ResultSet res = preparedStatement.executeQuery();
+        ResultSet resultSet = preparedStatement.executeQuery();
 
-        return extractManyCardsAsMap(res);
+        ConcurrentHashMap<String, Card> cards = extractManyCardsAsMap(resultSet);
+
+        resultSet.close();
+        preparedStatement.close();
+
+        return cards;
     }
 
     @Override
@@ -88,13 +114,18 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
 
         preparedStatement.setInt(1, packageId);
 
-        ResultSet res = preparedStatement.executeQuery();
+        ResultSet resultSet = preparedStatement.executeQuery();
 
-        return extractManyCards(res);
+        Vector<Card> cards = extractManyCards(resultSet);
+
+        resultSet.close();
+        preparedStatement.close();
+
+        return cards;
     }
 
     @Override
-    public void addNewCard(Card card) throws SQLException, IdExistsException, InvalidInputException, UnsupportedCardTypeException, UnsupportedElementTypeException {
+    public synchronized void addNewCard(Card card) throws SQLException, IdExistsException, InvalidInputException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         if (CardUtils.isValidNewCard(card)) {
             if (getCardById(card.getCardId()) != null) {
                 throw new IdExistsException();
@@ -108,13 +139,14 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
             preparedStatement.setFloat(3, card.getDamage());
 
             preparedStatement.executeUpdate();
+            preparedStatement.close();
         } else {
             throw new InvalidInputException();
         }
     }
 
     @Override
-    public void assignCardToUserStack(String cardId, int userId) throws SQLException, InvalidInputException, UnsupportedCardTypeException, UnsupportedElementTypeException {
+    public synchronized void assignCardToUserStack(String cardId, int userId) throws SQLException, InvalidInputException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         resetCardRelations(cardId);
 
         String sql = "UPDATE mctg_card SET mctg_user_id = ? WHERE id = ?";
@@ -124,6 +156,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         preparedStatement.setString(2, cardId);
 
         preparedStatement.executeUpdate();
+        preparedStatement.close();
     }
 
     @Override
@@ -136,11 +169,15 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
 
         ResultSet resultSet = preparedStatement.executeQuery();
 
-        return resultSet.next();
+        boolean doesCardBelongToUser = resultSet.next();
+
+        preparedStatement.close();
+
+        return doesCardBelongToUser;
     }
 
     @Override
-    public void assignCardToUserDeck(String cardId, int deckId) throws InvalidInputException, SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
+    public synchronized void assignCardToUserDeck(String cardId, int deckId) throws InvalidInputException, SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         resetCardRelations(cardId);
 
         String sql = "UPDATE mctg_card SET mctg_deck_id = ? WHERE id = ?";
@@ -150,10 +187,11 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         preparedStatement.setString(2, cardId);
 
         preparedStatement.executeUpdate();
+        preparedStatement.close();
     }
 
     @Override
-    public void assignCardToPackage(String cardId, int packageId) throws InvalidInputException, SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
+    public synchronized void assignCardToPackage(String cardId, int packageId) throws InvalidInputException, SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         resetCardRelations(cardId);
 
         String sql = "UPDATE mctg_card SET mctg_package_id = ? WHERE id = ?";
@@ -163,10 +201,11 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         preparedStatement.setString(2, cardId);
 
         preparedStatement.executeUpdate();
+        preparedStatement.close();
     }
 
     @Override
-    public void assignCardToTradeOffer(String cardId, String tradeOfferId) throws InvalidInputException, SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
+    public synchronized void assignCardToTradeOffer(String cardId, String tradeOfferId) throws InvalidInputException, SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         resetCardRelations(cardId);
 
         String sql = "UPDATE mctg_card SET mctg_trade_offer_id = ? WHERE id = ?";
@@ -176,9 +215,10 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         preparedStatement.setString(2, cardId);
 
         preparedStatement.executeUpdate();
+        preparedStatement.close();
     }
 
-    private void resetCardRelations(String cardId) throws SQLException, InvalidInputException, UnsupportedCardTypeException, UnsupportedElementTypeException {
+    private synchronized void resetCardRelations(String cardId) throws SQLException, InvalidInputException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         if (getCardById(cardId) != null) {
             String sql = "UPDATE mctg_card " +
                     "SET mctg_user_id = NULL, " +
@@ -190,40 +230,41 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
             preparedStatement.setString(1, cardId);
 
             preparedStatement.executeUpdate();
+            preparedStatement.close();
         } else {
             throw new InvalidInputException();
         }
     }
 
-    private Card extractSingleCard(ResultSet res) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
-        if (res.next()) {
-            return convertResultSetToCardModel(res);
+    private Card extractSingleCard(ResultSet resultSet) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
+        if (resultSet.next()) {
+            return convertResultSetToCardModel(resultSet);
         } else {
             return null;
         }
     }
 
-    private Vector<Card> extractManyCards(ResultSet res) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
+    private Vector<Card> extractManyCards(ResultSet resultSet) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         Vector<Card> cards = new Vector<>();
-        while (res.next()) {
-            cards.add(convertResultSetToCardModel(res));
+        while (resultSet.next()) {
+            cards.add(convertResultSetToCardModel(resultSet));
         }
         return cards;
     }
 
-    private ConcurrentHashMap<String, Card> extractManyCardsAsMap(ResultSet res) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
+    private ConcurrentHashMap<String, Card> extractManyCardsAsMap(ResultSet resultSet) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         ConcurrentHashMap<String, Card> cards = new ConcurrentHashMap();
-        while (res.next()) {
-            Card card = convertResultSetToCardModel(res);
+        while (resultSet.next()) {
+            Card card = convertResultSetToCardModel(resultSet);
             cards.put(card.getCardId(), card);
         }
         return cards;
     }
 
-    private Card convertResultSetToCardModel(ResultSet res) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
-        String cardId = res.getString("id");
-        String cardName = res.getString("name");
-        float cardDamage = res.getFloat("damage");
+    private Card convertResultSetToCardModel(ResultSet resultSet) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
+        String cardId = resultSet.getString("id");
+        String cardName = resultSet.getString("name");
+        float cardDamage = resultSet.getFloat("damage");
 
         return new Card(cardId, cardName, cardDamage);
     }
