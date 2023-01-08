@@ -65,17 +65,17 @@ public class DeckWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User dbUser = userRepository.getByUsername(username);
-            if (dbUser != null) {
-                int deckId = deckRepository.getDeckIdForUser(dbUser.getId());
-                Vector<Card> cards = cardRepository.getCardsByDeckId(deckId);
+            User requestingUser = userRepository.getByUsername(username);
+            if (requestingUser != null) {
+                int deckIdOfRequestingUser = deckRepository.getDeckIdForUser(requestingUser.getId());
+                Vector<Card> cardDeckOfRequestingUser = cardRepository.getCardsByDeckId(deckIdOfRequestingUser);
 
                 String formatParameter = request.getParameterMap().get("format");
 
                 if (formatParameter != null && formatParameter.equals("plain")) {
-                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, CardUtils.getMultipleCardDisplayForUser(dbUser.getUsername(), cards));
+                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, CardUtils.getMultipleCardDisplayForUser(requestingUser.getUsername(), cardDeckOfRequestingUser));
                 } else {
-                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, CardUtils.getCardDetails(dbUser.getUsername(), cards));
+                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, CardUtils.getCardDetails(requestingUser.getUsername(), cardDeckOfRequestingUser));
                 }
             } else {
                 return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Not logged in");
@@ -93,30 +93,30 @@ public class DeckWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User dbUser = userRepository.getByUsername(username);
-            if (dbUser != null) {
+            User requestingUser = userRepository.getByUsername(username);
+            if (requestingUser != null) {
                 ObjectMapper mapper = new ObjectMapper();
                 String jsonString = request.getBody();
 
-                Vector<String> stringList = mapper.readValue(jsonString, new TypeReference<>() {
+                Vector<String> requestedCardIdsForDeck = mapper.readValue(jsonString, new TypeReference<>() {
                 });
 
-                if (stringList.size() == 4) {
-                    int deckId = deckRepository.getDeckIdForUser(dbUser.getId());
+                if (requestedCardIdsForDeck.size() == 4) {
+                    int deckIdOfRequestingUser = deckRepository.getDeckIdForUser(requestingUser.getId());
 
-                    for (String cardId : stringList) {
-                        if (cardRepository.doesCardBelongToUser(cardId, dbUser.getId()) == false) {
+                    for (String cardId : requestedCardIdsForDeck) {
+                        if (cardRepository.doesCardBelongToUser(cardId, requestingUser.getId()) == false) {
                             return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "At least one of the card IDs provided is not in the users card stack. Please enter valid ids");
                         }
                     }
 
-                    Vector<Card> cardsInDeck = cardRepository.getCardsByDeckId(deckId);
-                    for (Card c : cardsInDeck) {
-                        cardRepository.assignCardToUserStack(c.getCardId(), dbUser.getId());
+                    Vector<Card> currentCardDeckOfRequestingUser = cardRepository.getCardsByDeckId(deckIdOfRequestingUser);
+                    for (Card c : currentCardDeckOfRequestingUser) {
+                        cardRepository.assignCardToUserStack(c.getCardId(), requestingUser.getId());
                     }
 
-                    for (String cardId : stringList) {
-                        cardRepository.assignCardToUserDeck(cardId, deckId);
+                    for (String cardId : requestedCardIdsForDeck) {
+                        cardRepository.assignCardToUserDeck(cardId, deckIdOfRequestingUser);
                     }
                     return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, "Successfully updated deck");
                 } else {

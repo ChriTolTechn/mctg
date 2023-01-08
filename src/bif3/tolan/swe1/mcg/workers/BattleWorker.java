@@ -137,8 +137,8 @@ public class BattleWorker implements Workable {
         }
     }
 
-    private synchronized HttpResponse createBattleAndWaitForOpponent(User dbUser) throws InterruptedException, CloneNotSupportedException {
-        waitingForBattle = (User) dbUser.clone();
+    private synchronized HttpResponse createBattleAndWaitForOpponent(User requestingUser) throws InterruptedException, CloneNotSupportedException {
+        waitingForBattle = (User) requestingUser.clone();
 
         this.wait(DefaultValues.DEFAULT_TIMEOUT);
 

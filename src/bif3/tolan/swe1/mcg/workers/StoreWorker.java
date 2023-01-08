@@ -57,17 +57,21 @@ public class StoreWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User dbUser = userRepository.getByUsername(username);
-            if (dbUser != null) {
-                if (dbUser.getCoins() >= DefaultValues.DEFAULT_PACKAGE_COST) {
-                    int nextPackage = packageRepository.getPackageWithLowestId();
-                    Vector<Card> cards = cardRepository.getCardPackageByPackageId(nextPackage);
-                    for (Card c : cards) {
-                        cardRepository.assignCardToUserStack(c.getCardId(), dbUser.getId());
+            User requestingUser = userRepository.getByUsername(username);
+            if (requestingUser != null) {
+                if (requestingUser.getCoins() >= DefaultValues.DEFAULT_PACKAGE_COST) {
+                    int nextAvailablePackage = packageRepository.getPackageWithLowestId();
+
+                    Vector<Card> cardsInPackage = cardRepository.getCardPackageByPackageId(nextAvailablePackage);
+                    for (Card c : cardsInPackage) {
+                        cardRepository.assignCardToUserStack(c.getCardId(), requestingUser.getId());
                     }
-                    packageRepository.deletePackage(nextPackage);
-                    dbUser.setCoins(dbUser.getCoins() - DefaultValues.DEFAULT_PACKAGE_COST);
-                    userRepository.updateUser(dbUser);
+
+                    packageRepository.deletePackage(nextAvailablePackage);
+
+                    requestingUser.setCoins(requestingUser.getCoins() - DefaultValues.DEFAULT_PACKAGE_COST);
+                    userRepository.updateUser(requestingUser);
+
                     return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, "Successfully acquired new cards");
                 } else {
                     return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "Not enough coins");

@@ -49,11 +49,11 @@ public class CardWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User dbUser = userRepository.getByUsername(username);
-            if (dbUser != null) {
-                Vector<Card> cards = cardRepository.getCardsByUserId(dbUser.getId());
+            User requestingUser = userRepository.getByUsername(username);
+            if (requestingUser != null) {
+                Vector<Card> cardStackOfRequestingUser = cardRepository.getCardsByUserId(requestingUser.getId());
 
-                return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, CardUtils.getMultipleCardDisplayForUser(dbUser.getUsername(), cards));
+                return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, CardUtils.getMultipleCardDisplayForUser(requestingUser.getUsername(), cardStackOfRequestingUser));
             } else {
                 return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Not logged in");
             }

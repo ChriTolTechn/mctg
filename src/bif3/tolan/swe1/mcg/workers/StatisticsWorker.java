@@ -43,9 +43,9 @@ public class StatisticsWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User dbUser = userRepository.getByUsername(username);
-            if (dbUser != null) {
-                return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, UserUtils.getUserStats(dbUser));
+            User requestingUser = userRepository.getByUsername(username);
+            if (requestingUser != null) {
+                return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, UserUtils.getUserStats(requestingUser));
             } else {
                 return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Not logged in");
             }

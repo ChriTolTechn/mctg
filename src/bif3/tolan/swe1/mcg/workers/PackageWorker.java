@@ -58,20 +58,23 @@ public class PackageWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User dbUser = userRepository.getByUsername(username);
-            if (dbUser != null && dbUser.getUsername().equals(DefaultValues.ADMIN_USERNAME)) {
+            User requestingUser = userRepository.getByUsername(username);
+            if (requestingUser != null && requestingUser.getUsername().equals(DefaultValues.ADMIN_USERNAME)) {
                 ObjectMapper mapper = new ObjectMapper();
-                String jsonString = request.getBody();
+                String newCardsAsJsonString = request.getBody();
 
-                Vector<Card> cards = mapper.readValue(
-                        jsonString,
+                Vector<Card> newCards = mapper.readValue(
+                        newCardsAsJsonString,
                         mapper.getTypeFactory().constructCollectionType(Vector.class, Card.class));
-                for (Card c : cards) {
+
+                for (Card c : newCards) {
                     cardRepository.addCard(c);
                 }
-                int packageId = packageRepository.createPackageAndGetId();
-                for (Card c : cards) {
-                    cardRepository.assignCardToPackage(c.getCardId(), packageId);
+
+                int newCardPackageId = packageRepository.createPackageAndGetId();
+
+                for (Card c : newCards) {
+                    cardRepository.assignCardToPackage(c.getCardId(), newCardPackageId);
                 }
 
                 return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, "Package created successfully");
@@ -91,6 +94,7 @@ public class PackageWorker implements Workable {
         } catch (InvalidCardParameterException e) {
             e.printStackTrace();
         }
+        
         return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The json string is not formatted properly");
     }
 }

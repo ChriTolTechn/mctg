@@ -46,15 +46,15 @@ public class LoginWorker implements Workable {
 
         try {
             // Create user from jsonString
-            User jsonUser = mapper.readValue(jsonString, User.class);
+            User loginValues = mapper.readValue(jsonString, User.class);
 
             // Get user from the database
-            User dbUser = userRepository.getByUsername(jsonUser.getUsername());
+            User requestedUser = userRepository.getByUsername(loginValues.getUsername());
 
-            if (dbUser == null) {
-                return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "User with name: " + jsonUser.getUsername() + " does not exist");
-            } else if (jsonUser.getPasswordHash().equals(dbUser.getPasswordHash())) {
-                return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, "Successfully logged in. Session token: " + dbUser.getToken());
+            if (requestedUser == null) {
+                return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "User with name: " + loginValues.getUsername() + " does not exist");
+            } else if (loginValues.getPasswordHash().equals(requestedUser.getPasswordHash())) {
+                return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, "Successfully logged in. Session token: " + requestedUser.getToken());
             } else {
                 return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Invalid credentials");
             }

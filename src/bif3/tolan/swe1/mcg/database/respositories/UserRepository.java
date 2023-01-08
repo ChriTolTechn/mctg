@@ -16,5 +16,5 @@ public interface UserRepository {
 
     User updateUser(User user) throws SQLException;
 
-    Vector<User> getUsersOrderedByElo() throws SQLException;
+    Vector<User> getUsersOrderedByEloDescending() throws SQLException;
 }

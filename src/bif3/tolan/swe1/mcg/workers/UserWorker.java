@@ -59,17 +59,19 @@ public class UserWorker implements Workable {
 
         try {
             // Create user from jsonString
-            User user = mapper.readValue(jsonString, User.class);
+            User userTryingToRegister = mapper.readValue(jsonString, User.class);
 
             //Check if user already exists
-            User dbUser = userRepository.getByUsername(user.getUsername());
-            if (dbUser != null) {
-                return new HttpResponse(HttpStatus.BAD_REQUEST, ContentType.PLAIN_TEXT, "User with the username \"" + user.getUsername() + "\" already exists");
+            User registeredUserWithSameUsername = userRepository.getByUsername(userTryingToRegister.getUsername());
+            if (registeredUserWithSameUsername != null) {
+                return new HttpResponse(HttpStatus.BAD_REQUEST, ContentType.PLAIN_TEXT, "User with the username \"" + userTryingToRegister.getUsername() + "\" already exists");
             } else {
-                userRepository.add(user);
-                dbUser = userRepository.getByUsername(user.getUsername());
-                deckRepository.createDeckForUser(dbUser.getId());
-                return new HttpResponse(HttpStatus.CREATED, ContentType.PLAIN_TEXT, "User " + user.getUsername() + " successfully created.");
+                userRepository.add(userTryingToRegister);
+                User newlyRegisteredUser = userRepository.getByUsername(userTryingToRegister.getUsername());
+
+                deckRepository.createDeckForUser(newlyRegisteredUser.getId());
+
+                return new HttpResponse(HttpStatus.CREATED, ContentType.PLAIN_TEXT, "User " + newlyRegisteredUser.getUsername() + " successfully created.");
             }
         } catch (JsonParseException e) {
             e.printStackTrace();
@@ -93,10 +95,10 @@ public class UserWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User dbUser = userRepository.getByUsername(username);
-            if (dbUser != null) {
-                if (dbUser.getUsername().equals(requestedUser)) {
-                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, UserUtils.getUserProfile(dbUser));
+            User requestingUser = userRepository.getByUsername(username);
+            if (requestingUser != null) {
+                if (requestingUser.getUsername().equals(requestedUser)) {
+                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, UserUtils.getUserProfile(requestingUser));
                 } else {
                     return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "You are not authorized to access this information");
                 }
@@ -114,22 +116,22 @@ public class UserWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User dbUser = userRepository.getByUsername(username);
-            if (dbUser != null) {
-                if (dbUser.getUsername().equals(requestedUser)) {
+            User requestingUser = userRepository.getByUsername(username);
+            if (requestingUser != null) {
+                if (requestingUser.getUsername().equals(requestedUser)) {
                     ObjectMapper mapper = new ObjectMapper();
-                    String jsonString = request.getBody();
+                    String newUserDataAsJsonString = request.getBody();
 
-                    User jsonUser = mapper.readValue(jsonString, User.class);
+                    User newUserWithUpdatedData = mapper.readValue(newUserDataAsJsonString, User.class);
 
-                    if (jsonUser.getName() != null)
-                        dbUser.setName(jsonUser.getName());
-                    if (jsonUser.getBio() != null)
-                        dbUser.setBio(jsonUser.getBio());
-                    if (jsonUser.getImage() != null)
-                        dbUser.setImage(jsonUser.getImage());
+                    if (newUserWithUpdatedData.getName() != null)
+                        requestingUser.setName(newUserWithUpdatedData.getName());
+                    if (newUserWithUpdatedData.getBio() != null)
+                        requestingUser.setBio(newUserWithUpdatedData.getBio());
+                    if (newUserWithUpdatedData.getImage() != null)
+                        requestingUser.setImage(newUserWithUpdatedData.getImage());
 
-                    userRepository.updateUser(dbUser);
+                    userRepository.updateUser(requestingUser);
                     return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, "User data updates successfully!");
                 } else {
                     return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "You are not authorized to access this information");

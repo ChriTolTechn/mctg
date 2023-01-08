@@ -63,19 +63,19 @@ public class TradeWorker implements Workable {
         return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "Unknown path");
     }
 
-    private HttpResponse getAllTradeDeals(HttpRequest request) {
+    private synchronized HttpResponse getAllTradeDeals(HttpRequest request) {
         String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User dbUser = userRepository.getByUsername(username);
-            if (dbUser != null) {
-                Vector<TradeOffer> tradeOffers = tradeOfferRepository.getAllTradeOffers();
-                if (tradeOffers.isEmpty() == false) {
-                    for (TradeOffer trade : tradeOffers) {
-                        trade.setCard(cardRepository.getCardByTradeOfferId(trade.getTradeId()));
+            User requestingUser = userRepository.getByUsername(username);
+            if (requestingUser != null) {
+                Vector<TradeOffer> allTradeOffers = tradeOfferRepository.getAllTradeOffers();
+                if (allTradeOffers.isEmpty() == false) {
+                    for (TradeOffer tradeOffer : allTradeOffers) {
+                        tradeOffer.setCard(cardRepository.getCardByTradeOfferId(tradeOffer.getTradeId()));
                     }
-                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, TradeUtils.printAllTradeOffers(tradeOffers));
+                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, TradeUtils.printAllTradeOffers(allTradeOffers));
                 } else {
                     return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "No active trade offers");
                 }
@@ -96,21 +96,23 @@ public class TradeWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User dbUser = userRepository.getByUsername(username);
-            if (dbUser != null) {
+            User requestingUser = userRepository.getByUsername(username);
+            if (requestingUser != null) {
                 TradeOffer wantedTrade = tradeOfferRepository.getTradeOfferById(requestedTradeId);
                 if (wantedTrade != null) {
-                    if (wantedTrade.getUserId() != dbUser.getId()) {
-                        String tradeInCardId = extractStringFromJson(request.getBody());
-                        Card cardToTradeIn = cardRepository.getCardById(tradeInCardId);
+                    if (wantedTrade.getUserId() != requestingUser.getId()) {
+                        String offerCardIdOfRequestingUser = extractStringFromJson(request.getBody());
+                        Card offerCardOfRequestingUser = cardRepository.getCardById(offerCardIdOfRequestingUser);
 
-                        if (cardRepository.doesCardBelongToUser(cardToTradeIn.getCardId(), dbUser.getId())) {
-                            if (cardMeetsRequirement(cardToTradeIn, wantedTrade)) {
+                        if (cardRepository.doesCardBelongToUser(offerCardOfRequestingUser.getCardId(), requestingUser.getId())) {
+                            if (cardMeetsRequirement(offerCardOfRequestingUser, wantedTrade)) {
                                 wantedTrade.setCard(cardRepository.getCardByTradeOfferId(wantedTrade.getTradeId()));
-                                cardRepository.assignCardToUserStack(wantedTrade.getCard().getCardId(), dbUser.getId());
-                                cardRepository.assignCardToUserStack(tradeInCardId, wantedTrade.getUserId());
+
+                                cardRepository.assignCardToUserStack(wantedTrade.getCard().getCardId(), requestingUser.getId());
+                                cardRepository.assignCardToUserStack(offerCardIdOfRequestingUser, wantedTrade.getUserId());
 
                                 tradeOfferRepository.deleteTrade(wantedTrade.getTradeId());
+
                                 return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, "Successfully traded cards");
                             } else {
                                 return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The card you want to trade in does not meet the trade criteria");
