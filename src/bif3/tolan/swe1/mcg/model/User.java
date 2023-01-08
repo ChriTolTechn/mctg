@@ -15,7 +15,6 @@ import static bif3.tolan.swe1.mcg.utils.PasswordHashUtils.hashPassword;
  * @author Christopher Tolan
  */
 public class User implements Cloneable {
-
     @JsonProperty("Username")
     private String username;
     @JsonIgnore
@@ -79,10 +78,6 @@ public class User implements Cloneable {
 
     public String getUsername() {
         return username;
-    }
-    
-    private void setUsername(String username) {
-        this.username = username;
     }
 
     public int getElo() {

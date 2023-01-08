@@ -1,12 +1,9 @@
 package bif3.tolan.swe1.mcg.utils;
 
-import bif3.tolan.swe1.mcg.constants.CommonRegex;
 import bif3.tolan.swe1.mcg.enums.CardType;
 import bif3.tolan.swe1.mcg.enums.ElementType;
-import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
 import bif3.tolan.swe1.mcg.model.Card;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class CardUtils {
@@ -23,31 +20,7 @@ public class CardUtils {
         return CardType.valueOf(type.toUpperCase());
     }
 
-
-    public static Card buildCard(String cardId, String name, float damage) throws InvalidCardParameterException {
-        List<String> nameSplit = new ArrayList<>(List.of(name.split(CommonRegex.SPLIT_STRING_BY_UPPERCASE_LETTERS)));
-
-        ElementType element = ElementType.NORMAL;
-        CardType type = null;
-
-        //TODO move logic to constructor of card
-        try {
-            if (nameSplit.size() > 0) {
-                if (nameSplit.size() == 2) {
-                    element = extractElementType(nameSplit.get(0));
-                    nameSplit.remove(0);
-                }
-
-                type = extractCardType(nameSplit.get(0));
-            }
-        } catch (IllegalArgumentException e) {
-            throw new InvalidCardParameterException();
-        }
-
-        return new Card(cardId, name, element, damage, type);
-    }
-
-    public static String getCardsAsStringForDisplayPlain(String username, List<Card> cards) {
+    public static String getMultipleCardDisplayForUser(String username, List<Card> cards) {
         StringBuilder cardsAsString = new StringBuilder("Cards of user" + username + ":");
         if (cards.size() == 0) {
             cardsAsString.append("\nNo cards available");
@@ -59,7 +32,7 @@ public class CardUtils {
         return cardsAsString.toString();
     }
 
-    public static String getCardsAsStringForDisplay(String username, List<Card> cards) {
+    public static String getCardDetails(String username, List<Card> cards) {
         StringBuilder cardsAsString = new StringBuilder("Cards of user" + username + ":");
         if (cards.size() == 0) {
             cardsAsString.append("\nNo cards available");

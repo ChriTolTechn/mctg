@@ -10,7 +10,6 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import static bif3.tolan.swe1.mcg.utils.CardUtils.extractCardType;
 import static bif3.tolan.swe1.mcg.utils.CardUtils.extractElementType;
@@ -21,30 +20,25 @@ import static bif3.tolan.swe1.mcg.utils.CardUtils.extractElementType;
  * @author Christopher Tolan
  */
 public class Card {
-
     @JsonProperty("Id")
     private String cardId;
     @JsonIgnore
     private String name;
-
     @JsonIgnore
     private ElementType element;
-
     @JsonIgnore
     private CardType cardType;
-
-
     @JsonProperty("Damage")
     private float damage;
 
-    public Card(String cardId, String name, ElementType element, float damage, CardType cardType) {
+    public Card(String cardId, String name, float damage) throws InvalidCardParameterException {
         this.cardId = cardId;
         this.name = name;
-        this.element = element;
         this.damage = damage;
-        this.cardType = cardType;
+        setCardElementAndTypeByCardName(this.name);
     }
 
+    // Default Constructor for Jackson
     public Card() {
     }
 
@@ -56,19 +50,7 @@ public class Card {
     public void setName(String name) throws InvalidCardParameterException {
         this.name = name;
 
-        List<String> nameSplit = new ArrayList<>(List.of(name.split(CommonRegex.SPLIT_STRING_BY_UPPERCASE_LETTERS)));
-        try {
-            if (nameSplit.size() > 0) {
-                if (nameSplit.size() == 2) {
-                    this.element = extractElementType(nameSplit.get(0));
-                    nameSplit.remove(0);
-                }
-
-                this.cardType = extractCardType(nameSplit.get(0));
-            }
-        } catch (IllegalArgumentException e) {
-            throw new InvalidCardParameterException();
-        }
+        setCardElementAndTypeByCardName(name);
     }
 
     public ElementType getElement() {
@@ -79,20 +61,12 @@ public class Card {
         return damage;
     }
 
-    public void setDamage(float damage) {
-        this.damage = damage;
-    }
-
     public CardType getMonsterType() {
         return cardType;
     }
 
     public String getCardId() {
         return cardId;
-    }
-
-    public void setCardId(String cardId) {
-        this.cardId = cardId;
     }
 
     public CardType getCardType() {
@@ -108,16 +82,27 @@ public class Card {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(cardId);
-    }
-
-    @Override
     public String toString() {
         return "Id = " + cardId +
                 ", Name = " + name +
                 ", Element = " + element +
                 ", Type = " + cardType +
                 ", Damage = " + damage;
+    }
+
+    private void setCardElementAndTypeByCardName(String name) throws InvalidCardParameterException {
+        List<String> nameSplit = new ArrayList<>(List.of(name.split(CommonRegex.SPLIT_STRING_BY_UPPERCASE_LETTERS)));
+        try {
+            if (nameSplit.size() > 0) {
+                if (nameSplit.size() == 2) {
+                    this.element = extractElementType(nameSplit.get(0));
+                    nameSplit.remove(0);
+                }
+
+                this.cardType = extractCardType(nameSplit.get(0));
+            }
+        } catch (IllegalArgumentException e) {
+            throw new InvalidCardParameterException();
+        }
     }
 }

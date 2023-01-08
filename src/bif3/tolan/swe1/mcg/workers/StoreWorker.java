@@ -59,7 +59,7 @@ public class StoreWorker implements Workable {
         try {
             User dbUser = userRepository.getByUsername(username);
             if (dbUser != null) {
-                if (dbUser.getCoins() < DefaultValues.DEFAULT_PACKAGE_COST) {
+                if (dbUser.getCoins() >= DefaultValues.DEFAULT_PACKAGE_COST) {
                     int nextPackage = packageRepository.getPackageWithLowestId();
                     Vector<Card> cards = cardRepository.getCardPackageByPackageId(nextPackage);
                     for (Card c : cards) {

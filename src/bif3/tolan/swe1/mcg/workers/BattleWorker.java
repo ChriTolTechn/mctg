@@ -59,38 +59,43 @@ public class BattleWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User dbUser = userRepository.getByUsername(username);
-            if (dbUser != null) {
-                if (waitingForBattle == null) {
-                    return createBattleAndWaitForOpponent(dbUser);
-                } else {
-                    return joinBattleAndBattle(dbUser);
+            User requestingUser = userRepository.getByUsername(username);
+            if (requestingUser != null) {
+                int deckIdOfRequestingUser = deckRepository.getDeckIdForUser(requestingUser.getId());
+                requestingUser.setDeck(cardRepository.getCardsByDeckIdAsMap(deckIdOfRequestingUser));
+                if (requestingUser.getDeck().size() == 4) {
+                    if (waitingForBattle == null) {
+                        return createBattleAndWaitForOpponent(requestingUser);
+                    } else {
+                        return joinBattleAndBattle(requestingUser);
+                    }
                 }
+                return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "Your deck is not configured");
             } else {
                 return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Not logged in");
             }
         } catch (SQLException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         } catch (InvalidDeckException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         } catch (InvalidUserException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         } catch (InvalidCardParameterException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         } catch (BattleFinishedException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
 
         return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The json string is not formatted properly");
     }
 
-    private synchronized HttpResponse joinBattleAndBattle(User dbUser) throws SQLException, InvalidCardParameterException, InvalidUserException, InvalidDeckException, BattleFinishedException, CloneNotSupportedException {
-        if (waitingForBattle != dbUser) {
-            battle = prepareBattle((User) waitingForBattle.clone(), (User) dbUser.clone());
+    private synchronized HttpResponse joinBattleAndBattle(User requestingUser) throws SQLException, InvalidCardParameterException, InvalidUserException, InvalidDeckException, BattleFinishedException, CloneNotSupportedException {
+        if (waitingForBattle != requestingUser) {
+            battle = new Battle((User) waitingForBattle.clone(), (User) requestingUser.clone());
             waitingForBattle = null;
 
             while (battle.getGameFinished() == false) {
@@ -130,17 +135,6 @@ public class BattleWorker implements Workable {
         } else {
             return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "You cannot battle yourself");
         }
-    }
-
-    private Battle prepareBattle(User player1, User player2) throws SQLException, InvalidCardParameterException, InvalidUserException, InvalidDeckException {
-        int player1DeckId = deckRepository.getDeckIdForUser(player1.getId());
-        int player2DeckId = deckRepository.getDeckIdForUser(player2.getId());
-
-        player1.setDeck(cardRepository.getCardsByDeckIdAsMap(player1DeckId));
-        player2.setDeck(cardRepository.getCardsByDeckIdAsMap(player2DeckId));
-
-        Battle currentBattle = new Battle(player1, player2);
-        return currentBattle;
     }
 
     private synchronized HttpResponse createBattleAndWaitForOpponent(User dbUser) throws InterruptedException, CloneNotSupportedException {

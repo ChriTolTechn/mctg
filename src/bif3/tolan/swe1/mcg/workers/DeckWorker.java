@@ -73,9 +73,9 @@ public class DeckWorker implements Workable {
                 String formatParameter = request.getParameterMap().get("format");
 
                 if (formatParameter != null && formatParameter.equals("plain")) {
-                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, CardUtils.getCardsAsStringForDisplayPlain(dbUser.getUsername(), cards));
+                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, CardUtils.getMultipleCardDisplayForUser(dbUser.getUsername(), cards));
                 } else {
-                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, CardUtils.getCardsAsStringForDisplay(dbUser.getUsername(), cards));
+                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, CardUtils.getCardDetails(dbUser.getUsername(), cards));
                 }
             } else {
                 return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Not logged in");

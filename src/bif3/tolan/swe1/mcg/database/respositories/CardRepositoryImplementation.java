@@ -4,7 +4,6 @@ import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.model.Card;
-import bif3.tolan.swe1.mcg.utils.CardUtils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -222,7 +221,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         String cardName = res.getString("name");
         float cardDamage = res.getFloat("damage");
 
-        return CardUtils.buildCard(cardId, cardName, cardDamage);
+        return new Card(cardId, cardName, cardDamage);
     }
 
     private boolean isValidNewCard(Card card) {
