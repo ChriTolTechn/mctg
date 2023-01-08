@@ -1,11 +1,11 @@
 package bif3.tolan.swe1.mcg.workers;
 
 import bif3.tolan.swe1.mcg.constants.DefaultValues;
-import bif3.tolan.swe1.mcg.constants.Headers;
-import bif3.tolan.swe1.mcg.constants.Paths;
-import bif3.tolan.swe1.mcg.database.respositories.CardRepository;
-import bif3.tolan.swe1.mcg.database.respositories.DeckRepository;
-import bif3.tolan.swe1.mcg.database.respositories.UserRepository;
+import bif3.tolan.swe1.mcg.constants.RequestHeaders;
+import bif3.tolan.swe1.mcg.constants.RequestPaths;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.CardRepository;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.DeckRepository;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.exceptions.BattleFinishedException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidDeckException;
@@ -46,7 +46,7 @@ public class BattleWorker implements Workable {
         switch (method) {
             case POST:
                 switch (requestedPath) {
-                    case Paths.BATTLE_WORKER_BATTLE:
+                    case RequestPaths.BATTLE_WORKER_BATTLE:
                         return battle(request);
                 }
         }
@@ -55,7 +55,7 @@ public class BattleWorker implements Workable {
     }
 
     private HttpResponse battle(HttpRequest request) {
-        String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
+        String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
@@ -140,7 +140,7 @@ public class BattleWorker implements Workable {
     private synchronized HttpResponse createBattleAndWaitForOpponent(User requestingUser) throws InterruptedException, CloneNotSupportedException {
         waitingForBattle = (User) requestingUser.clone();
 
-        this.wait(DefaultValues.DEFAULT_TIMEOUT);
+        this.wait(DefaultValues.BATTLE_TIMEOUT);
 
         if (battle == null) {
             waitingForBattle = null;

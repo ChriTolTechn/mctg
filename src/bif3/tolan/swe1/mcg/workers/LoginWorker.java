@@ -1,7 +1,7 @@
 package bif3.tolan.swe1.mcg.workers;
 
-import bif3.tolan.swe1.mcg.constants.Paths;
-import bif3.tolan.swe1.mcg.database.respositories.UserRepository;
+import bif3.tolan.swe1.mcg.constants.RequestPaths;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.httpserver.*;
 import bif3.tolan.swe1.mcg.model.User;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -32,7 +32,7 @@ public class LoginWorker implements Workable {
         switch (method) {
             case POST:
                 switch (requestedPath) {
-                    case Paths.LOGIN_WORKER_LOGIN:
+                    case RequestPaths.LOGIN_WORKER_LOGIN:
                         return loginUser(request);
                 }
         }

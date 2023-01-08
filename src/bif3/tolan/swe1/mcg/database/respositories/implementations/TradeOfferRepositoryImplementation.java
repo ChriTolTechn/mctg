@@ -1,5 +1,7 @@
-package bif3.tolan.swe1.mcg.database.respositories;
+package bif3.tolan.swe1.mcg.database.respositories.implementations;
 
+import bif3.tolan.swe1.mcg.database.respositories.BaseRepository;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.TradeOfferRepository;
 import bif3.tolan.swe1.mcg.enums.CardType;
 import bif3.tolan.swe1.mcg.exceptions.HasActiveTradeException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;

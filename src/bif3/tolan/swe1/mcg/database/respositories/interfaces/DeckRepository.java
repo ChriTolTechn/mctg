@@ -1,4 +1,4 @@
-package bif3.tolan.swe1.mcg.database.respositories;
+package bif3.tolan.swe1.mcg.database.respositories.interfaces;
 
 import java.sql.SQLException;
 

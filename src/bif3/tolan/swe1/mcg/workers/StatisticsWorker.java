@@ -1,8 +1,8 @@
 package bif3.tolan.swe1.mcg.workers;
 
-import bif3.tolan.swe1.mcg.constants.Headers;
-import bif3.tolan.swe1.mcg.constants.Paths;
-import bif3.tolan.swe1.mcg.database.respositories.UserRepository;
+import bif3.tolan.swe1.mcg.constants.RequestHeaders;
+import bif3.tolan.swe1.mcg.constants.RequestPaths;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.httpserver.*;
 import bif3.tolan.swe1.mcg.model.User;
 import bif3.tolan.swe1.mcg.utils.UserUtils;
@@ -30,7 +30,7 @@ public class StatisticsWorker implements Workable {
         switch (method) {
             case GET:
                 switch (requestedPath) {
-                    case Paths.STATISTICS_WORKER_GET_STATS:
+                    case RequestPaths.STATISTICS_WORKER_GET_STATS:
                         return getStatistics(request);
                 }
         }
@@ -39,7 +39,7 @@ public class StatisticsWorker implements Workable {
     }
 
     private HttpResponse getStatistics(HttpRequest request) {
-        String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
+        String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {

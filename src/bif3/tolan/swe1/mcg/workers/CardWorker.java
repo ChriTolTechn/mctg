@@ -1,9 +1,9 @@
 package bif3.tolan.swe1.mcg.workers;
 
-import bif3.tolan.swe1.mcg.constants.Headers;
-import bif3.tolan.swe1.mcg.constants.Paths;
-import bif3.tolan.swe1.mcg.database.respositories.CardRepository;
-import bif3.tolan.swe1.mcg.database.respositories.UserRepository;
+import bif3.tolan.swe1.mcg.constants.RequestHeaders;
+import bif3.tolan.swe1.mcg.constants.RequestPaths;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.CardRepository;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
 import bif3.tolan.swe1.mcg.httpserver.*;
 import bif3.tolan.swe1.mcg.model.Card;
@@ -36,7 +36,7 @@ public class CardWorker implements Workable {
         switch (method) {
             case GET:
                 switch (requestedPath) {
-                    case Paths.CARD_WORKER_SHOW_CARDS:
+                    case RequestPaths.CARD_WORKER_SHOW_CARDS:
                         return showCards(request);
                 }
         }
@@ -45,7 +45,7 @@ public class CardWorker implements Workable {
     }
 
     private HttpResponse showCards(HttpRequest request) {
-        String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
+        String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {

@@ -53,8 +53,8 @@ public class User implements Cloneable {
 
     // Default Constructor for Jackson
     public User() {
-        this.coins = DefaultValues.DEFAULT_USER_BALANCE;
-        this.elo = DefaultValues.DEFAULT_ELO;
+        this.coins = DefaultValues.NEW_USER_COINS;
+        this.elo = DefaultValues.ELO;
         this.gamesPlayed = 0;
         this.wins = 0;
         this.name = "";

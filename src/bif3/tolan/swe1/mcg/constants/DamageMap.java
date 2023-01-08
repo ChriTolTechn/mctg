@@ -11,7 +11,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Christopher Tolan
  */
 public final class DamageMap {
-
     private static final ConcurrentHashMap<ElementType, Map<ElementType, Float>> damageMap =
             new ConcurrentHashMap<>(Map.of(
                     ElementType.NORMAL, Map.of(

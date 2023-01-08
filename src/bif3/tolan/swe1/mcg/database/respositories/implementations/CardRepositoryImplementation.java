@@ -1,5 +1,7 @@
-package bif3.tolan.swe1.mcg.database.respositories;
+package bif3.tolan.swe1.mcg.database.respositories.implementations;
 
+import bif3.tolan.swe1.mcg.database.respositories.BaseRepository;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.CardRepository;
 import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;

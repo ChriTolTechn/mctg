@@ -1,11 +1,11 @@
 package bif3.tolan.swe1.mcg.workers;
 
 import bif3.tolan.swe1.mcg.constants.DefaultValues;
-import bif3.tolan.swe1.mcg.constants.Headers;
-import bif3.tolan.swe1.mcg.constants.Paths;
-import bif3.tolan.swe1.mcg.database.respositories.CardRepository;
-import bif3.tolan.swe1.mcg.database.respositories.PackageRepository;
-import bif3.tolan.swe1.mcg.database.respositories.UserRepository;
+import bif3.tolan.swe1.mcg.constants.RequestHeaders;
+import bif3.tolan.swe1.mcg.constants.RequestPaths;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.CardRepository;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.PackageRepository;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.exceptions.PackageNotFoundException;
@@ -41,7 +41,7 @@ public class StoreWorker implements Workable {
         switch (method) {
             case POST:
                 switch (requestedPath) {
-                    case Paths.SHOP_WORKER_BUY_PACKAGE:
+                    case RequestPaths.SHOP_WORKER_BUY_PACKAGE:
                         return buyPackage(request);
                 }
         }
@@ -53,13 +53,13 @@ public class StoreWorker implements Workable {
      * Buys a package for a user
      */
     private synchronized HttpResponse buyPackage(HttpRequest request) {
-        String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
+        String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
             User requestingUser = userRepository.getByUsername(username);
             if (requestingUser != null) {
-                if (requestingUser.getCoins() >= DefaultValues.DEFAULT_PACKAGE_COST) {
+                if (requestingUser.getCoins() >= DefaultValues.PACKAGE_COST) {
                     int nextAvailablePackage = packageRepository.getPackageWithLowestId();
 
                     Vector<Card> cardsInPackage = cardRepository.getCardPackageByPackageId(nextAvailablePackage);
@@ -69,7 +69,7 @@ public class StoreWorker implements Workable {
 
                     packageRepository.deletePackage(nextAvailablePackage);
 
-                    requestingUser.setCoins(requestingUser.getCoins() - DefaultValues.DEFAULT_PACKAGE_COST);
+                    requestingUser.setCoins(requestingUser.getCoins() - DefaultValues.PACKAGE_COST);
                     userRepository.updateUser(requestingUser);
 
                     return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, "Successfully acquired new cards");

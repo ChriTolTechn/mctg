@@ -1,6 +1,7 @@
 package bif3.tolan.swe1.mcg.database;
 
-import bif3.tolan.swe1.mcg.database.respositories.*;
+import bif3.tolan.swe1.mcg.database.respositories.implementations.*;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -8,7 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Scanner;
 
-import static bif3.tolan.swe1.mcg.constants.DbConstants.*;
+import static bif3.tolan.swe1.mcg.constants.DatabaseConstants.*;
 
 public class DbConnection {
     private Connection connection;
@@ -44,7 +45,7 @@ public class DbConnection {
             System.out.println("Connected to database!");
             System.out.println("----------------------------------------------");
 
-            if (RESET_DATABASE_ON_START)
+            if (TRY_RESET_DB_ON_STARTUP)
                 resetDatabase();
         } catch (SQLException e) {
             System.err.println("----------------------------------------------");

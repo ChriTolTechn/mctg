@@ -1,10 +1,10 @@
 package bif3.tolan.swe1.mcg.workers;
 
-import bif3.tolan.swe1.mcg.constants.Headers;
-import bif3.tolan.swe1.mcg.constants.Paths;
-import bif3.tolan.swe1.mcg.database.respositories.CardRepository;
-import bif3.tolan.swe1.mcg.database.respositories.TradeOfferRepository;
-import bif3.tolan.swe1.mcg.database.respositories.UserRepository;
+import bif3.tolan.swe1.mcg.constants.RequestHeaders;
+import bif3.tolan.swe1.mcg.constants.RequestPaths;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.CardRepository;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.TradeOfferRepository;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.exceptions.HasActiveTradeException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
@@ -46,12 +46,12 @@ public class TradeWorker implements Workable {
         switch (method) {
             case GET:
                 switch (requestedPath) {
-                    case Paths.TRADE_WORKER_GET_TRADES:
+                    case RequestPaths.TRADE_WORKER_GET_TRADES:
                         return getAllTradeDeals(request);
                 }
             case POST:
                 switch (requestedPath) {
-                    case Paths.TRADE_WORKER_ADD_TRADE:
+                    case RequestPaths.TRADE_WORKER_ADD_TRADE:
                         return createTrade(request);
                     default:
                         return acceptTrade(request, requestedPath);
@@ -64,7 +64,7 @@ public class TradeWorker implements Workable {
     }
 
     private synchronized HttpResponse getAllTradeDeals(HttpRequest request) {
-        String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
+        String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
@@ -92,7 +92,7 @@ public class TradeWorker implements Workable {
     }
 
     private synchronized HttpResponse acceptTrade(HttpRequest request, String requestedTradeId) {
-        String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
+        String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
@@ -147,7 +147,7 @@ public class TradeWorker implements Workable {
     }
 
     private synchronized HttpResponse createTrade(HttpRequest request) {
-        String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
+        String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
@@ -196,7 +196,7 @@ public class TradeWorker implements Workable {
     }
 
     private synchronized HttpResponse deleteTrade(HttpRequest request, String requestedTradeId) {
-        String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
+        String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {

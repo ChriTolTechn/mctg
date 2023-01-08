@@ -1,11 +1,11 @@
 package bif3.tolan.swe1.mcg.workers;
 
 import bif3.tolan.swe1.mcg.constants.DefaultValues;
-import bif3.tolan.swe1.mcg.constants.Headers;
-import bif3.tolan.swe1.mcg.constants.Paths;
-import bif3.tolan.swe1.mcg.database.respositories.CardRepository;
-import bif3.tolan.swe1.mcg.database.respositories.PackageRepository;
-import bif3.tolan.swe1.mcg.database.respositories.UserRepository;
+import bif3.tolan.swe1.mcg.constants.RequestHeaders;
+import bif3.tolan.swe1.mcg.constants.RequestPaths;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.CardRepository;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.PackageRepository;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
@@ -45,7 +45,7 @@ public class PackageWorker implements Workable {
         switch (method) {
             case POST:
                 switch (requestedPath) {
-                    case Paths.PACKAGE_WORKER_CREATE:
+                    case RequestPaths.PACKAGE_WORKER_CREATE:
                         return createPackage(request);
                 }
         }
@@ -54,7 +54,7 @@ public class PackageWorker implements Workable {
     }
 
     private synchronized HttpResponse createPackage(HttpRequest request) {
-        String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
+        String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
@@ -94,7 +94,7 @@ public class PackageWorker implements Workable {
         } catch (InvalidCardParameterException e) {
             e.printStackTrace();
         }
-        
+
         return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The json string is not formatted properly");
     }
 }

@@ -1,4 +1,7 @@
-package bif3.tolan.swe1.mcg.database.respositories;
+package bif3.tolan.swe1.mcg.database.respositories.implementations;
+
+import bif3.tolan.swe1.mcg.database.respositories.BaseRepository;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.DeckRepository;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

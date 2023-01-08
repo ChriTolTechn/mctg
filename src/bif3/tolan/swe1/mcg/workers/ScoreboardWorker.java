@@ -1,8 +1,8 @@
 package bif3.tolan.swe1.mcg.workers;
 
-import bif3.tolan.swe1.mcg.constants.Headers;
-import bif3.tolan.swe1.mcg.constants.Paths;
-import bif3.tolan.swe1.mcg.database.respositories.UserRepository;
+import bif3.tolan.swe1.mcg.constants.RequestHeaders;
+import bif3.tolan.swe1.mcg.constants.RequestPaths;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.httpserver.*;
 import bif3.tolan.swe1.mcg.model.User;
 import bif3.tolan.swe1.mcg.utils.UserUtils;
@@ -30,7 +30,7 @@ public class ScoreboardWorker implements Workable {
         switch (method) {
             case GET:
                 switch (requestedPath) {
-                    case Paths.SCOREBOARD_WORKER_GET_SCOREBOARD:
+                    case RequestPaths.SCOREBOARD_WORKER_GET_SCOREBOARD:
                         return getScoreboard(request);
                 }
         }
@@ -39,7 +39,7 @@ public class ScoreboardWorker implements Workable {
     }
 
     private HttpResponse getScoreboard(HttpRequest request) {
-        String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
+        String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {

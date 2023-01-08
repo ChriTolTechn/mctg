@@ -1,7 +1,7 @@
 package bif3.tolan.swe1.mcg;
 
-import bif3.tolan.swe1.mcg.database.respositories.UserRepository;
-import bif3.tolan.swe1.mcg.database.respositories.UserRepositoryImplementation;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
+import bif3.tolan.swe1.mcg.database.respositories.implementations.UserRepositoryImplementation;
 import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.model.User;

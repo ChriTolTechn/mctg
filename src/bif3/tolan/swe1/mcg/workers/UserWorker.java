@@ -1,9 +1,9 @@
 package bif3.tolan.swe1.mcg.workers;
 
-import bif3.tolan.swe1.mcg.constants.Headers;
-import bif3.tolan.swe1.mcg.constants.Paths;
-import bif3.tolan.swe1.mcg.database.respositories.DeckRepository;
-import bif3.tolan.swe1.mcg.database.respositories.UserRepository;
+import bif3.tolan.swe1.mcg.constants.RequestHeaders;
+import bif3.tolan.swe1.mcg.constants.RequestPaths;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.DeckRepository;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.httpserver.*;
@@ -41,7 +41,7 @@ public class UserWorker implements Workable {
         switch (method) {
             case POST:
                 switch (requestedPath) {
-                    case Paths.USER_WORKER_REGISTRATION:
+                    case RequestPaths.USER_WORKER_REGISTRATION:
                         return registerUser(request);
                 }
             case PUT:
@@ -91,7 +91,7 @@ public class UserWorker implements Workable {
     }
 
     private HttpResponse getUserData(HttpRequest request, String requestedUser) {
-        String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
+        String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
@@ -112,7 +112,7 @@ public class UserWorker implements Workable {
     }
 
     private synchronized HttpResponse editUserData(HttpRequest request, String requestedUser) {
-        String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
+        String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {

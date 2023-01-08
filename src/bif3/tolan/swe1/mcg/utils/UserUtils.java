@@ -11,7 +11,7 @@ public class UserUtils {
     public static String extractUsernameFromToken(String token) {
         if (token == null) return "";
 
-        Pattern pattern = Pattern.compile(CommonRegex.TOKEN_READ_REGEX);
+        Pattern pattern = Pattern.compile(CommonRegex.USERNAME_FROM_TOKEN);
         Matcher matcher = pattern.matcher(token);
         if (matcher.find()) {
             return matcher.group(1);
@@ -26,7 +26,7 @@ public class UserUtils {
         stringBuilder.append("Games played:   " + user.getGamesPlayed() + "\n");
         stringBuilder.append("Wins:           " + user.getWins() + "\n");
         double winPercentage = calculateWinPercentage(user.getGamesPlayed(), user.getWins());
-        stringBuilder.append("Win-Percentage: " + String.format(CommonRegex.WIN_PERCENTAGE_FORMAT_REGEX, winPercentage));
+        stringBuilder.append("Win-Percentage: " + String.format(CommonRegex.WIN_PERCENTAGE_DISPLAY_FORMAT, winPercentage));
         stringBuilder.append("-----------------------\n");
         return stringBuilder.toString();
     }
@@ -59,7 +59,7 @@ public class UserUtils {
 
             double winPercentage = calculateWinPercentage(user.getGamesPlayed(), user.getWins());
 
-            stringBuilder.append("Win-Percentage: " + String.format(CommonRegex.WIN_PERCENTAGE_FORMAT_REGEX, winPercentage));
+            stringBuilder.append("Win-Percentage: " + String.format(CommonRegex.WIN_PERCENTAGE_DISPLAY_FORMAT, winPercentage));
             stringBuilder.append("\n");
 
             place++;

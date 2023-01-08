@@ -1,10 +1,10 @@
 package bif3.tolan.swe1.mcg.workers;
 
-import bif3.tolan.swe1.mcg.constants.Headers;
-import bif3.tolan.swe1.mcg.constants.Paths;
-import bif3.tolan.swe1.mcg.database.respositories.CardRepository;
-import bif3.tolan.swe1.mcg.database.respositories.DeckRepository;
-import bif3.tolan.swe1.mcg.database.respositories.UserRepository;
+import bif3.tolan.swe1.mcg.constants.RequestHeaders;
+import bif3.tolan.swe1.mcg.constants.RequestPaths;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.CardRepository;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.DeckRepository;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.httpserver.*;
@@ -47,12 +47,12 @@ public class DeckWorker implements Workable {
         switch (method) {
             case PUT:
                 switch (requestedPath) {
-                    case Paths.DECK_WORKER_CONFIGURE_DECK:
+                    case RequestPaths.DECK_WORKER_CONFIGURE_DECK:
                         return configureDeck(request);
                 }
             case GET:
                 switch (requestedPath) {
-                    case Paths.DECK_WORKER_SHOW_DECK:
+                    case RequestPaths.DECK_WORKER_SHOW_DECK:
                         return getDeck(request);
                 }
         }
@@ -61,7 +61,7 @@ public class DeckWorker implements Workable {
     }
 
     private HttpResponse getDeck(HttpRequest request) {
-        String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
+        String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
@@ -89,7 +89,7 @@ public class DeckWorker implements Workable {
     }
 
     private synchronized HttpResponse configureDeck(HttpRequest request) {
-        String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
+        String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
