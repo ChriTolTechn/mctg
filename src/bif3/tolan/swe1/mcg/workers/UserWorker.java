@@ -62,12 +62,12 @@ public class UserWorker implements Workable {
             User userTryingToRegister = mapper.readValue(jsonString, User.class);
 
             //Check if user already exists
-            User registeredUserWithSameUsername = userRepository.getByUsername(userTryingToRegister.getUsername());
+            User registeredUserWithSameUsername = userRepository.getUserByUsername(userTryingToRegister.getUsername());
             if (registeredUserWithSameUsername != null) {
                 return new HttpResponse(HttpStatus.BAD_REQUEST, ContentType.PLAIN_TEXT, "User with the username \"" + userTryingToRegister.getUsername() + "\" already exists");
             } else {
-                userRepository.add(userTryingToRegister);
-                User newlyRegisteredUser = userRepository.getByUsername(userTryingToRegister.getUsername());
+                userRepository.addNewUser(userTryingToRegister);
+                User newlyRegisteredUser = userRepository.getUserByUsername(userTryingToRegister.getUsername());
 
                 deckRepository.createDeckForUser(newlyRegisteredUser.getId());
 
@@ -95,7 +95,7 @@ public class UserWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User requestingUser = userRepository.getByUsername(username);
+            User requestingUser = userRepository.getUserByUsername(username);
             if (requestingUser != null) {
                 if (requestingUser.getUsername().equals(requestedUser)) {
                     return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, UserUtils.getUserProfile(requestingUser));
@@ -116,7 +116,7 @@ public class UserWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User requestingUser = userRepository.getByUsername(username);
+            User requestingUser = userRepository.getUserByUsername(username);
             if (requestingUser != null) {
                 if (requestingUser.getUsername().equals(requestedUser)) {
                     ObjectMapper mapper = new ObjectMapper();

@@ -5,9 +5,9 @@ import bif3.tolan.swe1.mcg.exceptions.PackageNotFoundException;
 import java.sql.SQLException;
 
 public interface PackageRepository {
-    public int createPackageAndGetId() throws SQLException;
+    public int createNewPackageAndGetId() throws SQLException;
 
-    public int getPackageWithLowestId() throws SQLException, PackageNotFoundException;
+    public int getNextAvailablePackage() throws SQLException, PackageNotFoundException;
 
     public void deletePackage(int packageId) throws SQLException;
 }

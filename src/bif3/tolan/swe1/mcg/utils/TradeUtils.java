@@ -18,4 +18,14 @@ public class TradeUtils {
         }
         return stringBuilder.toString();
     }
+
+    public static boolean isValidTrade(TradeOffer tradeOffer) {
+        if (tradeOffer == null) return false;
+        if (tradeOffer.getTradeCardId() == null) return false;
+        if (tradeOffer.getTradeId() == null) return false;
+        if (tradeOffer.getUserId() < 0) return false;
+        if (tradeOffer.getTradeId().length() > 50) return false;
+
+        return true;
+    }
 }

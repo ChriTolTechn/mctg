@@ -43,9 +43,9 @@ public class ScoreboardWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User requestingUser = userRepository.getByUsername(username);
+            User requestingUser = userRepository.getUserByUsername(username);
             if (requestingUser != null) {
-                Vector<User> allUsersOrderedByEloDescending = userRepository.getUsersOrderedByEloDescending();
+                Vector<User> allUsersOrderedByEloDescending = userRepository.getUsersOrderedByEloDescendingAsList();
                 String scoreboard = UserUtils.getScoreboard(allUsersOrderedByEloDescending);
 
                 return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, scoreboard);

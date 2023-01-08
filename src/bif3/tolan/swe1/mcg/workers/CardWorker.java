@@ -49,9 +49,9 @@ public class CardWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User requestingUser = userRepository.getByUsername(username);
+            User requestingUser = userRepository.getUserByUsername(username);
             if (requestingUser != null) {
-                Vector<Card> cardStackOfRequestingUser = cardRepository.getCardsByUserId(requestingUser.getId());
+                Vector<Card> cardStackOfRequestingUser = cardRepository.getAllCardsByUserIdAsList(requestingUser.getId());
 
                 return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, CardUtils.getMultipleCardDisplayForUser(requestingUser.getUsername(), cardStackOfRequestingUser));
             } else {

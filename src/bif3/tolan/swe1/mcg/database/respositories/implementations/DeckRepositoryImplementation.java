@@ -15,7 +15,7 @@ public class DeckRepositoryImplementation extends BaseRepository implements Deck
 
     @Override
     public void createDeckForUser(int userId) throws SQLException {
-        if (getDeckIdForUser(userId) == -1) {
+        if (getDeckIdByUserId(userId) == -1) {
             String sql = "INSERT INTO mctg_deck (user_id) VALUES (?);";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -26,7 +26,7 @@ public class DeckRepositoryImplementation extends BaseRepository implements Deck
     }
 
     @Override
-    public int getDeckIdForUser(int userId) throws SQLException {
+    public int getDeckIdByUserId(int userId) throws SQLException {
         String sql = "SELECT id FROM mctg_deck WHERE user_id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 

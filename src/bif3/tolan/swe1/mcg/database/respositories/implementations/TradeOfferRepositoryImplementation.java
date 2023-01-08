@@ -6,6 +6,7 @@ import bif3.tolan.swe1.mcg.enums.CardType;
 import bif3.tolan.swe1.mcg.exceptions.HasActiveTradeException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.model.TradeOffer;
+import bif3.tolan.swe1.mcg.utils.TradeUtils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -31,7 +32,7 @@ public class TradeOfferRepositoryImplementation extends BaseRepository implement
     }
 
     @Override
-    public Vector<TradeOffer> getAllTradeOffers() throws SQLException {
+    public Vector<TradeOffer> getAllTradeOffersAsList() throws SQLException {
         String sql = "SELECT id, min_damage, card_type, card_group, user_id FROM mctg_trade_offer";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -42,7 +43,7 @@ public class TradeOfferRepositoryImplementation extends BaseRepository implement
 
     @Override
     public void createTradeOffer(TradeOffer tradeOffer) throws SQLException, InvalidInputException, HasActiveTradeException {
-        if (isValidTrade(tradeOffer)) {
+        if (TradeUtils.isValidTrade(tradeOffer)) {
             String sql = "INSERT INTO mctg_trade_offer (id, min_damage, user_id, card_type, card_group) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -78,7 +79,7 @@ public class TradeOfferRepositoryImplementation extends BaseRepository implement
         preparedStatement.executeUpdate();
     }
 
-    private TradeOffer convertToTradeOfferModel(ResultSet res) throws SQLException {
+    private TradeOffer convertResultSetToTradeOfferModel(ResultSet res) throws SQLException {
         String tradeId = res.getString("id");
         int minDamage = res.getInt("min_damage");
         int userId = res.getInt("user_id");
@@ -94,7 +95,7 @@ public class TradeOfferRepositoryImplementation extends BaseRepository implement
 
     private TradeOffer extractTrade(ResultSet res) throws SQLException {
         if (res.next()) {
-            return convertToTradeOfferModel(res);
+            return convertResultSetToTradeOfferModel(res);
         } else {
             return null;
         }
@@ -103,18 +104,8 @@ public class TradeOfferRepositoryImplementation extends BaseRepository implement
     private Vector<TradeOffer> extractManyTrades(ResultSet res) throws SQLException {
         Vector<TradeOffer> offers = new Vector<>();
         while (res.next()) {
-            offers.add(convertToTradeOfferModel(res));
+            offers.add(convertResultSetToTradeOfferModel(res));
         }
         return offers;
-    }
-
-    private boolean isValidTrade(TradeOffer tradeOffer) {
-        if (tradeOffer == null) return false;
-        if (tradeOffer.getTradeCardId() == null) return false;
-        if (tradeOffer.getTradeId() == null) return false;
-        if (tradeOffer.getUserId() < 0) return false;
-        if (tradeOffer.getTradeId().length() > 50) return false;
-
-        return true;
     }
 }

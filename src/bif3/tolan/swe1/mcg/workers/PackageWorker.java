@@ -58,7 +58,7 @@ public class PackageWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User requestingUser = userRepository.getByUsername(username);
+            User requestingUser = userRepository.getUserByUsername(username);
             if (requestingUser != null && requestingUser.getUsername().equals(DefaultValues.ADMIN_USERNAME)) {
                 ObjectMapper mapper = new ObjectMapper();
                 String newCardsAsJsonString = request.getBody();
@@ -68,10 +68,10 @@ public class PackageWorker implements Workable {
                         mapper.getTypeFactory().constructCollectionType(Vector.class, Card.class));
 
                 for (Card c : newCards) {
-                    cardRepository.addCard(c);
+                    cardRepository.addNewCard(c);
                 }
 
-                int newCardPackageId = packageRepository.createPackageAndGetId();
+                int newCardPackageId = packageRepository.createNewPackageAndGetId();
 
                 for (Card c : newCards) {
                     cardRepository.assignCardToPackage(c.getCardId(), newCardPackageId);

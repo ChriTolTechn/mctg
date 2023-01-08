@@ -26,7 +26,7 @@ public class UserUtils {
         stringBuilder.append("Games played:   " + user.getGamesPlayed() + "\n");
         stringBuilder.append("Wins:           " + user.getWins() + "\n");
         double winPercentage = calculateWinPercentage(user.getGamesPlayed(), user.getWins());
-        stringBuilder.append("Win-Percentage: " + String.format(CommonRegex.WIN_PERCENTAGE_DISPLAY_FORMAT, winPercentage));
+        stringBuilder.append("Win-Percentage: " + String.format(CommonRegex.WIN_PERCENTAGE_DISPLAY_FORMAT, winPercentage) + "\n");
         stringBuilder.append("-----------------------\n");
         return stringBuilder.toString();
     }
@@ -68,10 +68,21 @@ public class UserUtils {
         return stringBuilder.toString();
     }
 
-    private static double calculateWinPercentage(int gamesPlayed, int gamesWon) {
+    public static double calculateWinPercentage(int gamesPlayed, int gamesWon) {
         double winPercentage = 0;
         if (gamesPlayed > 0)
             winPercentage = (gamesWon * 100.0) / gamesPlayed;
         return winPercentage;
+    }
+
+    public static boolean isValidNewUser(User user) {
+        if (user == null) return false;
+        if (user.getUsername() == null || user.getName() == null || user.getBio() == null || user.getImage() == null)
+            return false;
+        if (user.getUsername().length() > 50 || user.getName().length() > 50) return false;
+        if (user.getUsername().isEmpty()) return false;
+        if (user.getName().length() > 255 || user.getBio().length() > 255) return false;
+
+        return true;
     }
 }

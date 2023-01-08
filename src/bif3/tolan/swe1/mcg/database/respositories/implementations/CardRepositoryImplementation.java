@@ -6,6 +6,7 @@ import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.model.Card;
+import bif3.tolan.swe1.mcg.utils.CardUtils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -32,7 +33,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     @Override
-    public Vector<Card> getCardsByUserId(int userId) throws SQLException, InvalidCardParameterException {
+    public Vector<Card> getAllCardsByUserIdAsList(int userId) throws SQLException, InvalidCardParameterException {
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_user_id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -56,7 +57,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     @Override
-    public Vector<Card> getCardsByDeckId(int deckId) throws SQLException, InvalidCardParameterException {
+    public Vector<Card> getAllCardsByDeckIdAsList(int deckId) throws SQLException, InvalidCardParameterException {
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_deck_id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -68,7 +69,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     @Override
-    public ConcurrentHashMap<String, Card> getCardsByDeckIdAsMap(int deckId) throws SQLException, InvalidCardParameterException {
+    public ConcurrentHashMap<String, Card> getAllCardsByDeckIdAsMap(int deckId) throws SQLException, InvalidCardParameterException {
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_deck_id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -80,7 +81,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     @Override
-    public Vector<Card> getCardPackageByPackageId(int packageId) throws SQLException, InvalidCardParameterException {
+    public Vector<Card> getAllCardsByPackageIdAsList(int packageId) throws SQLException, InvalidCardParameterException {
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_package_id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -92,8 +93,8 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     }
 
     @Override
-    public void addCard(Card card) throws SQLException, InvalidCardParameterException, IdExistsException, InvalidInputException {
-        if (isValidNewCard(card)) {
+    public void addNewCard(Card card) throws SQLException, InvalidCardParameterException, IdExistsException, InvalidInputException {
+        if (CardUtils.isValidNewCard(card)) {
             if (getCardById(card.getCardId()) != null) {
                 throw new IdExistsException();
             }
@@ -195,7 +196,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
 
     private Card extractSingleCard(ResultSet res) throws SQLException, InvalidCardParameterException {
         if (res.next()) {
-            return convertCardToModel(res);
+            return convertResultSetToCardModel(res);
         } else {
             return null;
         }
@@ -204,7 +205,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     private Vector<Card> extractManyCards(ResultSet res) throws SQLException, InvalidCardParameterException {
         Vector<Card> cards = new Vector<>();
         while (res.next()) {
-            cards.add(convertCardToModel(res));
+            cards.add(convertResultSetToCardModel(res));
         }
         return cards;
     }
@@ -212,26 +213,17 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
     private ConcurrentHashMap<String, Card> extractManyCardsAsMap(ResultSet res) throws SQLException, InvalidCardParameterException {
         ConcurrentHashMap<String, Card> cards = new ConcurrentHashMap();
         while (res.next()) {
-            Card card = convertCardToModel(res);
+            Card card = convertResultSetToCardModel(res);
             cards.put(card.getCardId(), card);
         }
         return cards;
     }
 
-    private Card convertCardToModel(ResultSet res) throws SQLException, InvalidCardParameterException {
+    private Card convertResultSetToCardModel(ResultSet res) throws SQLException, InvalidCardParameterException {
         String cardId = res.getString("id");
         String cardName = res.getString("name");
         float cardDamage = res.getFloat("damage");
 
         return new Card(cardId, cardName, cardDamage);
-    }
-
-    private boolean isValidNewCard(Card card) {
-        if (card.getCardId() == null || card.getName() == null) return false;
-        if (card.getName().length() > 50) return false;
-        if (card.getCardId().length() > 50) return false;
-        if (card.getDamage() < 0f) return false;
-
-        return true;
     }
 }

@@ -68,9 +68,9 @@ public class TradeWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User requestingUser = userRepository.getByUsername(username);
+            User requestingUser = userRepository.getUserByUsername(username);
             if (requestingUser != null) {
-                Vector<TradeOffer> allTradeOffers = tradeOfferRepository.getAllTradeOffers();
+                Vector<TradeOffer> allTradeOffers = tradeOfferRepository.getAllTradeOffersAsList();
                 if (allTradeOffers.isEmpty() == false) {
                     for (TradeOffer tradeOffer : allTradeOffers) {
                         tradeOffer.setCard(cardRepository.getCardByTradeOfferId(tradeOffer.getTradeId()));
@@ -96,7 +96,7 @@ public class TradeWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User requestingUser = userRepository.getByUsername(username);
+            User requestingUser = userRepository.getUserByUsername(username);
             if (requestingUser != null) {
                 TradeOffer wantedTrade = tradeOfferRepository.getTradeOfferById(requestedTradeId);
                 if (wantedTrade != null) {
@@ -151,7 +151,7 @@ public class TradeWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User dbUser = userRepository.getByUsername(username);
+            User dbUser = userRepository.getUserByUsername(username);
             if (dbUser != null) {
                 if (tradeOfferRepository.getTradeOfferByUserId(dbUser.getId()) == null) {
                     ObjectMapper mapper = new ObjectMapper();
@@ -200,7 +200,7 @@ public class TradeWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User dbUser = userRepository.getByUsername(username);
+            User dbUser = userRepository.getUserByUsername(username);
             if (dbUser != null) {
                 TradeOffer tradeOffer = tradeOfferRepository.getTradeOfferById(requestedTradeId);
                 if (tradeOffer != null) {

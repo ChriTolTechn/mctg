@@ -49,7 +49,7 @@ public class LoginWorker implements Workable {
             User loginValues = mapper.readValue(jsonString, User.class);
 
             // Get user from the database
-            User requestedUser = userRepository.getByUsername(loginValues.getUsername());
+            User requestedUser = userRepository.getUserByUsername(loginValues.getUsername());
 
             if (requestedUser == null) {
                 return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "User with name: " + loginValues.getUsername() + " does not exist");

@@ -43,7 +43,7 @@ public class StatisticsWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User requestingUser = userRepository.getByUsername(username);
+            User requestingUser = userRepository.getUserByUsername(username);
             if (requestingUser != null) {
                 return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, UserUtils.getUserStats(requestingUser));
             } else {

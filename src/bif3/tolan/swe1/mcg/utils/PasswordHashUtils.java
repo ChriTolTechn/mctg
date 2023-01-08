@@ -7,7 +7,7 @@ import java.security.NoSuchAlgorithmException;
 /**
  * Static class that helps with password hashing
  *
- * @author Christopher Tolan, https://www.baeldung.com/sha-256-hashing-java
+ * @author https://www.baeldung.com/sha-256-hashing-java
  */
 public class PasswordHashUtils {
 
@@ -45,16 +45,5 @@ public class PasswordHashUtils {
             hexString.append(hex);
         }
         return hexString.toString();
-    }
-
-    /**
-     * Hashes the entered password and compares it to another hash
-     *
-     * @param enteredPassword
-     * @param passwordHash
-     * @return True if the password matches, false if it does not
-     */
-    public static boolean passwordMatches(String enteredPassword, String passwordHash) {
-        return hashPassword(enteredPassword).equals(passwordHash);
     }
 }

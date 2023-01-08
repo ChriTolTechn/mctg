@@ -5,6 +5,7 @@ import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.model.User;
+import bif3.tolan.swe1.mcg.utils.UserUtils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -19,7 +20,7 @@ public class UserRepositoryImplementation extends BaseRepository implements User
     }
 
     @Override
-    public User getById(int id) throws SQLException {
+    public User getUserById(int id) throws SQLException {
         String sql = "SELECT id, username, password_hash, elo, coins, games_played, wins, name, bio, image FROM mctg_user WHERE id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -27,11 +28,11 @@ public class UserRepositoryImplementation extends BaseRepository implements User
 
         ResultSet res = preparedStatement.executeQuery();
 
-        return extractUser(res);
+        return convertResultSetToUserModel(res);
     }
 
     @Override
-    public User getByUsername(String username) throws SQLException {
+    public User getUserByUsername(String username) throws SQLException {
         String sql = "SELECT id, username, password_hash, elo, coins, games_played, wins, name, bio, image FROM mctg_user WHERE username = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -39,13 +40,13 @@ public class UserRepositoryImplementation extends BaseRepository implements User
 
         ResultSet res = preparedStatement.executeQuery();
 
-        return extractUser(res);
+        return convertResultSetToUserModel(res);
     }
 
     @Override
-    public void add(User user) throws SQLException, InvalidInputException, IdExistsException {
-        if (isValidNewUser(user)) {
-            if (getByUsername(user.getUsername()) != null) {
+    public void addNewUser(User user) throws SQLException, InvalidInputException, IdExistsException {
+        if (UserUtils.isValidNewUser(user)) {
+            if (getUserByUsername(user.getUsername()) != null) {
                 throw new IdExistsException();
             }
 
@@ -95,11 +96,11 @@ public class UserRepositoryImplementation extends BaseRepository implements User
         preparedStatement.setInt(10, user.getId());
 
         preparedStatement.executeUpdate();
-        return getById(user.getId());
+        return getUserById(user.getId());
     }
 
     @Override
-    public Vector<User> getUsersOrderedByEloDescending() throws SQLException {
+    public Vector<User> getUsersOrderedByEloDescendingAsList() throws SQLException {
         String sql = "SELECT username, elo, games_played, wins FROM mctg_user ORDER BY elo DESC";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -117,18 +118,7 @@ public class UserRepositoryImplementation extends BaseRepository implements User
         return users;
     }
 
-    private boolean isValidNewUser(User user) {
-        if (user == null) return false;
-        if (user.getUsername() == null || user.getName() == null || user.getBio() == null || user.getImage() == null)
-            return false;
-        if (user.getUsername().length() > 50 || user.getName().length() > 50) return false;
-        if (user.getUsername().isEmpty()) return false;
-        if (user.getName().length() > 255 || user.getBio().length() > 255) return false;
-
-        return true;
-    }
-
-    private User extractUser(ResultSet res) throws SQLException {
+    private User convertResultSetToUserModel(ResultSet res) throws SQLException {
         if (res.next()) {
             String username = res.getString("username");
             String passwordHash = res.getString("password_hash");

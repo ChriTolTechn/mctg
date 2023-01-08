@@ -59,10 +59,10 @@ public class BattleWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User requestingUser = userRepository.getByUsername(username);
+            User requestingUser = userRepository.getUserByUsername(username);
             if (requestingUser != null) {
-                int deckIdOfRequestingUser = deckRepository.getDeckIdForUser(requestingUser.getId());
-                requestingUser.setDeck(cardRepository.getCardsByDeckIdAsMap(deckIdOfRequestingUser));
+                int deckIdOfRequestingUser = deckRepository.getDeckIdByUserId(requestingUser.getId());
+                requestingUser.setDeck(cardRepository.getAllCardsByDeckIdAsMap(deckIdOfRequestingUser));
                 if (requestingUser.getDeck().size() == 4) {
                     if (waitingForBattle == null) {
                         return createBattleAndWaitForOpponent(requestingUser);

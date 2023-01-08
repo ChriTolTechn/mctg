@@ -12,15 +12,15 @@ import java.util.concurrent.ConcurrentHashMap;
 public interface CardRepository {
     Card getCardById(String cardId) throws SQLException, InvalidCardParameterException;
 
-    Vector<Card> getCardsByUserId(int userId) throws SQLException, InvalidCardParameterException;
+    Vector<Card> getAllCardsByUserIdAsList(int userId) throws SQLException, InvalidCardParameterException;
 
     Card getCardByTradeOfferId(String tradeId) throws SQLException, InvalidCardParameterException;
 
-    Vector<Card> getCardsByDeckId(int deckId) throws SQLException, InvalidCardParameterException;
+    Vector<Card> getAllCardsByDeckIdAsList(int deckId) throws SQLException, InvalidCardParameterException;
 
-    Vector<Card> getCardPackageByPackageId(int packageId) throws SQLException, InvalidCardParameterException;
+    Vector<Card> getAllCardsByPackageIdAsList(int packageId) throws SQLException, InvalidCardParameterException;
 
-    void addCard(Card card) throws SQLException, InvalidCardParameterException, IdExistsException, InvalidInputException;
+    void addNewCard(Card card) throws SQLException, InvalidCardParameterException, IdExistsException, InvalidInputException;
 
     void assignCardToUserStack(String cardId, int userId) throws SQLException, InvalidCardParameterException, InvalidInputException;
 
@@ -32,5 +32,5 @@ public interface CardRepository {
 
     void assignCardToTradeOffer(String cardId, String tradeOfferId) throws InvalidInputException, SQLException, InvalidCardParameterException;
 
-    ConcurrentHashMap<String, Card> getCardsByDeckIdAsMap(int deckId) throws SQLException, InvalidCardParameterException;
+    ConcurrentHashMap<String, Card> getAllCardsByDeckIdAsMap(int deckId) throws SQLException, InvalidCardParameterException;
 }

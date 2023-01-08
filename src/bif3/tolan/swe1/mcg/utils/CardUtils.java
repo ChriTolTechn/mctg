@@ -47,4 +47,13 @@ public class CardUtils {
         }
         return cardsAsString.toString();
     }
+
+    public static boolean isValidNewCard(Card card) {
+        if (card.getCardId() == null || card.getName() == null) return false;
+        if (card.getName().length() > 50) return false;
+        if (card.getCardId().length() > 50) return false;
+        if (card.getDamage() < 0f) return false;
+
+        return true;
+    }
 }

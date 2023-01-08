@@ -1,7 +1,7 @@
 package bif3.tolan.swe1.mcg;
 
-import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.database.respositories.implementations.UserRepositoryImplementation;
+import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.model.User;
@@ -57,8 +57,8 @@ public class UserRepositoryTest {
 
     @Test
     public void testGetById() throws SQLException {
-        User testUser1 = userRepository.getById(1);
-        User testUser2 = userRepository.getById(2);
+        User testUser1 = userRepository.getUserById(1);
+        User testUser2 = userRepository.getUserById(2);
 
         Assertions.assertEquals(user, testUser1);
         Assertions.assertNull(testUser2);
@@ -66,10 +66,10 @@ public class UserRepositoryTest {
 
     @Test
     public void testGetByUserName() throws SQLException {
-        User testUser = userRepository.getByUsername("test");
+        User testUser = userRepository.getUserByUsername("test");
         Assertions.assertEquals(user, testUser);
 
-        testUser = userRepository.getByUsername("notTest");
+        testUser = userRepository.getUserByUsername("notTest");
         Assertions.assertNull(testUser);
     }
 
@@ -80,8 +80,8 @@ public class UserRepositoryTest {
         User user3 = new User("gPoPVKU6YkKJKJ3l83YjRhyC1IOOr18Bp9Cz8w0mt4WYM3Pzdwv",
                 "test", 100, 100, 100);
 
-        Assertions.assertDoesNotThrow(() -> userRepository.add(user1));
-        Assertions.assertThrows(IdExistsException.class, () -> userRepository.add(user2));
-        Assertions.assertThrows(InvalidInputException.class, () -> userRepository.add(user3));
+        Assertions.assertDoesNotThrow(() -> userRepository.addNewUser(user1));
+        Assertions.assertThrows(IdExistsException.class, () -> userRepository.addNewUser(user2));
+        Assertions.assertThrows(InvalidInputException.class, () -> userRepository.addNewUser(user3));
     }
 }

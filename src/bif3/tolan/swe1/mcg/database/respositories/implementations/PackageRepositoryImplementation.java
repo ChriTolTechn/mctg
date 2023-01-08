@@ -15,7 +15,7 @@ public class PackageRepositoryImplementation extends BaseRepository implements P
     }
 
     @Override
-    public int createPackageAndGetId() throws SQLException {
+    public int createNewPackageAndGetId() throws SQLException {
         String sql = "INSERT INTO mctg_package DEFAULT VALUES RETURNING *";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -25,7 +25,7 @@ public class PackageRepositoryImplementation extends BaseRepository implements P
     }
 
     @Override
-    public int getPackageWithLowestId() throws SQLException, PackageNotFoundException {
+    public int getNextAvailablePackage() throws SQLException, PackageNotFoundException {
         String sql = "SELECT id FROM mctg_package WHERE id = (SELECT MIN(id) FROM mctg_package)";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         ResultSet res = preparedStatement.executeQuery();

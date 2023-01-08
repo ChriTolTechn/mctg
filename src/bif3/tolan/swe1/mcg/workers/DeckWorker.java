@@ -65,10 +65,10 @@ public class DeckWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User requestingUser = userRepository.getByUsername(username);
+            User requestingUser = userRepository.getUserByUsername(username);
             if (requestingUser != null) {
-                int deckIdOfRequestingUser = deckRepository.getDeckIdForUser(requestingUser.getId());
-                Vector<Card> cardDeckOfRequestingUser = cardRepository.getCardsByDeckId(deckIdOfRequestingUser);
+                int deckIdOfRequestingUser = deckRepository.getDeckIdByUserId(requestingUser.getId());
+                Vector<Card> cardDeckOfRequestingUser = cardRepository.getAllCardsByDeckIdAsList(deckIdOfRequestingUser);
 
                 String formatParameter = request.getParameterMap().get("format");
 
@@ -93,7 +93,7 @@ public class DeckWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User requestingUser = userRepository.getByUsername(username);
+            User requestingUser = userRepository.getUserByUsername(username);
             if (requestingUser != null) {
                 ObjectMapper mapper = new ObjectMapper();
                 String jsonString = request.getBody();
@@ -102,7 +102,7 @@ public class DeckWorker implements Workable {
                 });
 
                 if (requestedCardIdsForDeck.size() == 4) {
-                    int deckIdOfRequestingUser = deckRepository.getDeckIdForUser(requestingUser.getId());
+                    int deckIdOfRequestingUser = deckRepository.getDeckIdByUserId(requestingUser.getId());
 
                     for (String cardId : requestedCardIdsForDeck) {
                         if (cardRepository.doesCardBelongToUser(cardId, requestingUser.getId()) == false) {
@@ -110,7 +110,7 @@ public class DeckWorker implements Workable {
                         }
                     }
 
-                    Vector<Card> currentCardDeckOfRequestingUser = cardRepository.getCardsByDeckId(deckIdOfRequestingUser);
+                    Vector<Card> currentCardDeckOfRequestingUser = cardRepository.getAllCardsByDeckIdAsList(deckIdOfRequestingUser);
                     for (Card c : currentCardDeckOfRequestingUser) {
                         cardRepository.assignCardToUserStack(c.getCardId(), requestingUser.getId());
                     }

@@ -8,13 +8,13 @@ import java.sql.SQLException;
 import java.util.Vector;
 
 public interface UserRepository {
-    User getById(int id) throws SQLException;
+    User getUserById(int id) throws SQLException;
 
-    User getByUsername(String username) throws SQLException;
+    User getUserByUsername(String username) throws SQLException;
 
-    void add(User user) throws SQLException, InvalidInputException, IdExistsException;
+    void addNewUser(User user) throws SQLException, InvalidInputException, IdExistsException;
 
     User updateUser(User user) throws SQLException;
 
-    Vector<User> getUsersOrderedByEloDescending() throws SQLException;
+    Vector<User> getUsersOrderedByEloDescendingAsList() throws SQLException;
 }

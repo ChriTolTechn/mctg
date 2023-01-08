@@ -1,25 +1,11 @@
 package bif3.tolan.swe1.mcg.utils;
 
 /**
- * Class the helps calculating elo after battles
+ * Class the helps calculate elo after battles
  *
  * @author Christopher Tolan
  */
 public class EloUtils {
-
-    /**
-     * Calculates new elo without a draw
-     *
-     * @param winnerElo         current elo of winning user
-     * @param loserElo          current elo of losing user
-     * @param winnerGamesPlayed current game count of winning user
-     * @param loserGamesPlayed  current game count of losing user
-     * @return Returns the new EloValues for winner and loser
-     */
-    public static NewEloValues calculateNewElo(int winnerElo, int loserElo, int winnerGamesPlayed, int loserGamesPlayed) {
-        return calculateNewElo(winnerElo, loserElo, winnerGamesPlayed, loserGamesPlayed, false);
-    }
-
     /**
      * Calculates new elo of winner and loser based on https://de.wikipedia.org/wiki/Elo-Zahl with the assumption that all users are iover 18 years old
      *
@@ -45,7 +31,6 @@ public class EloUtils {
 
         return new NewEloValues(newWinnerElo, newLoserElo);
     }
-
 
     /**
      * Gets the k-Value based on the users stats that is applied during elo calculation

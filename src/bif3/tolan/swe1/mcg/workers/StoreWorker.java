@@ -57,12 +57,12 @@ public class StoreWorker implements Workable {
         String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User requestingUser = userRepository.getByUsername(username);
+            User requestingUser = userRepository.getUserByUsername(username);
             if (requestingUser != null) {
                 if (requestingUser.getCoins() >= DefaultValues.PACKAGE_COST) {
-                    int nextAvailablePackage = packageRepository.getPackageWithLowestId();
+                    int nextAvailablePackage = packageRepository.getNextAvailablePackage();
 
-                    Vector<Card> cardsInPackage = cardRepository.getCardPackageByPackageId(nextAvailablePackage);
+                    Vector<Card> cardsInPackage = cardRepository.getAllCardsByPackageIdAsList(nextAvailablePackage);
                     for (Card c : cardsInPackage) {
                         cardRepository.assignCardToUserStack(c.getCardId(), requestingUser.getId());
                     }
