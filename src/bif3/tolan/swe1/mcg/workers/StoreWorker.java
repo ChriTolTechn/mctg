@@ -7,10 +7,7 @@ import bif3.tolan.swe1.mcg.constants.RequestPaths;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.CardRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.PackageRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
-import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
-import bif3.tolan.swe1.mcg.exceptions.PackageNotFoundException;
-import bif3.tolan.swe1.mcg.exceptions.UnsupportedCardTypeException;
-import bif3.tolan.swe1.mcg.exceptions.UnsupportedElementTypeException;
+import bif3.tolan.swe1.mcg.exceptions.*;
 import bif3.tolan.swe1.mcg.httpserver.HttpRequest;
 import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
@@ -51,7 +48,7 @@ public class StoreWorker implements Workable {
 
         return GenericHttpResponses.INVALID_PATH;
     }
-    
+
     private synchronized HttpResponse buyPackage(HttpRequest request) {
         // get username from token
         String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
@@ -59,45 +56,34 @@ public class StoreWorker implements Workable {
 
         try {
             User requestingUser = userRepository.getUserByUsername(username);
-            // check if user is logged in
-            if (requestingUser != null) {
-                // check if user has enough funds
-                if (requestingUser.getCoins() >= DefaultValues.PACKAGE_COST) {
-                    // get next available package and its cards and assign it to the user
-                    int nextAvailablePackage = packageRepository.getNextAvailablePackage();
-                    Vector<Card> cardsInPackage = cardRepository.getAllCardsByPackageIdAsList(nextAvailablePackage);
-                    for (Card c : cardsInPackage) {
-                        cardRepository.assignCardToUserStack(c.getCardId(), requestingUser.getId());
-                    }
-
-                    // delete empty package
-                    packageRepository.deletePackage(nextAvailablePackage);
-
-                    // subtract coins from user and update them
-                    requestingUser.setCoins(requestingUser.getCoins() - DefaultValues.PACKAGE_COST);
-                    userRepository.updateUser(requestingUser);
-
-                    return GenericHttpResponses.SUCCESS_BUY;
-                } else {
-                    return GenericHttpResponses.NOT_ENOUGH_COINS;
+            // check if user has enough funds
+            if (requestingUser.getCoins() >= DefaultValues.PACKAGE_COST) {
+                // get next available package and its cards and assign it to the user
+                int nextAvailablePackage = packageRepository.getNextAvailablePackage();
+                Vector<Card> cardsInPackage = cardRepository.getAllCardsByPackageIdAsList(nextAvailablePackage);
+                for (Card c : cardsInPackage) {
+                    cardRepository.assignCardToUserStack(c.getCardId(), requestingUser.getId());
                 }
+
+                // delete empty package
+                packageRepository.deletePackage(nextAvailablePackage);
+
+                // subtract coins from user and update them
+                requestingUser.setCoins(requestingUser.getCoins() - DefaultValues.PACKAGE_COST);
+                userRepository.updateUser(requestingUser);
+
+                return GenericHttpResponses.SUCCESS_BUY;
             } else {
-                return GenericHttpResponses.NOT_LOGGED_IN;
+                return GenericHttpResponses.NOT_ENOUGH_COINS;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return GenericHttpResponses.INTERNAL_ERROR;
-        } catch (InvalidInputException e) {
+        } catch (SQLException | InvalidInputException | UnsupportedCardTypeException |
+                 UnsupportedElementTypeException e) {
             e.printStackTrace();
             return GenericHttpResponses.INTERNAL_ERROR;
         } catch (PackageNotFoundException e) {
             return GenericHttpResponses.NOT_AVAILABLE_FOR_PURCHASE;
-        } catch (UnsupportedCardTypeException e) {
-            e.printStackTrace();
-            return GenericHttpResponses.INTERNAL_ERROR;
-        } catch (UnsupportedElementTypeException e) {
-            e.printStackTrace();
-            return GenericHttpResponses.INTERNAL_ERROR;
+        } catch (UserDoesNotExistException e) {
+            return GenericHttpResponses.INVALID_TOKEN;
         }
     }
 }

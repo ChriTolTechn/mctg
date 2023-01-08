@@ -9,6 +9,7 @@ import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.exceptions.UnsupportedCardTypeException;
 import bif3.tolan.swe1.mcg.exceptions.UnsupportedElementTypeException;
+import bif3.tolan.swe1.mcg.exceptions.UserDoesNotExistException;
 import bif3.tolan.swe1.mcg.httpserver.HttpRequest;
 import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpContentType;
@@ -20,7 +21,6 @@ import bif3.tolan.swe1.mcg.utils.CardUtils;
 import bif3.tolan.swe1.mcg.utils.UserUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.sql.SQLException;
@@ -72,33 +72,25 @@ public class DeckWorker implements Workable {
 
         try {
             User requestingUser = userRepository.getUserByUsername(username);
-            // check if user is valid
-            if (requestingUser != null) {
-                // get deck of user
-                int deckIdOfRequestingUser = deckRepository.getDeckIdByUserId(requestingUser.getId());
-                Vector<Card> cardDeckOfRequestingUser = cardRepository.getAllCardsByDeckIdAsList(deckIdOfRequestingUser);
 
-                // check what format the user wants the cards to be displayed with
-                String formatParameter = request.getParameterMap().get("format");
+            // get deck of user
+            int deckIdOfRequestingUser = deckRepository.getDeckIdByUserId(requestingUser.getId());
+            Vector<Card> cardDeckOfRequestingUser = cardRepository.getAllCardsByDeckIdAsList(deckIdOfRequestingUser);
 
-                // return cards with requested format
-                if (formatParameter != null && formatParameter.equals("plain")) {
-                    return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, CardUtils.getMultipleCardDisplayForUser(requestingUser.getUsername(), cardDeckOfRequestingUser));
-                } else {
-                    return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, CardUtils.getCardDetails(requestingUser.getUsername(), cardDeckOfRequestingUser));
-                }
+            // check what format the user wants the cards to be displayed with
+            String formatParameter = request.getParameterMap().get("format");
+
+            // return cards with requested format
+            if (formatParameter != null && formatParameter.equals("plain")) {
+                return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, CardUtils.getMultipleCardDisplayForUser(requestingUser.getUsername(), cardDeckOfRequestingUser));
             } else {
-                return GenericHttpResponses.NOT_LOGGED_IN;
+                return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, CardUtils.getCardDetails(requestingUser.getUsername(), cardDeckOfRequestingUser));
             }
-        } catch (SQLException e) {
+        } catch (SQLException | UnsupportedCardTypeException | UnsupportedElementTypeException e) {
             e.printStackTrace();
             return GenericHttpResponses.INTERNAL_ERROR;
-        } catch (UnsupportedCardTypeException e) {
-            e.printStackTrace();
-            return GenericHttpResponses.INTERNAL_ERROR;
-        } catch (UnsupportedElementTypeException e) {
-            e.printStackTrace();
-            return GenericHttpResponses.INTERNAL_ERROR;
+        } catch (UserDoesNotExistException e) {
+            return GenericHttpResponses.INVALID_TOKEN;
         }
     }
 
@@ -109,59 +101,47 @@ public class DeckWorker implements Workable {
 
         try {
             User requestingUser = userRepository.getUserByUsername(username);
-            // check if user exists
-            if (requestingUser != null) {
-                // init object mapper and read json strings of requested cardIds
-                ObjectMapper mapper = new ObjectMapper();
-                String jsonString = request.getBody();
-                Vector<String> requestedCardIdsForDeck = mapper.readValue(jsonString, new TypeReference<>() {
-                });
 
-                // check if there are 4 ids
-                if (requestedCardIdsForDeck.size() == 4) {
-                    // check if all cards belong to user
-                    for (String cardId : requestedCardIdsForDeck) {
-                        if (cardRepository.doesCardBelongToUser(cardId, requestingUser.getId()) == false) {
-                            return GenericHttpResponses.ITEM_NOT_OWNED;
-                        }
-                    }
+            // init object mapper and read json strings of requested cardIds
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonString = request.getBody();
+            Vector<String> requestedCardIdsForDeck = mapper.readValue(jsonString, new TypeReference<>() {
+            });
 
-                    // assign old cards in deck to user stack
-                    int deckIdOfRequestingUser = deckRepository.getDeckIdByUserId(requestingUser.getId());
-                    Vector<Card> currentCardDeckOfRequestingUser = cardRepository.getAllCardsByDeckIdAsList(deckIdOfRequestingUser);
-                    for (Card c : currentCardDeckOfRequestingUser) {
-                        cardRepository.assignCardToUserStack(c.getCardId(), requestingUser.getId());
+            // check if there are 4 ids
+            if (requestedCardIdsForDeck.size() == 4) {
+                // check if all cards belong to user
+                for (String cardId : requestedCardIdsForDeck) {
+                    if (cardRepository.doesCardBelongToUser(cardId, requestingUser.getId()) == false) {
+                        return GenericHttpResponses.ITEM_NOT_OWNED;
                     }
-
-                    // assign new cards to user deck
-                    for (String cardId : requestedCardIdsForDeck) {
-                        cardRepository.assignCardToUserDeck(cardId, deckIdOfRequestingUser);
-                    }
-                    return GenericHttpResponses.SUCCESS_UPDATE;
-                } else {
-                    return GenericHttpResponses.INVALID_DECK;
                 }
+
+                // assign old cards in deck to user stack
+                int deckIdOfRequestingUser = deckRepository.getDeckIdByUserId(requestingUser.getId());
+                Vector<Card> currentCardDeckOfRequestingUser = cardRepository.getAllCardsByDeckIdAsList(deckIdOfRequestingUser);
+                for (Card c : currentCardDeckOfRequestingUser) {
+                    cardRepository.assignCardToUserStack(c.getCardId(), requestingUser.getId());
+                }
+
+                // assign new cards to user deck
+                for (String cardId : requestedCardIdsForDeck) {
+                    cardRepository.assignCardToUserDeck(cardId, deckIdOfRequestingUser);
+                }
+                return GenericHttpResponses.SUCCESS_UPDATE;
             } else {
-                return GenericHttpResponses.NOT_LOGGED_IN;
+                return GenericHttpResponses.INVALID_DECK;
             }
-        } catch (SQLException e) {
+
+        } catch (SQLException | InvalidInputException | UnsupportedCardTypeException |
+                 UnsupportedElementTypeException e) {
             e.printStackTrace();
             return GenericHttpResponses.INTERNAL_ERROR;
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
-            return GenericHttpResponses.INVALID_INPUT;
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return GenericHttpResponses.INVALID_INPUT;
-        } catch (InvalidInputException e) {
-            e.printStackTrace();
-            return GenericHttpResponses.INTERNAL_ERROR;
-        } catch (UnsupportedCardTypeException e) {
-            e.printStackTrace();
-            return GenericHttpResponses.INTERNAL_ERROR;
-        } catch (UnsupportedElementTypeException e) {
-            e.printStackTrace();
-            return GenericHttpResponses.INTERNAL_ERROR;
+        } catch (UserDoesNotExistException e) {
+            return GenericHttpResponses.INVALID_TOKEN;
         }
     }
 }

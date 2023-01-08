@@ -7,10 +7,7 @@ import bif3.tolan.swe1.mcg.constants.RequestPaths;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.CardRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.PackageRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
-import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
-import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
-import bif3.tolan.swe1.mcg.exceptions.UnsupportedCardTypeException;
-import bif3.tolan.swe1.mcg.exceptions.UnsupportedElementTypeException;
+import bif3.tolan.swe1.mcg.exceptions.*;
 import bif3.tolan.swe1.mcg.httpserver.HttpRequest;
 import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
@@ -18,7 +15,6 @@ import bif3.tolan.swe1.mcg.model.Card;
 import bif3.tolan.swe1.mcg.model.User;
 import bif3.tolan.swe1.mcg.utils.UserUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.sql.SQLException;
@@ -64,7 +60,7 @@ public class PackageWorker implements Workable {
         try {
             User requestingUser = userRepository.getUserByUsername(username);
             // check if user is admin
-            if (requestingUser != null && requestingUser.getUsername().equals(DefaultValues.ADMIN_USERNAME)) {
+            if (requestingUser.getUsername().equals(DefaultValues.ADMIN_USERNAME)) {
                 // read cards from json to be created
                 ObjectMapper mapper = new ObjectMapper();
                 String newCardsAsJsonString = request.getBody();
@@ -92,9 +88,6 @@ public class PackageWorker implements Workable {
         } catch (SQLException e) {
             e.printStackTrace();
             return GenericHttpResponses.INTERNAL_ERROR;
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
-            return GenericHttpResponses.INVALID_INPUT;
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return GenericHttpResponses.INVALID_INPUT;
@@ -106,6 +99,8 @@ public class PackageWorker implements Workable {
             return GenericHttpResponses.UNSUPPORTED_CARD_TYPE;
         } catch (UnsupportedElementTypeException e) {
             return GenericHttpResponses.UNSUPPORTED_CARD_ELEMENT;
+        } catch (UserDoesNotExistException e) {
+            return GenericHttpResponses.INVALID_TOKEN;
         }
     }
 }

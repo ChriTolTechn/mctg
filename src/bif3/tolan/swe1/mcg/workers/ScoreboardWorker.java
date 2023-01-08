@@ -4,7 +4,9 @@ import bif3.tolan.swe1.mcg.constants.GenericHttpResponses;
 import bif3.tolan.swe1.mcg.constants.RequestHeaders;
 import bif3.tolan.swe1.mcg.constants.RequestPaths;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
-import bif3.tolan.swe1.mcg.httpserver.*;
+import bif3.tolan.swe1.mcg.exceptions.UserDoesNotExistException;
+import bif3.tolan.swe1.mcg.httpserver.HttpRequest;
+import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpContentType;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpStatus;
@@ -48,18 +50,17 @@ public class ScoreboardWorker implements Workable {
 
         try {
             User requestingUser = userRepository.getUserByUsername(username);
-            // check if user exists
-            if (requestingUser != null) {
-                // get all users orderd by elo descending and get scoreboard as string
-                Vector<User> allUsersOrderedByEloDescending = userRepository.getUsersOrderedByEloDescendingAsList();
-                String scoreboard = UserUtils.getScoreboard(allUsersOrderedByEloDescending);
-                return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, scoreboard);
-            } else {
-                return GenericHttpResponses.NOT_LOGGED_IN;
-            }
+
+            // get all users orderd by elo descending and get scoreboard as string
+            Vector<User> allUsersOrderedByEloDescending = userRepository.getUsersOrderedByEloDescendingAsList();
+            String scoreboard = UserUtils.getScoreboard(allUsersOrderedByEloDescending);
+            return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, scoreboard);
+
         } catch (SQLException e) {
             e.printStackTrace();
             return GenericHttpResponses.INTERNAL_ERROR;
+        } catch (UserDoesNotExistException e) {
+            return GenericHttpResponses.INVALID_TOKEN;
         }
     }
 }

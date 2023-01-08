@@ -7,7 +7,9 @@ import bif3.tolan.swe1.mcg.database.respositories.interfaces.CardRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.exceptions.UnsupportedCardTypeException;
 import bif3.tolan.swe1.mcg.exceptions.UnsupportedElementTypeException;
-import bif3.tolan.swe1.mcg.httpserver.*;
+import bif3.tolan.swe1.mcg.exceptions.UserDoesNotExistException;
+import bif3.tolan.swe1.mcg.httpserver.HttpRequest;
+import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpContentType;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpStatus;
@@ -55,14 +57,10 @@ public class CardWorker implements Workable {
 
         try {
             User requestingUser = userRepository.getUserByUsername(username);
-            // check if user exist
-            if (requestingUser != null) {
-                // get users card stack
-                Vector<Card> cardStackOfRequestingUser = cardRepository.getAllCardsByUserIdAsList(requestingUser.getId());
-                return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, CardUtils.getMultipleCardDisplayForUser(requestingUser.getUsername(), cardStackOfRequestingUser));
-            } else {
-                return GenericHttpResponses.NOT_LOGGED_IN;
-            }
+
+            // get users card stack
+            Vector<Card> cardStackOfRequestingUser = cardRepository.getAllCardsByUserIdAsList(requestingUser.getId());
+            return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, CardUtils.getMultipleCardDisplayForUser(requestingUser.getUsername(), cardStackOfRequestingUser));
         } catch (SQLException e) {
             e.printStackTrace();
             return GenericHttpResponses.INTERNAL_ERROR;
@@ -72,6 +70,8 @@ public class CardWorker implements Workable {
         } catch (UnsupportedElementTypeException e) {
             e.printStackTrace();
             return GenericHttpResponses.INTERNAL_ERROR;
+        } catch (UserDoesNotExistException e) {
+            return GenericHttpResponses.INVALID_TOKEN;
         }
     }
 }

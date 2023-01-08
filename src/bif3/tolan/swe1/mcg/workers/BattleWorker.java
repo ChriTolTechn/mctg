@@ -9,7 +9,9 @@ import bif3.tolan.swe1.mcg.database.respositories.interfaces.DeckRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.exceptions.UnsupportedCardTypeException;
 import bif3.tolan.swe1.mcg.exceptions.UnsupportedElementTypeException;
-import bif3.tolan.swe1.mcg.httpserver.*;
+import bif3.tolan.swe1.mcg.exceptions.UserDoesNotExistException;
+import bif3.tolan.swe1.mcg.httpserver.HttpRequest;
+import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpContentType;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpStatus;
@@ -63,39 +65,27 @@ public class BattleWorker implements Workable {
         try {
             User requestingUser = userRepository.getUserByUsername(username);
             // check if user exists
-            if (requestingUser != null) {
-                int deckIdOfRequestingUser = deckRepository.getDeckIdByUserId(requestingUser.getId());
-                requestingUser.setDeck(cardRepository.getAllCardsByDeckIdAsMap(deckIdOfRequestingUser));
-                // check deck validity
-                if (requestingUser.getDeck().size() == 4) {
-                    if (waitingForBattle == null) {
-                        // if there is no waiting user, create a lobby
-                        return createLobbyAndWaitForOpponent(requestingUser);
-                    } else {
-                        // if there is a waiting user, battle them
-                        return joinBattleAndBattle(requestingUser);
-                    }
+
+            int deckIdOfRequestingUser = deckRepository.getDeckIdByUserId(requestingUser.getId());
+            requestingUser.setDeck(cardRepository.getAllCardsByDeckIdAsMap(deckIdOfRequestingUser));
+            // check deck validity
+            if (requestingUser.getDeck().size() == 4) {
+                if (waitingForBattle == null) {
+                    // if there is no waiting user, create a lobby
+                    return createLobbyAndWaitForOpponent(requestingUser);
                 } else {
-                    return GenericHttpResponses.INVALID_DECK;
+                    // if there is a waiting user, battle them
+                    return joinBattleAndBattle(requestingUser);
                 }
             } else {
-                return GenericHttpResponses.NOT_LOGGED_IN;
+                return GenericHttpResponses.INVALID_DECK;
             }
-        } catch (SQLException e) {
+        } catch (InterruptedException | CloneNotSupportedException | UnsupportedCardTypeException |
+                 UnsupportedElementTypeException | SQLException e) {
             e.printStackTrace();
             return GenericHttpResponses.INTERNAL_ERROR;
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            return GenericHttpResponses.INTERNAL_ERROR;
-        } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-            return GenericHttpResponses.INTERNAL_ERROR;
-        } catch (UnsupportedCardTypeException e) {
-            e.printStackTrace();
-            return GenericHttpResponses.INTERNAL_ERROR;
-        } catch (UnsupportedElementTypeException e) {
-            e.printStackTrace();
-            return GenericHttpResponses.INTERNAL_ERROR;
+        } catch (UserDoesNotExistException e) {
+            return GenericHttpResponses.INVALID_TOKEN;
         }
     }
 

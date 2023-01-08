@@ -4,6 +4,7 @@ import bif3.tolan.swe1.mcg.database.respositories.BaseRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
+import bif3.tolan.swe1.mcg.exceptions.UserDoesNotExistException;
 import bif3.tolan.swe1.mcg.model.User;
 import bif3.tolan.swe1.mcg.utils.UserUtils;
 
@@ -20,7 +21,7 @@ public class UserRepositoryImplementation extends BaseRepository implements User
     }
 
     @Override
-    public User getUserById(int id) throws SQLException {
+    public User getUserById(int id) throws SQLException, UserDoesNotExistException {
         String sql = "SELECT id, username, password_hash, elo, coins, games_played, wins, name, bio, image FROM mctg_user WHERE id = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -33,11 +34,14 @@ public class UserRepositoryImplementation extends BaseRepository implements User
         resultSet.close();
         preparedStatement.close();
 
+        if (user == null)
+            throw new UserDoesNotExistException();
+
         return user;
     }
 
     @Override
-    public User getUserByUsername(String username) throws SQLException {
+    public User getUserByUsername(String username) throws SQLException, UserDoesNotExistException {
         String sql = "SELECT id, username, password_hash, elo, coins, games_played, wins, name, bio, image FROM mctg_user WHERE username = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
@@ -50,31 +54,35 @@ public class UserRepositoryImplementation extends BaseRepository implements User
         resultSet.close();
         preparedStatement.close();
 
+        if (user == null)
+            throw new UserDoesNotExistException();
+
         return user;
     }
 
     @Override
     public synchronized void addNewUser(User user) throws SQLException, InvalidInputException, IdExistsException {
         if (UserUtils.isValidNewUser(user)) {
-            if (getUserByUsername(user.getUsername()) != null) {
+            try {
+                getUserByUsername(user.getUsername());
                 throw new IdExistsException();
+            } catch (UserDoesNotExistException e) {
+                String sql = "INSERT INTO mctg_user (username, password_hash, elo, coins, games_played, wins, name, bio, image) VALUES (?, ?, ?, ?, ?, ?, ?, ? ,?);";
+                PreparedStatement preparedStatement = connection.prepareStatement(sql);
+
+                preparedStatement.setString(1, user.getUsername());
+                preparedStatement.setString(2, user.getPasswordHash());
+                preparedStatement.setInt(3, user.getElo());
+                preparedStatement.setInt(4, user.getCoins());
+                preparedStatement.setInt(5, user.getGamesPlayed());
+                preparedStatement.setInt(6, user.getWins());
+                preparedStatement.setString(7, user.getName());
+                preparedStatement.setString(8, user.getBio());
+                preparedStatement.setString(9, user.getImage());
+
+                preparedStatement.executeUpdate();
+                preparedStatement.close();
             }
-
-            String sql = "INSERT INTO mctg_user (username, password_hash, elo, coins, games_played, wins, name, bio, image) VALUES (?, ?, ?, ?, ?, ?, ?, ? ,?);";
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-
-            preparedStatement.setString(1, user.getUsername());
-            preparedStatement.setString(2, user.getPasswordHash());
-            preparedStatement.setInt(3, user.getElo());
-            preparedStatement.setInt(4, user.getCoins());
-            preparedStatement.setInt(5, user.getGamesPlayed());
-            preparedStatement.setInt(6, user.getWins());
-            preparedStatement.setString(7, user.getName());
-            preparedStatement.setString(8, user.getBio());
-            preparedStatement.setString(9, user.getImage());
-
-            preparedStatement.executeUpdate();
-            preparedStatement.close();
         } else {
             throw new InvalidInputException();
         }

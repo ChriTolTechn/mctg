@@ -7,6 +7,7 @@ import bif3.tolan.swe1.mcg.database.respositories.interfaces.DeckRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
+import bif3.tolan.swe1.mcg.exceptions.UserDoesNotExistException;
 import bif3.tolan.swe1.mcg.httpserver.HttpRequest;
 import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpContentType;
@@ -14,9 +15,7 @@ import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpStatus;
 import bif3.tolan.swe1.mcg.model.User;
 import bif3.tolan.swe1.mcg.utils.UserUtils;
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.sql.SQLException;
@@ -65,10 +64,10 @@ public class UserWorker implements Workable {
             User userTryingToRegister = mapper.readValue(jsonString, User.class);
 
             //Check if user already exists
-            User registeredUserWithSameUsername = userRepository.getUserByUsername(userTryingToRegister.getUsername());
-            if (registeredUserWithSameUsername != null) {
+            try {
+                userRepository.getUserByUsername(userTryingToRegister.getUsername());
                 return GenericHttpResponses.USER_EXISTS;
-            } else {
+            } catch (UserDoesNotExistException e) {
                 // create new user
                 userRepository.addNewUser(userTryingToRegister);
                 User newlyRegisteredUser = userRepository.getUserByUsername(userTryingToRegister.getUsername());
@@ -78,22 +77,13 @@ public class UserWorker implements Workable {
 
                 return GenericHttpResponses.SUCCESS_CREATE;
             }
-        } catch (JsonParseException e) {
+        } catch (JsonProcessingException e) {
             e.printStackTrace();
             return GenericHttpResponses.INVALID_INPUT;
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
-            return GenericHttpResponses.INVALID_INPUT;
-        } catch (SQLException e) {
+        } catch (SQLException | UserDoesNotExistException | IdExistsException e) {
             e.printStackTrace();
             return GenericHttpResponses.INTERNAL_ERROR;
         } catch (InvalidInputException e) {
-            return GenericHttpResponses.INVALID_INPUT;
-        } catch (IdExistsException e) {
-            e.printStackTrace();
-            return GenericHttpResponses.INTERNAL_ERROR;
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
             return GenericHttpResponses.INVALID_INPUT;
         }
     }
@@ -105,19 +95,17 @@ public class UserWorker implements Workable {
 
         try {
             User requestingUser = userRepository.getUserByUsername(username);
-            // check if logged in
-            if (requestingUser != null) {
-                if (requestingUser.getUsername().equals(requestedUser)) {
-                    return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, UserUtils.getUserProfile(requestingUser));
-                } else {
-                    return GenericHttpResponses.UNAUTHORIZED;
-                }
+
+            if (requestingUser.getUsername().equals(requestedUser)) {
+                return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, UserUtils.getUserProfile(requestingUser));
             } else {
-                return GenericHttpResponses.NOT_LOGGED_IN;
+                return GenericHttpResponses.UNAUTHORIZED;
             }
         } catch (SQLException e) {
             e.printStackTrace();
             return GenericHttpResponses.INTERNAL_ERROR;
+        } catch (UserDoesNotExistException e) {
+            return GenericHttpResponses.INVALID_TOKEN;
         }
     }
 
@@ -128,41 +116,36 @@ public class UserWorker implements Workable {
 
         try {
             User requestingUser = userRepository.getUserByUsername(username);
-            // check if user exists
-            if (requestingUser != null) {
-                // check if the user requested is the same as logged in user
-                if (requestingUser.getUsername().equals(requestedUser)) {
-                    // read data to update
-                    ObjectMapper mapper = new ObjectMapper();
-                    String newUserDataAsJsonString = request.getBody();
-                    User newUserWithUpdatedData = mapper.readValue(newUserDataAsJsonString, User.class);
 
-                    // update data
-                    if (newUserWithUpdatedData.getName() != null)
-                        requestingUser.setName(newUserWithUpdatedData.getName());
-                    if (newUserWithUpdatedData.getBio() != null)
-                        requestingUser.setBio(newUserWithUpdatedData.getBio());
-                    if (newUserWithUpdatedData.getImage() != null)
-                        requestingUser.setImage(newUserWithUpdatedData.getImage());
+            // check if the user requested is the same as requesting user
+            if (requestingUser.getUsername().equals(requestedUser)) {
+                // read data to update
+                ObjectMapper mapper = new ObjectMapper();
+                String newUserDataAsJsonString = request.getBody();
+                User newUserWithUpdatedData = mapper.readValue(newUserDataAsJsonString, User.class);
 
-                    // update user in db
-                    userRepository.updateUser(requestingUser);
-                    return GenericHttpResponses.SUCCESS_UPDATE;
-                } else {
-                    return GenericHttpResponses.UNAUTHORIZED;
-                }
+                // update data
+                if (newUserWithUpdatedData.getName() != null)
+                    requestingUser.setName(newUserWithUpdatedData.getName());
+                if (newUserWithUpdatedData.getBio() != null)
+                    requestingUser.setBio(newUserWithUpdatedData.getBio());
+                if (newUserWithUpdatedData.getImage() != null)
+                    requestingUser.setImage(newUserWithUpdatedData.getImage());
+
+                // update user in db
+                userRepository.updateUser(requestingUser);
+                return GenericHttpResponses.SUCCESS_UPDATE;
             } else {
-                return GenericHttpResponses.NOT_LOGGED_IN;
+                return GenericHttpResponses.UNAUTHORIZED;
             }
         } catch (SQLException e) {
             e.printStackTrace();
             return GenericHttpResponses.INTERNAL_ERROR;
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
-            return GenericHttpResponses.INVALID_INPUT;
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return GenericHttpResponses.INVALID_INPUT;
+        } catch (UserDoesNotExistException e) {
+            return GenericHttpResponses.INVALID_TOKEN;
         }
     }
 }

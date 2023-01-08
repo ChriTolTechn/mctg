@@ -30,4 +30,5 @@ public final class GenericHttpResponses {
     public final static HttpResponse HAS_ACTIVE_TRADE = new HttpResponse(HttpStatus.UNAUTHORIZED, HttpContentType.PLAIN_TEXT, "You can only have one trade offer at the same time active. Delete the old one to create a new one");
     public final static HttpResponse SUCCESS_DELETE = new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, "Successfully deleted!");
     public final static HttpResponse USER_EXISTS = new HttpResponse(HttpStatus.NOT_ACCEPTABLE, HttpContentType.PLAIN_TEXT, "A user with this username already exists. Please pick another one.");
+    public final static HttpResponse INVALID_TOKEN = new HttpResponse(HttpStatus.BAD_REQUEST, HttpContentType.PLAIN_TEXT, "Either you have provided no authentication token or it is invalid. Please provide a valid one to perform this action.");
 }
