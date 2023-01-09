@@ -3,8 +3,6 @@ package bif3.tolan.swe1.mcg.workers;
 import bif3.tolan.swe1.mcg.constants.GenericHttpResponses;
 import bif3.tolan.swe1.mcg.constants.RequestHeaders;
 import bif3.tolan.swe1.mcg.constants.RequestPaths;
-import bif3.tolan.swe1.mcg.database.respositories.interfaces.CardRepository;
-import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.exceptions.UnsupportedCardTypeException;
 import bif3.tolan.swe1.mcg.exceptions.UnsupportedElementTypeException;
 import bif3.tolan.swe1.mcg.exceptions.UserDoesNotExistException;
@@ -15,6 +13,8 @@ import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpStatus;
 import bif3.tolan.swe1.mcg.model.Card;
 import bif3.tolan.swe1.mcg.model.User;
+import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.CardRepository;
+import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.utils.CardUtils;
 import bif3.tolan.swe1.mcg.utils.UserUtils;
 

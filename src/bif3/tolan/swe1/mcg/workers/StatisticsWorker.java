@@ -3,7 +3,6 @@ package bif3.tolan.swe1.mcg.workers;
 import bif3.tolan.swe1.mcg.constants.GenericHttpResponses;
 import bif3.tolan.swe1.mcg.constants.RequestHeaders;
 import bif3.tolan.swe1.mcg.constants.RequestPaths;
-import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.exceptions.UserDoesNotExistException;
 import bif3.tolan.swe1.mcg.httpserver.HttpRequest;
 import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
@@ -11,6 +10,7 @@ import bif3.tolan.swe1.mcg.httpserver.enums.HttpContentType;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpStatus;
 import bif3.tolan.swe1.mcg.model.User;
+import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.utils.UserUtils;
 
 import java.sql.SQLException;

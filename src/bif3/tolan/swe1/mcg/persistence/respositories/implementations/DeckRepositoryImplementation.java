@@ -1,8 +1,8 @@
-package bif3.tolan.swe1.mcg.database.respositories.implementations;
+package bif3.tolan.swe1.mcg.persistence.respositories.implementations;
 
-import bif3.tolan.swe1.mcg.database.DbConnector;
-import bif3.tolan.swe1.mcg.database.respositories.BaseRepository;
-import bif3.tolan.swe1.mcg.database.respositories.interfaces.DeckRepository;
+import bif3.tolan.swe1.mcg.persistence.PersistenceManager;
+import bif3.tolan.swe1.mcg.persistence.respositories.BaseRepository;
+import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.DeckRepository;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,7 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class DeckRepositoryImplementation extends BaseRepository implements DeckRepository {
-    public DeckRepositoryImplementation(DbConnector connector) {
+    public DeckRepositoryImplementation(PersistenceManager connector) {
         super(connector);
     }
 
@@ -20,7 +20,7 @@ public class DeckRepositoryImplementation extends BaseRepository implements Deck
             String sql = "INSERT INTO mctg_deck (user_id) VALUES (?);";
 
             try (
-                    Connection connection = connector.getConnection();
+                    Connection connection = connector.getDatabaseConnection();
                     PreparedStatement preparedStatement = connection.prepareStatement(sql)
             ) {
                 preparedStatement.setInt(1, userId);
@@ -35,7 +35,7 @@ public class DeckRepositoryImplementation extends BaseRepository implements Deck
         String sql = "SELECT id FROM mctg_deck WHERE user_id = ?";
 
         try (
-                Connection connection = connector.getConnection();
+                Connection connection = connector.getDatabaseConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql)
         ) {
             preparedStatement.setInt(1, userId);

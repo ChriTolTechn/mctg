@@ -1,7 +1,7 @@
-package bif3.tolan.swe1.mcg.database;
+package bif3.tolan.swe1.mcg.persistence;
 
-import bif3.tolan.swe1.mcg.database.respositories.implementations.*;
-import bif3.tolan.swe1.mcg.database.respositories.interfaces.*;
+import bif3.tolan.swe1.mcg.persistence.respositories.implementations.*;
+import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -11,19 +11,19 @@ import java.util.Scanner;
 
 import static bif3.tolan.swe1.mcg.constants.DatabaseConstants.*;
 
-public class DbConnector {
+public class PersistenceManager {
     private UserRepository userRepository;
     private CardRepository cardRepository;
     private DeckRepository deckRepository;
     private PackageRepository packageRepository;
     private TradeOfferRepository tradeOfferRepository;
 
-    public DbConnector() {
+    public PersistenceManager() {
         establishConnection();
         initializeRepositories();
     }
 
-    public Connection getConnection() throws SQLException {
+    public Connection getDatabaseConnection() throws SQLException {
         return DriverManager.getConnection(DB_URL + DB_NAME, DB_USERNAME, DB_PASSWORD);
     }
 
@@ -60,7 +60,7 @@ public class DbConnector {
         String input = scanner.nextLine();
         if (input.toLowerCase().equals("y")) {
             try (
-                    Connection connection = getConnection();
+                    Connection connection = getDatabaseConnection();
                     PreparedStatement preparedStatement = connection.prepareStatement("TRUNCATE TABLE mctg_card, mctg_trade_offer, mctg_deck, mctg_package, mctg_user")
             ) {
                 preparedStatement.execute();

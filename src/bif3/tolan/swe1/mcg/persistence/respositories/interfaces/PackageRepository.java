@@ -1,4 +1,4 @@
-package bif3.tolan.swe1.mcg.database.respositories.interfaces;
+package bif3.tolan.swe1.mcg.persistence.respositories.interfaces;
 
 import bif3.tolan.swe1.mcg.exceptions.PackageNotFoundException;
 

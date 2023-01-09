@@ -1,11 +1,11 @@
 package bif3.tolan.swe1.mcg;
 
-import bif3.tolan.swe1.mcg.database.respositories.implementations.CardRepositoryImplementation;
-import bif3.tolan.swe1.mcg.database.respositories.interfaces.CardRepository;
 import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.model.Card;
+import bif3.tolan.swe1.mcg.persistence.respositories.implementations.CardRepositoryImplementation;
+import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.CardRepository;
 import bif3.tolan.swe1.mcg.utils.CardUtils;
 import org.junit.Before;
 import org.junit.Test;

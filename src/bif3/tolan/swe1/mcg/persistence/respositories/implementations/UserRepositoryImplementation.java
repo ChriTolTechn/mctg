@@ -1,13 +1,13 @@
-package bif3.tolan.swe1.mcg.database.respositories.implementations;
+package bif3.tolan.swe1.mcg.persistence.respositories.implementations;
 
-import bif3.tolan.swe1.mcg.database.DbConnector;
-import bif3.tolan.swe1.mcg.database.respositories.BaseRepository;
-import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.exceptions.NoDataException;
 import bif3.tolan.swe1.mcg.exceptions.UserDoesNotExistException;
 import bif3.tolan.swe1.mcg.model.User;
+import bif3.tolan.swe1.mcg.persistence.PersistenceManager;
+import bif3.tolan.swe1.mcg.persistence.respositories.BaseRepository;
+import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.utils.UserUtils;
 
 import java.sql.Connection;
@@ -18,7 +18,7 @@ import java.util.Vector;
 
 public class UserRepositoryImplementation extends BaseRepository implements UserRepository {
 
-    public UserRepositoryImplementation(DbConnector connector) {
+    public UserRepositoryImplementation(PersistenceManager connector) {
         super(connector);
     }
 
@@ -27,7 +27,7 @@ public class UserRepositoryImplementation extends BaseRepository implements User
         String sql = "SELECT id, username, password_hash, elo, coins, games_played, wins, name, bio, image FROM mctg_user WHERE id = ?";
 
         try (
-                Connection connection = connector.getConnection();
+                Connection connection = connector.getDatabaseConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql);
         ) {
             preparedStatement.setInt(1, id);
@@ -43,7 +43,7 @@ public class UserRepositoryImplementation extends BaseRepository implements User
         String sql = "SELECT id, username, password_hash, elo, coins, games_played, wins, name, bio, image FROM mctg_user WHERE username = ?";
 
         try (
-                Connection connection = connector.getConnection();
+                Connection connection = connector.getDatabaseConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql);
         ) {
             preparedStatement.setString(1, username);
@@ -64,7 +64,7 @@ public class UserRepositoryImplementation extends BaseRepository implements User
                 String sql = "INSERT INTO mctg_user (username, password_hash, elo, coins, games_played, wins, name, bio, image) VALUES (?, ?, ?, ?, ?, ?, ?, ? ,?);";
 
                 try (
-                        Connection connection = connector.getConnection();
+                        Connection connection = connector.getDatabaseConnection();
                         PreparedStatement preparedStatement = connection.prepareStatement(sql);
                 ) {
                     preparedStatement.setString(1, user.getUsername());
@@ -100,7 +100,7 @@ public class UserRepositoryImplementation extends BaseRepository implements User
                 "WHERE id = ?";
 
         try (
-                Connection connection = connector.getConnection();
+                Connection connection = connector.getDatabaseConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql);
         ) {
             preparedStatement.setString(1, user.getPasswordHash());
@@ -123,7 +123,7 @@ public class UserRepositoryImplementation extends BaseRepository implements User
         String sql = "SELECT username, elo, games_played, wins FROM mctg_user ORDER BY elo DESC";
 
         try (
-                Connection connection = connector.getConnection();
+                Connection connection = connector.getDatabaseConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql);
                 ResultSet resultSet = preparedStatement.executeQuery()
         ) {

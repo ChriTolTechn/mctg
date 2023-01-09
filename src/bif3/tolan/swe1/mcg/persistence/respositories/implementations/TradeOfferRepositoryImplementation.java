@@ -1,13 +1,13 @@
-package bif3.tolan.swe1.mcg.database.respositories.implementations;
+package bif3.tolan.swe1.mcg.persistence.respositories.implementations;
 
-import bif3.tolan.swe1.mcg.database.DbConnector;
-import bif3.tolan.swe1.mcg.database.respositories.BaseRepository;
-import bif3.tolan.swe1.mcg.database.respositories.interfaces.TradeOfferRepository;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.exceptions.NoActiveTradeOffersException;
 import bif3.tolan.swe1.mcg.exceptions.TradeOfferNotFoundException;
 import bif3.tolan.swe1.mcg.model.TradeOffer;
 import bif3.tolan.swe1.mcg.model.enums.CardType;
+import bif3.tolan.swe1.mcg.persistence.PersistenceManager;
+import bif3.tolan.swe1.mcg.persistence.respositories.BaseRepository;
+import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.TradeOfferRepository;
 import bif3.tolan.swe1.mcg.utils.TradeUtils;
 
 import java.sql.Connection;
@@ -17,7 +17,7 @@ import java.sql.SQLException;
 import java.util.Vector;
 
 public class TradeOfferRepositoryImplementation extends BaseRepository implements TradeOfferRepository {
-    public TradeOfferRepositoryImplementation(DbConnector connector) {
+    public TradeOfferRepositoryImplementation(PersistenceManager connector) {
         super(connector);
     }
 
@@ -26,7 +26,7 @@ public class TradeOfferRepositoryImplementation extends BaseRepository implement
         String sql = "SELECT id, min_damage, card_type, card_group, user_id FROM mctg_trade_offer WHERE user_id = ?";
 
         try (
-                Connection connection = connector.getConnection();
+                Connection connection = connector.getDatabaseConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql);
         ) {
             preparedStatement.setInt(1, userId);
@@ -42,7 +42,7 @@ public class TradeOfferRepositoryImplementation extends BaseRepository implement
         String sql = "SELECT id, min_damage, card_type, card_group, user_id FROM mctg_trade_offer";
 
         try (
-                Connection connection = connector.getConnection();
+                Connection connection = connector.getDatabaseConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql);
                 ResultSet resultSet = preparedStatement.executeQuery()
         ) {
@@ -56,7 +56,7 @@ public class TradeOfferRepositoryImplementation extends BaseRepository implement
             String sql = "INSERT INTO mctg_trade_offer (id, min_damage, user_id, card_type, card_group) VALUES (?, ?, ?, ?, ?)";
 
             try (
-                    Connection connection = connector.getConnection();
+                    Connection connection = connector.getDatabaseConnection();
                     PreparedStatement preparedStatement = connection.prepareStatement(sql);
             ) {
                 preparedStatement.setString(1, tradeOffer.getTradeId());
@@ -77,7 +77,7 @@ public class TradeOfferRepositoryImplementation extends BaseRepository implement
         String sql = "SELECT id, min_damage, card_type, card_group, user_id FROM mctg_trade_offer WHERE id = ?";
 
         try (
-                Connection connection = connector.getConnection();
+                Connection connection = connector.getDatabaseConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql);
         ) {
             preparedStatement.setString(1, tradeId);
@@ -93,7 +93,7 @@ public class TradeOfferRepositoryImplementation extends BaseRepository implement
         String sql = "DELETE FROM mctg_trade_offer WHERE id = ?";
 
         try (
-                Connection connection = connector.getConnection();
+                Connection connection = connector.getDatabaseConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql);
         ) {
             preparedStatement.setString(1, tradeId);

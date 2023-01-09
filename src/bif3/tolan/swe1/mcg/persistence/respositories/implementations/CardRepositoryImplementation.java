@@ -1,10 +1,10 @@
-package bif3.tolan.swe1.mcg.database.respositories.implementations;
+package bif3.tolan.swe1.mcg.persistence.respositories.implementations;
 
-import bif3.tolan.swe1.mcg.database.DbConnector;
-import bif3.tolan.swe1.mcg.database.respositories.BaseRepository;
-import bif3.tolan.swe1.mcg.database.respositories.interfaces.CardRepository;
 import bif3.tolan.swe1.mcg.exceptions.*;
 import bif3.tolan.swe1.mcg.model.Card;
+import bif3.tolan.swe1.mcg.persistence.PersistenceManager;
+import bif3.tolan.swe1.mcg.persistence.respositories.BaseRepository;
+import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.CardRepository;
 import bif3.tolan.swe1.mcg.utils.CardUtils;
 
 import java.sql.Connection;
@@ -15,7 +15,7 @@ import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CardRepositoryImplementation extends BaseRepository implements CardRepository {
-    public CardRepositoryImplementation(DbConnector connector) {
+    public CardRepositoryImplementation(PersistenceManager connector) {
         super(connector);
     }
 
@@ -24,7 +24,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         String sql = "SELECT id, name, damage FROM mctg_card WHERE id = ?";
 
         try (
-                Connection connection = connector.getConnection();
+                Connection connection = connector.getDatabaseConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql);
         ) {
             preparedStatement.setString(1, cardId);
@@ -39,7 +39,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_user_id = ?";
 
         try (
-                Connection connection = connector.getConnection();
+                Connection connection = connector.getDatabaseConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql);
         ) {
             preparedStatement.setInt(1, userId);
@@ -55,7 +55,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_trade_offer_id = ?";
 
         try (
-                Connection connection = connector.getConnection();
+                Connection connection = connector.getDatabaseConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql)
         ) {
             preparedStatement.setString(1, tradeId);
@@ -71,7 +71,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_deck_id = ?";
 
         try (
-                Connection connection = connector.getConnection();
+                Connection connection = connector.getDatabaseConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql)
         ) {
             preparedStatement.setInt(1, deckId);
@@ -87,7 +87,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_deck_id = ?";
 
         try (
-                Connection connection = connector.getConnection();
+                Connection connection = connector.getDatabaseConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql)
         ) {
             preparedStatement.setInt(1, deckId);
@@ -103,7 +103,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_package_id = ?";
 
         try (
-                Connection connection = connector.getConnection();
+                Connection connection = connector.getDatabaseConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql)
         ) {
             preparedStatement.setInt(1, packageId);
@@ -124,7 +124,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
             String sql = "INSERT INTO mctg_card (id, name, damage) VALUES (?, ?, ?);";
 
             try (
-                    Connection connection = connector.getConnection();
+                    Connection connection = connector.getDatabaseConnection();
                     PreparedStatement preparedStatement = connection.prepareStatement(sql)
             ) {
                 preparedStatement.setString(1, card.getCardId());
@@ -145,7 +145,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         String sql = "UPDATE mctg_card SET mctg_user_id = ? WHERE id = ?";
 
         try (
-                Connection connection = connector.getConnection();
+                Connection connection = connector.getDatabaseConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql)
         ) {
             preparedStatement.setInt(1, userId);
@@ -161,7 +161,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         String sql = "SELECT * FROM mctg_card WHERE id = ? AND mctg_user_id = ?";
 
         try (
-                Connection connection = connector.getConnection();
+                Connection connection = connector.getDatabaseConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql)
         ) {
             preparedStatement.setString(1, cardId);
@@ -182,7 +182,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         String sql = "UPDATE mctg_card SET mctg_deck_id = ? WHERE id = ?";
 
         try (
-                Connection connection = connector.getConnection();
+                Connection connection = connector.getDatabaseConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql)
         ) {
             preparedStatement.setInt(1, deckId);
@@ -199,7 +199,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         String sql = "UPDATE mctg_card SET mctg_package_id = ? WHERE id = ?";
 
         try (
-                Connection connection = connector.getConnection();
+                Connection connection = connector.getDatabaseConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql)
         ) {
             preparedStatement.setInt(1, packageId);
@@ -216,7 +216,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         String sql = "UPDATE mctg_card SET mctg_trade_offer_id = ? WHERE id = ?";
 
         try (
-                Connection connection = connector.getConnection();
+                Connection connection = connector.getDatabaseConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql)
         ) {
             preparedStatement.setString(1, tradeOfferId);
@@ -235,7 +235,7 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
                     "mctg_deck_id = NULL WHERE id = ?";
 
             try (
-                    Connection connection = connector.getConnection();
+                    Connection connection = connector.getDatabaseConnection();
                     PreparedStatement preparedStatement = connection.prepareStatement(sql)
             ) {
                 preparedStatement.setString(1, cardId);
