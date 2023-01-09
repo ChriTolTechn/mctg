@@ -1,12 +1,13 @@
 package bif3.tolan.swe1.mcg;
 
 import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
-import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
+import bif3.tolan.swe1.mcg.exceptions.UnsupportedCardTypeException;
+import bif3.tolan.swe1.mcg.exceptions.UnsupportedElementTypeException;
 import bif3.tolan.swe1.mcg.model.Card;
+import bif3.tolan.swe1.mcg.persistence.PersistenceManager;
 import bif3.tolan.swe1.mcg.persistence.respositories.implementations.CardRepositoryImplementation;
 import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.CardRepository;
-import bif3.tolan.swe1.mcg.utils.CardUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -31,6 +32,9 @@ public class CardRepositoryTest {
     private Connection mockConnection;
 
     @Mock
+    private PersistenceManager mockPersistenceManager;
+
+    @Mock
     private PreparedStatement mockStatement;
 
     @Mock
@@ -41,28 +45,30 @@ public class CardRepositoryTest {
     private CardRepository cardRepository;
 
     @Before
-    public void setup() throws SQLException, InvalidCardParameterException {
+    public void setup() throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         when(mockConnection.prepareStatement(any())).thenReturn(mockStatement);
 
-        card = CardUtils.buildCard("asdf", "Dragon", 100f);
+        card = new Card("asdf", "Dragon", 100f);
 
         when(mockResultSet.getString("id")).thenReturn(card.getCardId());
         when(mockResultSet.getString("name")).thenReturn(card.getName());
         when(mockResultSet.getFloat("damage")).thenReturn(card.getDamage());
 
-        doAnswer(invocationOnMock -> when(mockResultSet.first()).thenReturn(true)).when(mockStatement).setString(eq(1), eq("asdf"));
-        doAnswer(invocationOnMock -> when(mockResultSet.first()).thenReturn(false)).when(mockStatement).setString(eq(1), eq("yxcv"));
+        doAnswer(invocationOnMock -> when(mockResultSet.next()).thenReturn(true)).when(mockStatement).setString(eq(1), eq("asdf"));
+        doAnswer(invocationOnMock -> when(mockResultSet.next()).thenReturn(false)).when(mockStatement).setString(eq(1), eq("yxcv"));
 
         doAnswer(invocationOnMock -> when(mockResultSet.next()).thenReturn(true, false)).when(mockStatement).setInt(eq(1), eq(1));
         doAnswer(invocationOnMock -> when(mockResultSet.next()).thenReturn(false)).when(mockStatement).setInt(eq(1), eq(2));
 
         when(mockStatement.executeQuery()).thenReturn(mockResultSet);
 
-        cardRepository = new CardRepositoryImplementation(mockConnection);
+        when(mockPersistenceManager.getDatabaseConnection()).thenReturn(mockConnection);
+
+        cardRepository = new CardRepositoryImplementation(mockPersistenceManager);
     }
 
     @Test
-    public void testGetById() throws SQLException, InvalidCardParameterException {
+    public void testGetById() throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         Card testCard1 = cardRepository.getCardById("asdf");
         Card testCard2 = cardRepository.getCardById("yxcv");
 
@@ -71,7 +77,7 @@ public class CardRepositoryTest {
     }
 
     @Test
-    public void testGetBy() throws SQLException, InvalidCardParameterException {
+    public void testGetBy() throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         List<Card> testCardList1 = cardRepository.getAllCardsByUserIdAsList(1);
         List<Card> testCardList2 = cardRepository.getAllCardsByUserIdAsList(2);
 
@@ -81,10 +87,10 @@ public class CardRepositoryTest {
     }
 
     @Test
-    public void testAddCard() throws InvalidCardParameterException {
-        Card card1 = CardUtils.buildCard("asdf", "Dragon", 250f);
-        Card card2 = CardUtils.buildCard("yxcv", "WaterGoblin", 300f);
-        Card card3 = CardUtils.buildCard("gPoPVKU6YkKJKJ3l83YjRhyC1IOOr18Bp9Cz8w0mt4WYM3Pzdwv", "FireSpell", 200f);
+    public void testAddCard() throws UnsupportedCardTypeException, UnsupportedElementTypeException {
+        Card card1 = new Card("asdf", "Dragon", 250f);
+        Card card2 = new Card("yxcv", "WaterGoblin", 300f);
+        Card card3 = new Card("gPoPVKU6YkKJKJ3l83YjRhyC1IOOr18Bp9Cz8w0mt4WYM3Pzdwv", "FireSpell", 200f);
 
         Assertions.assertThrows(IdExistsException.class, () -> cardRepository.addNewCard(card1));
         Assertions.assertDoesNotThrow(() -> cardRepository.addNewCard(card2));
