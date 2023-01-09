@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class HttpServer {
+public class HttpServer implements Runnable {
 
     private int port;
 
@@ -21,20 +21,6 @@ public class HttpServer {
 
     public HttpServer(int port) {
         this.port = port;
-    }
-
-    public void start() throws IOException {
-        ExecutorService executorService = Executors.newFixedThreadPool(ServerConstants.DEFAULT_THREAD_COUNT);
-
-        try (ServerSocket serverSocket = new ServerSocket(this.port)) {
-            System.out.println("----------------------------------------------");
-            System.out.println("Server started...");
-            System.out.println("----------------------------------------------");
-            while (true) {
-                Socket clientConnection = serverSocket.accept();
-                executorService.execute(new HttpRequestHandler(clientConnection, workers));
-            }
-        }
     }
 
     public void initializeWorkers(PersistenceManager persistenceManager) {
@@ -72,5 +58,31 @@ public class HttpServer {
                 persistenceManager.getUserRepository(),
                 persistenceManager.getTradeOfferRepository(),
                 persistenceManager.getCardRepository()));
+    }
+
+    @Override
+    public void run() {
+        ExecutorService executorService = Executors.newFixedThreadPool(ServerConstants.DEFAULT_THREAD_COUNT);
+        Socket clientConnection = null;
+
+        try (ServerSocket serverSocket = new ServerSocket(this.port)) {
+            System.out.println("----------------------------------------------");
+            System.out.println("Server started...");
+            System.out.println("----------------------------------------------");
+
+            while (!Thread.currentThread().isInterrupted()) {
+                clientConnection = serverSocket.accept();
+                executorService.execute(new HttpRequestHandler(clientConnection, workers));
+            }
+
+            clientConnection.close();
+        } catch (IOException e) {
+            try {
+                clientConnection.close();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+            throw new RuntimeException(e);
+        }
     }
 }
