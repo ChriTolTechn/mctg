@@ -9,7 +9,7 @@
 CREATE TABLE mctg_user (
   id SERIAL PRIMARY KEY,
   username VARCHAR(50) UNIQUE NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
+  password_hash VARCHAR(64) NOT NULL,
   elo INTEGER NOT NULL,
   coins INTEGER NOT NULL,
   games_played INTEGER NOT NULL,

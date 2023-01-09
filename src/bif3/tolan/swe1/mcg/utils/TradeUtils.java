@@ -28,6 +28,7 @@ public class TradeUtils {
         if (tradeOffer.getTradeId() == null) return false;
         if (tradeOffer.getUserId() < 0) return false;
         if (tradeOffer.getTradeId().length() > 50) return false;
+        if (tradeOffer.getMinDamage() < 0) return false;
 
         return true;
     }

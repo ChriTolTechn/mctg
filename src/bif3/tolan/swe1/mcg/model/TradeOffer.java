@@ -35,18 +35,12 @@ public class TradeOffer {
      * @param userId    Id from the user
      * @param minDamage Wanted minimum damage
      * @param cardType  Wanted Card Type
-     * @throws NullPointerException
-     * @throws IllegalArgumentException
      */
     public TradeOffer(
             String tradeId,
             int userId,
             int minDamage,
-            CardType cardType)
-            throws NullPointerException, IllegalArgumentException {
-
-        checkParameterValidity(tradeId, userId, minDamage, cardType == null);
-
+            CardType cardType) {
         this.cardType = cardType;
         this.cardGroup = null;
         this.tradeId = tradeId;
@@ -61,18 +55,12 @@ public class TradeOffer {
      * @param userId    Id from the user
      * @param minDamage Wanted minimum damage
      * @param cardGroup Wanted Card Type
-     * @throws NullPointerException
-     * @throws IllegalArgumentException
      */
     public TradeOffer(
             String tradeId,
             int userId,
             int minDamage,
-            CardType.CardGroup cardGroup)
-            throws NullPointerException, IllegalArgumentException {
-
-        checkParameterValidity(tradeId, userId, minDamage, cardGroup == null);
-
+            CardType.CardGroup cardGroup) {
         this.cardGroup = cardGroup;
         this.cardType = null;
         this.tradeId = tradeId;
@@ -81,13 +69,6 @@ public class TradeOffer {
     }
 
     public TradeOffer() {
-    }
-
-    private void checkParameterValidity(String tradeId, int userId, int minDamage, boolean b) throws NullPointerException, IllegalArgumentException {
-        if (tradeId == null || userId < 0 || b)
-            throw new NullPointerException();
-        if (minDamage < 0)
-            throw new IllegalArgumentException();
     }
 
     public String getTradeId() {
