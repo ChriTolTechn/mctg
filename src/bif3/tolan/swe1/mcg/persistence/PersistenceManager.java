@@ -19,7 +19,15 @@ public class PersistenceManager {
     private TradeOfferRepository tradeOfferRepository;
 
     public PersistenceManager() {
-        establishConnection();
+        if (TRY_RESET_DB_ON_STARTUP) {
+            try {
+                resetDatabase();
+            } catch (SQLException e) {
+                System.err.println("----------------------------------------------");
+                e.printStackTrace();
+                System.err.println("----------------------------------------------");
+            }
+        }
         initializeRepositories();
     }
 
@@ -33,24 +41,6 @@ public class PersistenceManager {
         deckRepository = new DeckRepositoryImplementation(this);
         packageRepository = new PackageRepositoryImplementation(this);
         tradeOfferRepository = new TradeOfferRepositoryImplementation(this);
-    }
-
-    private void establishConnection() {
-        System.out.println("----------------------------------------------");
-        System.out.println("Trying to connect to database...");
-        System.out.println("----------------------------------------------");
-        try {
-            System.out.println("----------------------------------------------");
-            System.out.println("Connected to database!");
-            System.out.println("----------------------------------------------");
-
-            if (TRY_RESET_DB_ON_STARTUP)
-                resetDatabase();
-        } catch (SQLException e) {
-            System.err.println("----------------------------------------------");
-            e.printStackTrace();
-            System.err.println("----------------------------------------------");
-        }
     }
 
     private void resetDatabase() throws SQLException {
