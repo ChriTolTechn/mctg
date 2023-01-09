@@ -1,11 +1,9 @@
 package bif3.tolan.swe1.mcg.model;
 
 import bif3.tolan.swe1.mcg.constants.DamageMap;
-import bif3.tolan.swe1.mcg.enums.CardType;
-import bif3.tolan.swe1.mcg.enums.ElementType;
-import bif3.tolan.swe1.mcg.exceptions.BattleFinishedException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidDeckException;
-import bif3.tolan.swe1.mcg.exceptions.InvalidUserException;
+import bif3.tolan.swe1.mcg.model.enums.CardType;
+import bif3.tolan.swe1.mcg.model.enums.ElementType;
 import bif3.tolan.swe1.mcg.utils.MapUtils;
 
 import java.util.Vector;
@@ -23,17 +21,13 @@ public class Battle {
     private int round;
     private boolean gameFinished;
     private User winner;
-
     private User loser;
     private ConcurrentHashMap<String, Card> user1Deck;
     private ConcurrentHashMap<String, Card> user2Deck;
     private Vector<String> battleLog;
-
     private boolean draw;
 
-    public Battle(User user1, User user2) throws InvalidUserException, InvalidDeckException {
-        if (user1 == null || user2 == null || user1 == user2)
-            throw new InvalidUserException();
+    public Battle(User user1, User user2) {
         this.user1 = user1;
         this.user2 = user2;
         this.round = 0;
@@ -51,12 +45,9 @@ public class Battle {
      *
      * @throws InvalidDeckException if any of the decks is null
      */
-    private void prepareBattle() throws InvalidDeckException {
+    private void prepareBattle() {
         user1Deck = new ConcurrentHashMap<>(user1.getDeck());
         user2Deck = new ConcurrentHashMap<>(user2.getDeck());
-
-        if (user1Deck == null || user2Deck == null)
-            throw new InvalidDeckException();
 
         battleLog.add("------- Battle: " + user1.getUsername() + " VS " + user2.getUsername() + "-------");
     }
@@ -65,10 +56,8 @@ public class Battle {
      * Picks a random card from each users deck and calculates damage for each card
      * Then the values are passed to a method that concludes the round and logs everything
      * At the end it is checked wether the game has finished or continues
-     *
-     * @throws BattleFinishedException if the game has ended but the method is still called again
      */
-    public void nextRound() throws BattleFinishedException {
+    public void nextRound() {
         if (gameFinished == false) {
             // Advance Round Count
             round++;
@@ -84,8 +73,6 @@ public class Battle {
             concludeRound(user1Card, user2Card, damageU1, damageU2);
 
             checkVictoryForUser();
-        } else {
-            throw new BattleFinishedException();
         }
     }
 
@@ -223,7 +210,7 @@ public class Battle {
 
         // Should be unreachable
         if (damage == -1) {
-            throw new IllegalStateException("Card-State now valid for damage calculation");
+            throw new IllegalStateException("Card-State not valid for damage calculation");
         }
 
         return damage;

@@ -1,8 +1,8 @@
 package bif3.tolan.swe1.mcg.httpserver;
 
-import bif3.tolan.swe1.mcg.constants.Paths;
+import bif3.tolan.swe1.mcg.constants.RequestPaths;
 import bif3.tolan.swe1.mcg.constants.ServerConstants;
-import bif3.tolan.swe1.mcg.database.DbConnection;
+import bif3.tolan.swe1.mcg.persistence.PersistenceManager;
 import bif3.tolan.swe1.mcg.workers.*;
 
 import java.io.IOException;
@@ -37,40 +37,40 @@ public class HttpServer {
         }
     }
 
-    public void initializeWorkers(DbConnection dbConnection) {
+    public void initializeWorkers(PersistenceManager persistenceManager) {
         workers = new ConcurrentHashMap<>();
 
-        workers.put(Paths.USER_WORKER_MAIN_PATH, new UserWorker(
-                dbConnection.getUserRepository(),
-                dbConnection.getDeckRepository()));
-        workers.put(Paths.LOGIN_WORKER_MAIN_PATH, new LoginWorker(
-                dbConnection.getUserRepository()));
-        workers.put(Paths.PACKAGES_WORKER_MAIN_PATH, new PackageWorker(
-                dbConnection.getUserRepository(),
-                dbConnection.getCardRepository(),
-                dbConnection.getPackageRepository()));
-        workers.put(Paths.SHOP_WORKER_MAIN_PATH, new StoreWorker(
-                dbConnection.getUserRepository(),
-                dbConnection.getCardRepository(),
-                dbConnection.getPackageRepository()));
-        workers.put(Paths.CARD_WORKER_MAIN_PATH, new CardWorker(
-                dbConnection.getUserRepository(),
-                dbConnection.getCardRepository()));
-        workers.put(Paths.DECK_WORKER_MAIN_PATH, new DeckWorker(
-                dbConnection.getUserRepository(),
-                dbConnection.getDeckRepository(),
-                dbConnection.getCardRepository()));
-        workers.put(Paths.STATISTICS_WORKER_MAIN_PATH, new StatisticsWorker(
-                dbConnection.getUserRepository()));
-        workers.put(Paths.SCOREBOARD_WORKER_MAIN_PATH, new ScoreboardWorker(
-                dbConnection.getUserRepository()));
-        workers.put(Paths.BATTLE_WORKER_MAIN_PATH, new BattleWorker(
-                dbConnection.getUserRepository(),
-                dbConnection.getCardRepository(),
-                dbConnection.getDeckRepository()));
-        workers.put(Paths.TRADE_WORKER_MAIN_PATH, new TradeWorker(
-                dbConnection.getUserRepository(),
-                dbConnection.getTradeOfferRepository(),
-                dbConnection.getCardRepository()));
+        workers.put(RequestPaths.USER_WORKER_MAIN_PATH, new UserWorker(
+                persistenceManager.getUserRepository(),
+                persistenceManager.getDeckRepository()));
+        workers.put(RequestPaths.LOGIN_WORKER_MAIN_PATH, new LoginWorker(
+                persistenceManager.getUserRepository()));
+        workers.put(RequestPaths.PACKAGES_WORKER_MAIN_PATH, new PackageWorker(
+                persistenceManager.getUserRepository(),
+                persistenceManager.getCardRepository(),
+                persistenceManager.getPackageRepository()));
+        workers.put(RequestPaths.SHOP_WORKER_MAIN_PATH, new StoreWorker(
+                persistenceManager.getUserRepository(),
+                persistenceManager.getCardRepository(),
+                persistenceManager.getPackageRepository()));
+        workers.put(RequestPaths.CARD_WORKER_MAIN_PATH, new CardWorker(
+                persistenceManager.getUserRepository(),
+                persistenceManager.getCardRepository()));
+        workers.put(RequestPaths.DECK_WORKER_MAIN_PATH, new DeckWorker(
+                persistenceManager.getUserRepository(),
+                persistenceManager.getDeckRepository(),
+                persistenceManager.getCardRepository()));
+        workers.put(RequestPaths.STATISTICS_WORKER_MAIN_PATH, new StatisticsWorker(
+                persistenceManager.getUserRepository()));
+        workers.put(RequestPaths.SCOREBOARD_WORKER_MAIN_PATH, new ScoreboardWorker(
+                persistenceManager.getUserRepository()));
+        workers.put(RequestPaths.BATTLE_WORKER_MAIN_PATH, new BattleWorker(
+                persistenceManager.getUserRepository(),
+                persistenceManager.getCardRepository(),
+                persistenceManager.getDeckRepository()));
+        workers.put(RequestPaths.TRADE_WORKER_MAIN_PATH, new TradeWorker(
+                persistenceManager.getUserRepository(),
+                persistenceManager.getTradeOfferRepository(),
+                persistenceManager.getCardRepository()));
     }
 }

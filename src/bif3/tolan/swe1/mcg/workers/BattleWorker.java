@@ -1,18 +1,22 @@
 package bif3.tolan.swe1.mcg.workers;
 
 import bif3.tolan.swe1.mcg.constants.DefaultValues;
-import bif3.tolan.swe1.mcg.constants.Headers;
-import bif3.tolan.swe1.mcg.constants.Paths;
-import bif3.tolan.swe1.mcg.database.respositories.CardRepository;
-import bif3.tolan.swe1.mcg.database.respositories.DeckRepository;
-import bif3.tolan.swe1.mcg.database.respositories.UserRepository;
-import bif3.tolan.swe1.mcg.exceptions.BattleFinishedException;
-import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
-import bif3.tolan.swe1.mcg.exceptions.InvalidDeckException;
-import bif3.tolan.swe1.mcg.exceptions.InvalidUserException;
-import bif3.tolan.swe1.mcg.httpserver.*;
+import bif3.tolan.swe1.mcg.constants.GenericHttpResponses;
+import bif3.tolan.swe1.mcg.constants.RequestHeaders;
+import bif3.tolan.swe1.mcg.constants.RequestPaths;
+import bif3.tolan.swe1.mcg.exceptions.UnsupportedCardTypeException;
+import bif3.tolan.swe1.mcg.exceptions.UnsupportedElementTypeException;
+import bif3.tolan.swe1.mcg.exceptions.UserDoesNotExistException;
+import bif3.tolan.swe1.mcg.httpserver.HttpRequest;
+import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
+import bif3.tolan.swe1.mcg.httpserver.enums.HttpContentType;
+import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
+import bif3.tolan.swe1.mcg.httpserver.enums.HttpStatus;
 import bif3.tolan.swe1.mcg.model.Battle;
 import bif3.tolan.swe1.mcg.model.User;
+import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.CardRepository;
+import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.DeckRepository;
+import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.utils.EloUtils;
 import bif3.tolan.swe1.mcg.utils.UserUtils;
 
@@ -36,72 +40,76 @@ public class BattleWorker implements Workable {
     @Override
     public HttpResponse executeRequest(HttpRequest request) {
         String requestedPath = "";
-        Method method = request.getMethod();
+        HttpMethod httpMethod = request.getMethod();
 
         if (request.getPathArray().length > 1) {
             requestedPath = request.getPathArray()[1];
         }
 
-        // Executes requested methods
-        switch (method) {
+        switch (httpMethod) {
             case POST:
                 switch (requestedPath) {
-                    case Paths.BATTLE_WORKER_BATTLE:
+                    case RequestPaths.BATTLE_WORKER_BATTLE:
                         return battle(request);
                 }
         }
 
-        return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "Unknown path");
+        return GenericHttpResponses.INVALID_PATH;
     }
 
     private HttpResponse battle(HttpRequest request) {
-        String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
-        String username = UserUtils.getUsernameFromToken(authorizationToken);
+        // get username from token
+        String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
+        String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User dbUser = userRepository.getByUsername(username);
-            if (dbUser != null) {
+            User requestingUser = userRepository.getUserByUsername(username);
+            // check if user exists
+
+            int deckIdOfRequestingUser = deckRepository.getDeckIdByUserId(requestingUser.getId());
+            requestingUser.setDeck(cardRepository.getAllCardsByDeckIdAsMap(deckIdOfRequestingUser));
+            // check deck validity
+            if (requestingUser.getDeck().size() == 4) {
                 if (waitingForBattle == null) {
-                    return createBattleAndWaitForOpponent(dbUser);
+                    // if there is no waiting user, create a lobby
+                    return createLobbyAndWaitForOpponent(requestingUser);
                 } else {
-                    return joinBattleAndBattle(dbUser);
+                    // if there is a waiting user, battle them
+                    return joinBattleAndBattle(requestingUser);
                 }
             } else {
-                return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Not logged in");
+                return GenericHttpResponses.INVALID_DECK;
             }
-        } catch (SQLException e) {
+        } catch (InterruptedException | CloneNotSupportedException | UnsupportedCardTypeException |
+                 UnsupportedElementTypeException | SQLException e) {
             e.printStackTrace();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidDeckException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidUserException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidCardParameterException e) {
-            throw new RuntimeException(e);
-        } catch (BattleFinishedException e) {
-            throw new RuntimeException(e);
-        } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
+            return GenericHttpResponses.INTERNAL_ERROR;
+        } catch (UserDoesNotExistException e) {
+            return GenericHttpResponses.INVALID_TOKEN;
         }
-
-        return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The json string is not formatted properly");
     }
 
-    private synchronized HttpResponse joinBattleAndBattle(User dbUser) throws SQLException, InvalidCardParameterException, InvalidUserException, InvalidDeckException, BattleFinishedException, CloneNotSupportedException {
-        if (waitingForBattle != dbUser) {
-            battle = prepareBattle((User) waitingForBattle.clone(), (User) dbUser.clone());
+    private synchronized HttpResponse joinBattleAndBattle(User requestingUser) throws SQLException, CloneNotSupportedException {
+        // check to not play against yourself
+        if (waitingForBattle != requestingUser) {
+            // create a battle
+            battle = new Battle((User) waitingForBattle.clone(), (User) requestingUser.clone());
+
+            // no one is waiting for a battle anymore
             waitingForBattle = null;
 
+            // battle
             while (battle.getGameFinished() == false) {
                 battle.nextRound();
             }
 
+            // calculate new elo
             EloUtils.NewEloValues newEloValues;
             User winner = battle.getWinner();
             User loser = battle.getLoser();
             boolean draw = battle.isDraw();
 
+            // winner and loser assignment is irrelevant when it is a draw
             newEloValues = EloUtils.calculateNewElo(
                     winner.getElo(),
                     loser.getElo(),
@@ -112,49 +120,51 @@ public class BattleWorker implements Workable {
             winner.setElo(newEloValues.winnerElo());
             loser.setElo(newEloValues.loserElo());
 
+            // increase win count for winner if it is no draw
             if (draw == false) {
                 winner.setWins(winner.getWins() + 1);
             }
 
+            // increase games played for both users
             winner.setGamesPlayed(winner.getGamesPlayed() + 1);
             loser.setGamesPlayed(loser.getGamesPlayed() + 1);
 
+            // update users
             userRepository.updateUser(winner);
             userRepository.updateUser(loser);
 
+            // get battle log
             String battleLog = battle.getBattleLog();
 
+            // notify other player that the game finished
             this.notify();
 
-            return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, battleLog);
+            // return result
+            return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, battleLog);
         } else {
-            return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "You cannot battle yourself");
+            return GenericHttpResponses.IDENTICAL_USER;
         }
     }
 
-    private Battle prepareBattle(User player1, User player2) throws SQLException, InvalidCardParameterException, InvalidUserException, InvalidDeckException {
-        int player1DeckId = deckRepository.getDeckIdForUser(player1.getId());
-        int player2DeckId = deckRepository.getDeckIdForUser(player2.getId());
+    private synchronized HttpResponse createLobbyAndWaitForOpponent(User requestingUser) throws InterruptedException, CloneNotSupportedException {
+        // set user as waiting
+        waitingForBattle = (User) requestingUser.clone();
 
-        player1.setDeck(cardRepository.getCardsByDeckIdAsMap(player1DeckId));
-        player2.setDeck(cardRepository.getCardsByDeckIdAsMap(player2DeckId));
-
-        Battle currentBattle = new Battle(player1, player2);
-        return currentBattle;
-    }
-
-    private synchronized HttpResponse createBattleAndWaitForOpponent(User dbUser) throws InterruptedException, CloneNotSupportedException {
-        waitingForBattle = (User) dbUser.clone();
-
-        this.wait(DefaultValues.DEFAULT_TIMEOUT);
+        // wait for confirmation that another player has been found and battle commenced
+        this.wait(DefaultValues.BATTLE_TIMEOUT);
 
         if (battle == null) {
+            // no opponent found in timeout window
             waitingForBattle = null;
-            return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "No user found to battle");
+            return GenericHttpResponses.BATTLE_REQUEST_TIMEOUT;
         } else {
+            // get battlelog and return it
             String battleLog = battle.getBattleLog();
+
+            // reset battle
             battle = null;
-            return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, battleLog);
+
+            return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, battleLog);
         }
     }
 }

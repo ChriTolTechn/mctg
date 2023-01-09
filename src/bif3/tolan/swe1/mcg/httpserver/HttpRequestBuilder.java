@@ -1,6 +1,8 @@
 package bif3.tolan.swe1.mcg.httpserver;
 
+import bif3.tolan.swe1.mcg.constants.CommonRegex;
 import bif3.tolan.swe1.mcg.constants.ServerConstants;
+import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -23,15 +25,15 @@ public class HttpRequestBuilder {
         String firstLine = bufferedReader.readLine();
 
         if (firstLine != null) {
-            String[] splittedFirstLine = firstLine.split(ServerConstants.REGEX_SPLIT_METHOD_FROM_PATH);
+            String[] splittedFirstLine = firstLine.split(CommonRegex.PATH_METHOD_SPLITTER);
             String rawMethodString = splittedFirstLine[0];
             String rawPathName = splittedFirstLine[1];
 
             request.setMethod(extractMethod(rawMethodString));
 
-            boolean hasParams = rawPathName.contains(ServerConstants.PARAMETER_IDENTIFIER);
+            boolean hasParams = rawPathName.contains(CommonRegex.PARAMETER_IDENTIFIER);
             if (hasParams) {
-                String[] splittedPathString = rawPathName.split(ServerConstants.REGEX_SPLIT_PARAMETER);
+                String[] splittedPathString = rawPathName.split(CommonRegex.PATH_REQUEST_SPLITTER);
                 request.setPathArray(extractPath(splittedPathString[0]));
                 request.setParameterMap(extractParams(splittedPathString[1]));
             } else {
@@ -62,7 +64,7 @@ public class HttpRequestBuilder {
 
         String line = bufferedReader.readLine();
         while (!line.isEmpty()) {
-            String[] headerRow = line.split(ServerConstants.REGEX_SPLIT_HEADERS_BY_KEY_AND_VALUE, 2);
+            String[] headerRow = line.split(CommonRegex.HEADER_KEY_VALUE_SPLITTER, 2);
             headers.put(headerRow[0], headerRow[1].trim());
             line = bufferedReader.readLine();
         }
@@ -104,8 +106,8 @@ public class HttpRequestBuilder {
      * @param rawMethodString method as string
      * @return Method as enum
      */
-    private Method extractMethod(String rawMethodString) {
-        return Method.valueOf(rawMethodString.toUpperCase());
+    private HttpMethod extractMethod(String rawMethodString) {
+        return HttpMethod.valueOf(rawMethodString.toUpperCase());
     }
 
     /**
@@ -116,11 +118,11 @@ public class HttpRequestBuilder {
      */
     private Map<String, String> extractParams(String rawParameterString) {
 
-        List<String> splitParams = Arrays.stream(rawParameterString.split(ServerConstants.REGEX_SPLIT_PARAMETERS)).toList();
+        List<String> splitParams = Arrays.stream(rawParameterString.split(CommonRegex.PARAMETER_SPLITTER)).toList();
         HashMap<String, String> parameterMap = new HashMap<>();
 
         for (String parameter : splitParams) {
-            String[] keyValue = parameter.split(ServerConstants.REGEX_SPLIT_PARAMETERS_BY_KEY_AND_VALUE);
+            String[] keyValue = parameter.split(CommonRegex.PARAMETER_KEY_VALUE_SPLITTER);
             if (keyValue.length == 2) {
                 parameterMap.put(keyValue[0], keyValue[1]);
             }
@@ -137,8 +139,8 @@ public class HttpRequestBuilder {
      */
     private String[] extractPath(String path) {
         String[] splittedPath = path
-                .replaceFirst(ServerConstants.REGEX_SPLIT_PATH, "")
-                .split(ServerConstants.REGEX_SPLIT_PATH);
+                .replaceFirst(CommonRegex.PATH_SPLITTER, "")
+                .split(CommonRegex.PATH_SPLITTER);
         return splittedPath;
     }
 }

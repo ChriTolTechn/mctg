@@ -1,6 +1,6 @@
 package bif3.tolan.swe1.mcg.constants;
 
-import bif3.tolan.swe1.mcg.enums.ElementType;
+import bif3.tolan.swe1.mcg.model.enums.ElementType;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,7 +11,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Christopher Tolan
  */
 public final class DamageMap {
-
     private static final ConcurrentHashMap<ElementType, Map<ElementType, Float>> damageMap =
             new ConcurrentHashMap<>(Map.of(
                     ElementType.NORMAL, Map.of(

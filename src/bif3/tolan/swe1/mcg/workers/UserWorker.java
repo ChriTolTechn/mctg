@@ -1,20 +1,23 @@
 package bif3.tolan.swe1.mcg.workers;
 
-import bif3.tolan.swe1.mcg.constants.Headers;
-import bif3.tolan.swe1.mcg.constants.Paths;
-import bif3.tolan.swe1.mcg.database.respositories.DeckRepository;
-import bif3.tolan.swe1.mcg.database.respositories.UserRepository;
+import bif3.tolan.swe1.mcg.constants.GenericHttpResponses;
+import bif3.tolan.swe1.mcg.constants.RequestHeaders;
+import bif3.tolan.swe1.mcg.constants.RequestPaths;
 import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
-import bif3.tolan.swe1.mcg.httpserver.*;
+import bif3.tolan.swe1.mcg.exceptions.UserDoesNotExistException;
+import bif3.tolan.swe1.mcg.httpserver.HttpRequest;
+import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
+import bif3.tolan.swe1.mcg.httpserver.enums.HttpContentType;
+import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
+import bif3.tolan.swe1.mcg.httpserver.enums.HttpStatus;
 import bif3.tolan.swe1.mcg.model.User;
+import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.DeckRepository;
+import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.utils.UserUtils;
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.sql.SQLException;
 
 public class UserWorker implements Workable {
@@ -31,17 +34,16 @@ public class UserWorker implements Workable {
     @Override
     public HttpResponse executeRequest(HttpRequest request) {
         String requestedPath = "";
-        Method method = request.getMethod();
+        HttpMethod httpMethod = request.getMethod();
 
         if (request.getPathArray().length > 1) {
             requestedPath = request.getPathArray()[1];
         }
 
-        // Executes requested methods
-        switch (method) {
+        switch (httpMethod) {
             case POST:
                 switch (requestedPath) {
-                    case Paths.USER_WORKER_REGISTRATION:
+                    case RequestPaths.USER_WORKER_REGISTRATION:
                         return registerUser(request);
                 }
             case PUT:
@@ -50,7 +52,7 @@ public class UserWorker implements Workable {
                 return getUserData(request, requestedPath);
         }
 
-        return new HttpResponse(HttpStatus.NOT_FOUND, ContentType.PLAIN_TEXT, "Unknown path");
+        return GenericHttpResponses.INVALID_PATH;
     }
 
     private synchronized HttpResponse registerUser(HttpRequest request) {
@@ -59,91 +61,91 @@ public class UserWorker implements Workable {
 
         try {
             // Create user from jsonString
-            User user = mapper.readValue(jsonString, User.class);
+            User userTryingToRegister = mapper.readValue(jsonString, User.class);
 
             //Check if user already exists
-            User dbUser = userRepository.getByUsername(user.getUsername());
-            if (dbUser != null) {
-                return new HttpResponse(HttpStatus.BAD_REQUEST, ContentType.PLAIN_TEXT, "User with the username \"" + user.getUsername() + "\" already exists");
-            } else {
-                userRepository.add(user);
-                dbUser = userRepository.getByUsername(user.getUsername());
-                deckRepository.createDeckForUser(dbUser.getId());
-                return new HttpResponse(HttpStatus.CREATED, ContentType.PLAIN_TEXT, "User " + user.getUsername() + " successfully created.");
-            }
-        } catch (JsonParseException e) {
-            e.printStackTrace();
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (InvalidInputException e) {
-            e.printStackTrace();
-        } catch (IdExistsException e) {
-            e.printStackTrace();
-        }
+            try {
+                userRepository.getUserByUsername(userTryingToRegister.getUsername());
+                return GenericHttpResponses.USER_EXISTS;
+            } catch (UserDoesNotExistException e) {
+                // create new user
+                userRepository.addNewUser(userTryingToRegister);
+                User newlyRegisteredUser = userRepository.getUserByUsername(userTryingToRegister.getUsername());
 
-        return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The json string is not formatted properly");
+                // create a deck for new user
+                deckRepository.createDeckForUser(newlyRegisteredUser.getId());
+
+                return GenericHttpResponses.SUCCESS_CREATE;
+            }
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return GenericHttpResponses.INVALID_INPUT;
+        } catch (SQLException | UserDoesNotExistException | IdExistsException e) {
+            e.printStackTrace();
+            return GenericHttpResponses.INTERNAL_ERROR;
+        } catch (InvalidInputException e) {
+            return GenericHttpResponses.INVALID_INPUT;
+        }
     }
 
     private HttpResponse getUserData(HttpRequest request, String requestedUser) {
-        String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
-        String username = UserUtils.getUsernameFromToken(authorizationToken);
+        // get username from token
+        String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
+        String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User dbUser = userRepository.getByUsername(username);
-            if (dbUser != null) {
-                if (dbUser.getUsername().equals(requestedUser)) {
-                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, dbUser.toString());
-                } else {
-                    return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "You are not authorized to access this information");
-                }
+            User requestingUser = userRepository.getUserByUsername(username);
+
+            if (requestingUser.getUsername().equals(requestedUser)) {
+                return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, UserUtils.getUserProfile(requestingUser));
             } else {
-                return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Not logged in");
+                return GenericHttpResponses.UNAUTHORIZED;
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            return GenericHttpResponses.INTERNAL_ERROR;
+        } catch (UserDoesNotExistException e) {
+            return GenericHttpResponses.INVALID_TOKEN;
         }
-        return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The json string is not formatted properly");
     }
 
     private synchronized HttpResponse editUserData(HttpRequest request, String requestedUser) {
-        String authorizationToken = request.getHeaderMap().get(Headers.AUTH_HEADER);
-        String username = UserUtils.getUsernameFromToken(authorizationToken);
+        // get username from token
+        String authorizationToken = request.getHeaderMap().get(RequestHeaders.AUTH_HEADER);
+        String username = UserUtils.extractUsernameFromToken(authorizationToken);
 
         try {
-            User dbUser = userRepository.getByUsername(username);
-            if (dbUser != null) {
-                if (dbUser.getUsername().equals(requestedUser)) {
-                    ObjectMapper mapper = new ObjectMapper();
-                    String jsonString = request.getBody();
+            User requestingUser = userRepository.getUserByUsername(username);
 
-                    User jsonUser = mapper.readValue(jsonString, User.class);
+            // check if the user requested is the same as requesting user
+            if (requestingUser.getUsername().equals(requestedUser)) {
+                // read data to update
+                ObjectMapper mapper = new ObjectMapper();
+                String newUserDataAsJsonString = request.getBody();
+                User newUserWithUpdatedData = mapper.readValue(newUserDataAsJsonString, User.class);
 
-                    if (jsonUser.getName() != null)
-                        dbUser.setName(jsonUser.getName());
-                    if (jsonUser.getBio() != null)
-                        dbUser.setBio(jsonUser.getBio());
-                    if (jsonUser.getImage() != null)
-                        dbUser.setImage(jsonUser.getImage());
+                // update data
+                if (newUserWithUpdatedData.getName() != null)
+                    requestingUser.setName(newUserWithUpdatedData.getName());
+                if (newUserWithUpdatedData.getBio() != null)
+                    requestingUser.setBio(newUserWithUpdatedData.getBio());
+                if (newUserWithUpdatedData.getImage() != null)
+                    requestingUser.setImage(newUserWithUpdatedData.getImage());
 
-                    userRepository.updateUser(dbUser);
-                    return new HttpResponse(HttpStatus.OK, ContentType.PLAIN_TEXT, "User data updates successfully!");
-                } else {
-                    return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "You are not authorized to access this information");
-                }
+                // update user in db
+                userRepository.updateUser(requestingUser);
+                return GenericHttpResponses.SUCCESS_UPDATE;
             } else {
-                return new HttpResponse(HttpStatus.UNAUTHORIZED, ContentType.PLAIN_TEXT, "Not logged in");
+                return GenericHttpResponses.UNAUTHORIZED;
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
+            return GenericHttpResponses.INTERNAL_ERROR;
         } catch (JsonProcessingException e) {
             e.printStackTrace();
+            return GenericHttpResponses.INVALID_INPUT;
+        } catch (UserDoesNotExistException e) {
+            return GenericHttpResponses.INVALID_TOKEN;
         }
-        return new HttpResponse(HttpStatus.NOT_ACCEPTABLE, ContentType.PLAIN_TEXT, "The json string is not formatted properly");
     }
 }

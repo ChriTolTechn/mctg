@@ -1,16 +1,16 @@
 package bif3.tolan.swe1.mcg.model;
 
 import bif3.tolan.swe1.mcg.constants.CommonRegex;
-import bif3.tolan.swe1.mcg.enums.CardType;
-import bif3.tolan.swe1.mcg.enums.ElementType;
-import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
+import bif3.tolan.swe1.mcg.exceptions.UnsupportedCardTypeException;
+import bif3.tolan.swe1.mcg.exceptions.UnsupportedElementTypeException;
+import bif3.tolan.swe1.mcg.model.enums.CardType;
+import bif3.tolan.swe1.mcg.model.enums.ElementType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import static bif3.tolan.swe1.mcg.utils.CardUtils.extractCardType;
 import static bif3.tolan.swe1.mcg.utils.CardUtils.extractElementType;
@@ -21,30 +21,25 @@ import static bif3.tolan.swe1.mcg.utils.CardUtils.extractElementType;
  * @author Christopher Tolan
  */
 public class Card {
-
     @JsonProperty("Id")
     private String cardId;
     @JsonIgnore
     private String name;
-
     @JsonIgnore
     private ElementType element;
-
     @JsonIgnore
     private CardType cardType;
-
-
     @JsonProperty("Damage")
     private float damage;
 
-    public Card(String cardId, String name, ElementType element, float damage, CardType cardType) {
+    public Card(String cardId, String name, float damage) throws UnsupportedCardTypeException, UnsupportedElementTypeException {
         this.cardId = cardId;
         this.name = name;
-        this.element = element;
         this.damage = damage;
-        this.cardType = cardType;
+        setCardElementAndTypeByCardName(this.name);
     }
 
+    // Default Constructor for Jackson
     public Card() {
     }
 
@@ -53,22 +48,10 @@ public class Card {
     }
 
     @JsonSetter("Name")
-    public void setName(String name) throws InvalidCardParameterException {
+    public void setName(String name) throws UnsupportedCardTypeException, UnsupportedElementTypeException {
         this.name = name;
 
-        List<String> nameSplit = new ArrayList<>(List.of(name.split(CommonRegex.SPLIT_STRING_BY_UPPERCASE_LETTERS)));
-        try {
-            if (nameSplit.size() > 0) {
-                if (nameSplit.size() == 2) {
-                    this.element = extractElementType(nameSplit.get(0));
-                    nameSplit.remove(0);
-                }
-
-                this.cardType = extractCardType(nameSplit.get(0));
-            }
-        } catch (IllegalArgumentException e) {
-            throw new InvalidCardParameterException();
-        }
+        setCardElementAndTypeByCardName(name);
     }
 
     public ElementType getElement() {
@@ -79,20 +62,12 @@ public class Card {
         return damage;
     }
 
-    public void setDamage(float damage) {
-        this.damage = damage;
-    }
-
     public CardType getMonsterType() {
         return cardType;
     }
 
     public String getCardId() {
         return cardId;
-    }
-
-    public void setCardId(String cardId) {
-        this.cardId = cardId;
     }
 
     public CardType getCardType() {
@@ -108,16 +83,25 @@ public class Card {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(cardId);
-    }
-
-    @Override
     public String toString() {
         return "Id = " + cardId +
                 ", Name = " + name +
                 ", Element = " + element +
                 ", Type = " + cardType +
                 ", Damage = " + damage;
+    }
+
+    private void setCardElementAndTypeByCardName(String name) throws UnsupportedElementTypeException, UnsupportedCardTypeException {
+        List<String> nameSplit = new ArrayList<>(List.of(name.split(CommonRegex.SPLIT_STRING_BY_UPPERCASE_LETTERS)));
+        if (nameSplit.size() > 0) {
+            if (nameSplit.size() == 2) {
+                this.element = extractElementType(nameSplit.get(0));
+                nameSplit.remove(0);
+            } else {
+                this.element = ElementType.NORMAL;
+            }
+
+            this.cardType = extractCardType(nameSplit.get(0));
+        }
     }
 }

@@ -1,11 +1,11 @@
 package bif3.tolan.swe1.mcg;
 
-import bif3.tolan.swe1.mcg.database.respositories.CardRepository;
-import bif3.tolan.swe1.mcg.database.respositories.CardRepositoryImplementation;
 import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.model.Card;
+import bif3.tolan.swe1.mcg.persistence.respositories.implementations.CardRepositoryImplementation;
+import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.CardRepository;
 import bif3.tolan.swe1.mcg.utils.CardUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -72,8 +72,8 @@ public class CardRepositoryTest {
 
     @Test
     public void testGetBy() throws SQLException, InvalidCardParameterException {
-        List<Card> testCardList1 = cardRepository.getCardsByUserId(1);
-        List<Card> testCardList2 = cardRepository.getCardsByUserId(2);
+        List<Card> testCardList1 = cardRepository.getAllCardsByUserIdAsList(1);
+        List<Card> testCardList2 = cardRepository.getAllCardsByUserIdAsList(2);
 
         Assertions.assertEquals(1, testCardList1.size());
         Assertions.assertEquals(card, testCardList1.get(0));
@@ -86,8 +86,8 @@ public class CardRepositoryTest {
         Card card2 = CardUtils.buildCard("yxcv", "WaterGoblin", 300f);
         Card card3 = CardUtils.buildCard("gPoPVKU6YkKJKJ3l83YjRhyC1IOOr18Bp9Cz8w0mt4WYM3Pzdwv", "FireSpell", 200f);
 
-        Assertions.assertThrows(IdExistsException.class, () -> cardRepository.addCard(card1));
-        Assertions.assertDoesNotThrow(() -> cardRepository.addCard(card2));
-        Assertions.assertThrows(InvalidInputException.class, () -> cardRepository.addCard(card3));
+        Assertions.assertThrows(IdExistsException.class, () -> cardRepository.addNewCard(card1));
+        Assertions.assertDoesNotThrow(() -> cardRepository.addNewCard(card2));
+        Assertions.assertThrows(InvalidInputException.class, () -> cardRepository.addNewCard(card3));
     }
 }

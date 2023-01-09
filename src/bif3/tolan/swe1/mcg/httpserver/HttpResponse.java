@@ -1,15 +1,18 @@
 package bif3.tolan.swe1.mcg.httpserver;
 
+import bif3.tolan.swe1.mcg.httpserver.enums.HttpContentType;
+import bif3.tolan.swe1.mcg.httpserver.enums.HttpStatus;
+
 public class HttpResponse {
     private int status;
     private String statusMessage;
     private String contentType;
     private String content;
 
-    public HttpResponse(HttpStatus httpStatus, ContentType contentType, String content) {
+    public HttpResponse(HttpStatus httpStatus, HttpContentType httpContentType, String content) {
         this.status = httpStatus.code;
         this.statusMessage = httpStatus.message;
-        this.contentType = contentType.type;
+        this.contentType = httpContentType.type;
         this.content = content;
     }
 

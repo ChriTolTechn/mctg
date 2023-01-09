@@ -1,53 +1,36 @@
 package bif3.tolan.swe1.mcg.utils;
 
-import bif3.tolan.swe1.mcg.constants.CommonRegex;
-import bif3.tolan.swe1.mcg.enums.CardType;
-import bif3.tolan.swe1.mcg.enums.ElementType;
-import bif3.tolan.swe1.mcg.exceptions.InvalidCardParameterException;
+import bif3.tolan.swe1.mcg.model.enums.CardType;
+import bif3.tolan.swe1.mcg.model.enums.ElementType;
+import bif3.tolan.swe1.mcg.exceptions.UnsupportedCardTypeException;
+import bif3.tolan.swe1.mcg.exceptions.UnsupportedElementTypeException;
 import bif3.tolan.swe1.mcg.model.Card;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class CardUtils {
 
-    public static ElementType extractElementType(String element) {
+    public static ElementType extractElementType(String element) throws UnsupportedElementTypeException {
         if (element.equalsIgnoreCase("regular")) {
             return ElementType.NORMAL;
         } else {
-            return ElementType.valueOf(element.toUpperCase());
-        }
-    }
-
-    public static CardType extractCardType(String type) {
-        return CardType.valueOf(type.toUpperCase());
-    }
-
-
-    public static Card buildCard(String cardId, String name, float damage) throws InvalidCardParameterException {
-        List<String> nameSplit = new ArrayList<>(List.of(name.split(CommonRegex.SPLIT_STRING_BY_UPPERCASE_LETTERS)));
-
-        ElementType element = ElementType.NORMAL;
-        CardType type = null;
-
-        //TODO move logic to constructor of card
-        try {
-            if (nameSplit.size() > 0) {
-                if (nameSplit.size() == 2) {
-                    element = extractElementType(nameSplit.get(0));
-                    nameSplit.remove(0);
-                }
-
-                type = extractCardType(nameSplit.get(0));
+            try {
+                return ElementType.valueOf(element.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new UnsupportedElementTypeException();
             }
-        } catch (IllegalArgumentException e) {
-            throw new InvalidCardParameterException();
         }
-
-        return new Card(cardId, name, element, damage, type);
     }
 
-    public static String getCardsAsStringForDisplayPlain(String username, List<Card> cards) {
+    public static CardType extractCardType(String type) throws UnsupportedCardTypeException {
+        try {
+            return CardType.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new UnsupportedCardTypeException();
+        }
+    }
+
+    public static String getMultipleCardDisplayForUser(String username, List<Card> cards) {
         StringBuilder cardsAsString = new StringBuilder("Cards of user" + username + ":");
         if (cards.size() == 0) {
             cardsAsString.append("\nNo cards available");
@@ -59,7 +42,7 @@ public class CardUtils {
         return cardsAsString.toString();
     }
 
-    public static String getCardsAsStringForDisplay(String username, List<Card> cards) {
+    public static String getCardDetails(String username, List<Card> cards) {
         StringBuilder cardsAsString = new StringBuilder("Cards of user" + username + ":");
         if (cards.size() == 0) {
             cardsAsString.append("\nNo cards available");
@@ -73,5 +56,14 @@ public class CardUtils {
             cardsAsString.append("\n Damage:  " + c.getDamage());
         }
         return cardsAsString.toString();
+    }
+
+    public static boolean isValidNewCard(Card card) {
+        if (card.getCardId() == null || card.getName() == null) return false;
+        if (card.getName().length() > 50) return false;
+        if (card.getCardId().length() > 50) return false;
+        if (card.getDamage() < 0f) return false;
+
+        return true;
     }
 }
