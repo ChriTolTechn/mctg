@@ -20,4 +20,8 @@ public final class DefaultValues {
     public static final int BATTLE_TIMEOUT = 20000;
 
     public static final int DECK_SIZE = 4;
+
+    public static final float CRIT_PROBABILITY = 0.1f;
+
+    public static final float CRIT_DAMAGE_MULTIPLIER = 1.5f;
 }
