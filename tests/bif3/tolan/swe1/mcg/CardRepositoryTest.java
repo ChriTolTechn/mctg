@@ -54,8 +54,8 @@ public class CardRepositoryTest {
         when(mockResultSet.getString("name")).thenReturn(card.getName());
         when(mockResultSet.getFloat("damage")).thenReturn(card.getDamage());
 
-        doAnswer(invocationOnMock -> when(mockResultSet.first()).thenReturn(true)).when(mockStatement).setString(eq(1), eq("asdf"));
-        doAnswer(invocationOnMock -> when(mockResultSet.first()).thenReturn(false)).when(mockStatement).setString(eq(1), eq("yxcv"));
+        doAnswer(invocationOnMock -> when(mockResultSet.next()).thenReturn(true)).when(mockStatement).setString(eq(1), eq("asdf"));
+        doAnswer(invocationOnMock -> when(mockResultSet.next()).thenReturn(false)).when(mockStatement).setString(eq(1), eq("yxcv"));
 
         doAnswer(invocationOnMock -> when(mockResultSet.next()).thenReturn(true, false)).when(mockStatement).setInt(eq(1), eq(1));
         doAnswer(invocationOnMock -> when(mockResultSet.next()).thenReturn(false)).when(mockStatement).setInt(eq(1), eq(2));

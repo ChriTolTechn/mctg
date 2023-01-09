@@ -64,10 +64,9 @@ public class UserRepositoryTest {
     @Test
     public void testGetById() throws SQLException, UserDoesNotExistException {
         User testUser1 = userRepository.getUserById(1);
-        User testUser2 = userRepository.getUserById(2);
 
         Assertions.assertEquals(user, testUser1);
-        Assertions.assertNull(testUser2);
+        Assertions.assertThrows(UserDoesNotExistException.class, () -> userRepository.getUserById(2));
     }
 
     @Test
@@ -75,8 +74,7 @@ public class UserRepositoryTest {
         User testUser = userRepository.getUserByUsername("test");
         Assertions.assertEquals(user, testUser);
 
-        testUser = userRepository.getUserByUsername("notTest");
-        Assertions.assertNull(testUser);
+        Assertions.assertThrows(UserDoesNotExistException.class, () -> userRepository.getUserByUsername("notTest"));
     }
 
     @Test
