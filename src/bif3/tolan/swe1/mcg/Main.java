@@ -28,9 +28,9 @@ public class Main {
                     System.out.println("Server stopped");
                     System.out.println("----------------------------------------------");
                 } else if (input.equalsIgnoreCase("exit")) {
-                    if (httpServerThread.isAlive()) {
+                    if (!httpServerThread.isInterrupted()) {
                         System.out.println("----------------------------------------------");
-                        System.out.println("Http server thread still running. Please clost it with 'exit' first!");
+                        System.out.println("Http server thread still running. Please close it with 'stop' first!");
                         System.out.println("----------------------------------------------");
                     } else {
                         exitApplication = true;
