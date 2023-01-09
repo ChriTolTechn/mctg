@@ -2,7 +2,9 @@ package bif3.tolan.swe1.mcg;
 
 import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
+import bif3.tolan.swe1.mcg.exceptions.UserDoesNotExistException;
 import bif3.tolan.swe1.mcg.model.User;
+import bif3.tolan.swe1.mcg.persistence.PersistenceManager;
 import bif3.tolan.swe1.mcg.persistence.respositories.implementations.UserRepositoryImplementation;
 import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.UserRepository;
 import org.junit.Before;
@@ -22,6 +24,9 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class UserRepositoryTest {
     @Mock
+    private PersistenceManager mockPersistenceManager;
+
+    @Mock
     private Connection mockConnection;
 
     @Mock
@@ -38,7 +43,7 @@ public class UserRepositoryTest {
     public void setup() throws SQLException {
         when(mockConnection.prepareStatement(any())).thenReturn(mockStatement);
 
-        user = new User("test", "test", 100, 100, 100);
+        user = new User("test", "test", 100, 100, 100, 1, 10, "", "", "");
 
         when(mockResultSet.getInt("elo")).thenReturn(user.getElo());
         when(mockResultSet.getInt("coins")).thenReturn(user.getCoins());
@@ -51,12 +56,13 @@ public class UserRepositoryTest {
         doAnswer(invocationOnMock -> when(mockResultSet.next()).thenReturn(true)).when(mockStatement).setString(eq(1), eq("test"));
         doAnswer(invocationOnMock -> when(mockResultSet.next()).thenReturn(false)).when(mockStatement).setString(eq(1), eq("notTest"));
         when(mockStatement.executeQuery()).thenReturn(mockResultSet);
+        when(mockPersistenceManager.getDatabaseConnection()).thenReturn(mockConnection);
 
-        userRepository = new UserRepositoryImplementation(mockConnection);
+        userRepository = new UserRepositoryImplementation(mockPersistenceManager);
     }
 
     @Test
-    public void testGetById() throws SQLException {
+    public void testGetById() throws SQLException, UserDoesNotExistException {
         User testUser1 = userRepository.getUserById(1);
         User testUser2 = userRepository.getUserById(2);
 
@@ -65,7 +71,7 @@ public class UserRepositoryTest {
     }
 
     @Test
-    public void testGetByUserName() throws SQLException {
+    public void testGetByUserName() throws SQLException, UserDoesNotExistException {
         User testUser = userRepository.getUserByUsername("test");
         Assertions.assertEquals(user, testUser);
 
@@ -74,11 +80,11 @@ public class UserRepositoryTest {
     }
 
     @Test
-    public void testAddUser() throws InvalidInputException, SQLException, IdExistsException {
-        User user1 = new User("admin", "test", 100, 100, 100);
-        User user2 = new User("test", "test", 100, 100, 100);
+    public void testAddUser() {
+        User user1 = new User("admin", "test", 100, 100, 100, 1, 10, "", "", "");
+        User user2 = new User("test", "test", 100, 100, 100, 2, 10, "", "", "");
         User user3 = new User("gPoPVKU6YkKJKJ3l83YjRhyC1IOOr18Bp9Cz8w0mt4WYM3Pzdwv",
-                "test", 100, 100, 100);
+                "test", 100, 100, 100, 100, 10, "", "", "");
 
         Assertions.assertDoesNotThrow(() -> userRepository.addNewUser(user1));
         Assertions.assertThrows(IdExistsException.class, () -> userRepository.addNewUser(user2));
