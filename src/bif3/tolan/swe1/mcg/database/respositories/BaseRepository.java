@@ -1,13 +1,13 @@
 package bif3.tolan.swe1.mcg.database.respositories;
 
-import java.sql.Connection;
+import bif3.tolan.swe1.mcg.database.DbConnector;
 
 public class BaseRepository {
-    protected Connection connection;
+    protected DbConnector connector;
 
-    public BaseRepository(Connection connection) {
-        if (connection != null) {
-            this.connection = connection;
+    public BaseRepository(DbConnector connector) {
+        if (connector != null) {
+            this.connector = connector;
         } else {
             throw new NullPointerException("Connection cannot be null");
         }

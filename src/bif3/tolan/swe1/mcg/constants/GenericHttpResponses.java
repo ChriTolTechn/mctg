@@ -8,7 +8,6 @@ public final class GenericHttpResponses {
     public final static HttpResponse INTERNAL_ERROR = new HttpResponse(HttpStatus.INTERNAL_SERVER_ERROR, HttpContentType.PLAIN_TEXT, "An issue occured on server side. Please contact the support for further instructions.");
     public final static HttpResponse WRONG_CREDENTIALS = new HttpResponse(HttpStatus.BAD_REQUEST, HttpContentType.PLAIN_TEXT, "Wrong user credentials. Please try again.");
     public final static HttpResponse INVALID_PATH = new HttpResponse(HttpStatus.NOT_FOUND, HttpContentType.PLAIN_TEXT, "Invalid path. Please check that you entered the path correctly.");
-    public final static HttpResponse NOT_LOGGED_IN = new HttpResponse(HttpStatus.UNAUTHORIZED, HttpContentType.PLAIN_TEXT, "You are not logged in. Please log in to perform this action.");
     public final static HttpResponse INVALID_INPUT = new HttpResponse(HttpStatus.NOT_ACCEPTABLE, HttpContentType.PLAIN_TEXT, "The data you tried to pass does not match the requirements. Please try again.");
     public final static HttpResponse IDENTICAL_USER = new HttpResponse(HttpStatus.NOT_ACCEPTABLE, HttpContentType.PLAIN_TEXT, "You cannot perform this action with yourself.");
     public final static HttpResponse BATTLE_REQUEST_TIMEOUT = new HttpResponse(HttpStatus.GATEWAY_TIMEOUT, HttpContentType.PLAIN_TEXT, "Requested timed out, no user found to battle. Please try again later.");
@@ -31,4 +30,5 @@ public final class GenericHttpResponses {
     public final static HttpResponse SUCCESS_DELETE = new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, "Successfully deleted!");
     public final static HttpResponse USER_EXISTS = new HttpResponse(HttpStatus.NOT_ACCEPTABLE, HttpContentType.PLAIN_TEXT, "A user with this username already exists. Please pick another one.");
     public final static HttpResponse INVALID_TOKEN = new HttpResponse(HttpStatus.BAD_REQUEST, HttpContentType.PLAIN_TEXT, "Either you have provided no authentication token or it is invalid. Please provide a valid one to perform this action.");
+    public final static HttpResponse NO_DATA = new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, "There is currently no data available");
 }

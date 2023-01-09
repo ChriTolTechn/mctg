@@ -1,5 +1,6 @@
 package bif3.tolan.swe1.mcg.database.respositories.implementations;
 
+import bif3.tolan.swe1.mcg.database.DbConnector;
 import bif3.tolan.swe1.mcg.database.respositories.BaseRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.CardRepository;
 import bif3.tolan.swe1.mcg.exceptions.*;
@@ -14,111 +15,103 @@ import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CardRepositoryImplementation extends BaseRepository implements CardRepository {
-    public CardRepositoryImplementation(Connection connection) {
-        super(connection);
+    public CardRepositoryImplementation(DbConnector connector) {
+        super(connector);
     }
 
     @Override
     public Card getCardById(String cardId) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         String sql = "SELECT id, name, damage FROM mctg_card WHERE id = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-        preparedStatement.setString(1, cardId);
-
-        ResultSet resultSet = preparedStatement.executeQuery();
-
-        Card card = extractSingleCard(resultSet);
-
-        resultSet.close();
-        preparedStatement.close();
-
-        //TODO exception if null
-        return card;
+        try (
+                Connection connection = connector.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        ) {
+            preparedStatement.setString(1, cardId);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                return extractSingleCard(resultSet);
+            }
+        }
     }
 
     @Override
     public Vector<Card> getAllCardsByUserIdAsList(int userId) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_user_id = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-        preparedStatement.setInt(1, userId);
+        try (
+                Connection connection = connector.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        ) {
+            preparedStatement.setInt(1, userId);
 
-        ResultSet resultSet = preparedStatement.executeQuery();
-
-        Vector<Card> cards = extractManyCards(resultSet);
-
-        resultSet.close();
-        preparedStatement.close();
-
-        return cards;
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                return extractManyCards(resultSet);
+            }
+        }
     }
 
     @Override
     public Card getCardByTradeOfferId(String tradeId) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_trade_offer_id = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-        preparedStatement.setString(1, tradeId);
+        try (
+                Connection connection = connector.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(sql)
+        ) {
+            preparedStatement.setString(1, tradeId);
 
-        ResultSet resultSet = preparedStatement.executeQuery();
-
-        Card card = extractSingleCard(resultSet);
-
-        resultSet.close();
-        preparedStatement.close();
-
-        return card;
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                return extractSingleCard(resultSet);
+            }
+        }
     }
 
     @Override
     public Vector<Card> getAllCardsByDeckIdAsList(int deckId) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_deck_id = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-        preparedStatement.setInt(1, deckId);
+        try (
+                Connection connection = connector.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(sql)
+        ) {
+            preparedStatement.setInt(1, deckId);
 
-        ResultSet resultSet = preparedStatement.executeQuery();
-
-        Vector<Card> cards = extractManyCards(resultSet);
-
-        resultSet.close();
-        preparedStatement.close();
-
-        return cards;
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                return extractManyCards(resultSet);
+            }
+        }
     }
 
     @Override
     public ConcurrentHashMap<String, Card> getAllCardsByDeckIdAsMap(int deckId) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_deck_id = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-        preparedStatement.setInt(1, deckId);
+        try (
+                Connection connection = connector.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(sql)
+        ) {
+            preparedStatement.setInt(1, deckId);
 
-        ResultSet resultSet = preparedStatement.executeQuery();
-
-        ConcurrentHashMap<String, Card> cards = extractManyCardsAsMap(resultSet);
-
-        resultSet.close();
-        preparedStatement.close();
-
-        return cards;
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                return extractManyCardsAsMap(resultSet);
+            }
+        }
     }
 
     @Override
     public Vector<Card> getAllCardsByPackageIdAsList(int packageId) throws SQLException, UnsupportedCardTypeException, UnsupportedElementTypeException {
         String sql = "SELECT id, name, damage FROM mctg_card WHERE mctg_package_id = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-        preparedStatement.setInt(1, packageId);
+        try (
+                Connection connection = connector.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(sql)
+        ) {
+            preparedStatement.setInt(1, packageId);
 
-        ResultSet resultSet = preparedStatement.executeQuery();
-
-        Vector<Card> cards = extractManyCards(resultSet);
-
-        resultSet.close();
-        preparedStatement.close();
-
-        return cards;
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                return extractManyCards(resultSet);
+            }
+        }
     }
 
     @Override
@@ -129,14 +122,17 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
             }
 
             String sql = "INSERT INTO mctg_card (id, name, damage) VALUES (?, ?, ?);";
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-            preparedStatement.setString(1, card.getCardId());
-            preparedStatement.setString(2, card.getName());
-            preparedStatement.setFloat(3, card.getDamage());
+            try (
+                    Connection connection = connector.getConnection();
+                    PreparedStatement preparedStatement = connection.prepareStatement(sql)
+            ) {
+                preparedStatement.setString(1, card.getCardId());
+                preparedStatement.setString(2, card.getName());
+                preparedStatement.setFloat(3, card.getDamage());
 
-            preparedStatement.executeUpdate();
-            preparedStatement.close();
+                preparedStatement.executeUpdate();
+            }
         } else {
             throw new InvalidInputException();
         }
@@ -147,29 +143,34 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         resetCardRelations(cardId);
 
         String sql = "UPDATE mctg_card SET mctg_user_id = ? WHERE id = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-        preparedStatement.setInt(1, userId);
-        preparedStatement.setString(2, cardId);
+        try (
+                Connection connection = connector.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(sql)
+        ) {
+            preparedStatement.setInt(1, userId);
+            preparedStatement.setString(2, cardId);
 
-        preparedStatement.executeUpdate();
-        preparedStatement.close();
+            preparedStatement.executeUpdate();
+        }
     }
 
     @Override
     public void checkCardBelongsToUser(String cardId, int userId) throws SQLException, ItemDoesNotBelongToUserException {
+        boolean doesCardBelongToUser = false;
         String sql = "SELECT * FROM mctg_card WHERE id = ? AND mctg_user_id = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-        preparedStatement.setString(1, cardId);
-        preparedStatement.setInt(2, userId);
+        try (
+                Connection connection = connector.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(sql)
+        ) {
+            preparedStatement.setString(1, cardId);
+            preparedStatement.setInt(2, userId);
 
-        ResultSet resultSet = preparedStatement.executeQuery();
-
-        boolean doesCardBelongToUser = resultSet.next();
-
-        preparedStatement.close();
-
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                doesCardBelongToUser = resultSet.next();
+            }
+        }
         if (doesCardBelongToUser == false)
             throw new ItemDoesNotBelongToUserException();
     }
@@ -179,13 +180,16 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         resetCardRelations(cardId);
 
         String sql = "UPDATE mctg_card SET mctg_deck_id = ? WHERE id = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-        preparedStatement.setInt(1, deckId);
-        preparedStatement.setString(2, cardId);
+        try (
+                Connection connection = connector.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(sql)
+        ) {
+            preparedStatement.setInt(1, deckId);
+            preparedStatement.setString(2, cardId);
 
-        preparedStatement.executeUpdate();
-        preparedStatement.close();
+            preparedStatement.executeUpdate();
+        }
     }
 
     @Override
@@ -193,13 +197,16 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         resetCardRelations(cardId);
 
         String sql = "UPDATE mctg_card SET mctg_package_id = ? WHERE id = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-        preparedStatement.setInt(1, packageId);
-        preparedStatement.setString(2, cardId);
+        try (
+                Connection connection = connector.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(sql)
+        ) {
+            preparedStatement.setInt(1, packageId);
+            preparedStatement.setString(2, cardId);
 
-        preparedStatement.executeUpdate();
-        preparedStatement.close();
+            preparedStatement.executeUpdate();
+        }
     }
 
     @Override
@@ -207,13 +214,16 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
         resetCardRelations(cardId);
 
         String sql = "UPDATE mctg_card SET mctg_trade_offer_id = ? WHERE id = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-        preparedStatement.setString(1, tradeOfferId);
-        preparedStatement.setString(2, cardId);
+        try (
+                Connection connection = connector.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(sql)
+        ) {
+            preparedStatement.setString(1, tradeOfferId);
+            preparedStatement.setString(2, cardId);
 
-        preparedStatement.executeUpdate();
-        preparedStatement.close();
+            preparedStatement.executeUpdate();
+        }
     }
 
     private synchronized void resetCardRelations(String cardId) throws SQLException, InvalidInputException, UnsupportedCardTypeException, UnsupportedElementTypeException {
@@ -223,12 +233,15 @@ public class CardRepositoryImplementation extends BaseRepository implements Card
                     "mctg_trade_offer_id = NULL, " +
                     "mctg_package_id = NULL, " +
                     "mctg_deck_id = NULL WHERE id = ?";
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-            preparedStatement.setString(1, cardId);
+            try (
+                    Connection connection = connector.getConnection();
+                    PreparedStatement preparedStatement = connection.prepareStatement(sql)
+            ) {
+                preparedStatement.setString(1, cardId);
 
-            preparedStatement.executeUpdate();
-            preparedStatement.close();
+                preparedStatement.executeUpdate();
+            }
         } else {
             throw new InvalidInputException();
         }

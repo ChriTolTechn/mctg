@@ -85,7 +85,7 @@ public class PackageWorker implements Workable {
             } else {
                 return GenericHttpResponses.UNAUTHORIZED;
             }
-        } catch (SQLException e) {
+        } catch (SQLException | PackageNotFoundException e) {
             e.printStackTrace();
             return GenericHttpResponses.INTERNAL_ERROR;
         } catch (JsonProcessingException e) {

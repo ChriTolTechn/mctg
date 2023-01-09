@@ -4,6 +4,7 @@ import bif3.tolan.swe1.mcg.constants.GenericHttpResponses;
 import bif3.tolan.swe1.mcg.constants.RequestHeaders;
 import bif3.tolan.swe1.mcg.constants.RequestPaths;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.UserRepository;
+import bif3.tolan.swe1.mcg.exceptions.NoDataException;
 import bif3.tolan.swe1.mcg.exceptions.UserDoesNotExistException;
 import bif3.tolan.swe1.mcg.httpserver.HttpRequest;
 import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
@@ -61,6 +62,8 @@ public class ScoreboardWorker implements Workable {
             return GenericHttpResponses.INTERNAL_ERROR;
         } catch (UserDoesNotExistException e) {
             return GenericHttpResponses.INVALID_TOKEN;
+        } catch (NoDataException e) {
+            return GenericHttpResponses.NO_DATA;
         }
     }
 }

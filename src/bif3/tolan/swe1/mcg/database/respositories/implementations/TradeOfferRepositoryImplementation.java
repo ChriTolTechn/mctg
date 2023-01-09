@@ -1,5 +1,6 @@
 package bif3.tolan.swe1.mcg.database.respositories.implementations;
 
+import bif3.tolan.swe1.mcg.database.DbConnector;
 import bif3.tolan.swe1.mcg.database.respositories.BaseRepository;
 import bif3.tolan.swe1.mcg.database.respositories.interfaces.TradeOfferRepository;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
@@ -16,58 +17,56 @@ import java.sql.SQLException;
 import java.util.Vector;
 
 public class TradeOfferRepositoryImplementation extends BaseRepository implements TradeOfferRepository {
-    public TradeOfferRepositoryImplementation(Connection connection) {
-        super(connection);
+    public TradeOfferRepositoryImplementation(DbConnector connector) {
+        super(connector);
     }
 
     @Override
-    public TradeOffer getTradeOfferByUserId(int userId) throws SQLException {
+    public TradeOffer getTradeOfferByUserId(int userId) throws SQLException, TradeOfferNotFoundException {
         String sql = "SELECT id, min_damage, card_type, card_group, user_id FROM mctg_trade_offer WHERE user_id = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-        preparedStatement.setInt(1, userId);
+        try (
+                Connection connection = connector.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        ) {
+            preparedStatement.setInt(1, userId);
 
-        ResultSet resultSet = preparedStatement.executeQuery();
-
-        TradeOffer tradeOffer = extractTrade(resultSet);
-
-        resultSet.close();
-        preparedStatement.close();
-
-        return tradeOffer;
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                return extractTrade(resultSet);
+            }
+        }
     }
 
     @Override
     public Vector<TradeOffer> getAllTradeOffersAsList() throws SQLException, NoActiveTradeOffersException {
         String sql = "SELECT id, min_damage, card_type, card_group, user_id FROM mctg_trade_offer";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-        ResultSet resultSet = preparedStatement.executeQuery();
-
-        Vector<TradeOffer> tradeOffers = extractManyTrades(resultSet);
-
-        resultSet.close();
-        preparedStatement.close();
-
-        if (tradeOffers.isEmpty())
-            throw new NoActiveTradeOffersException();
-        return tradeOffers;
+        try (
+                Connection connection = connector.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(sql);
+                ResultSet resultSet = preparedStatement.executeQuery()
+        ) {
+            return extractManyTrades(resultSet);
+        }
     }
 
     @Override
     public synchronized void createTradeOffer(TradeOffer tradeOffer) throws SQLException, InvalidInputException {
         if (TradeUtils.isValidTrade(tradeOffer)) {
             String sql = "INSERT INTO mctg_trade_offer (id, min_damage, user_id, card_type, card_group) VALUES (?, ?, ?, ?, ?)";
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-            preparedStatement.setString(1, tradeOffer.getTradeId());
-            preparedStatement.setInt(2, tradeOffer.getMinDamage());
-            preparedStatement.setInt(3, tradeOffer.getUserId());
-            preparedStatement.setString(4, tradeOffer.getCardType() != null ? tradeOffer.getCardType().name() : null);
-            preparedStatement.setString(5, tradeOffer.getCardGroup() != null ? tradeOffer.getCardGroup().name() : null);
+            try (
+                    Connection connection = connector.getConnection();
+                    PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            ) {
+                preparedStatement.setString(1, tradeOffer.getTradeId());
+                preparedStatement.setInt(2, tradeOffer.getMinDamage());
+                preparedStatement.setInt(3, tradeOffer.getUserId());
+                preparedStatement.setString(4, tradeOffer.getCardType() != null ? tradeOffer.getCardType().name() : null);
+                preparedStatement.setString(5, tradeOffer.getCardGroup() != null ? tradeOffer.getCardGroup().name() : null);
 
-            preparedStatement.executeUpdate();
-            preparedStatement.close();
+                preparedStatement.executeUpdate();
+            }
         } else {
             throw new InvalidInputException();
         }
@@ -76,33 +75,31 @@ public class TradeOfferRepositoryImplementation extends BaseRepository implement
     @Override
     public TradeOffer getTradeOfferById(String tradeId) throws SQLException, TradeOfferNotFoundException {
         String sql = "SELECT id, min_damage, card_type, card_group, user_id FROM mctg_trade_offer WHERE id = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-        preparedStatement.setString(1, tradeId);
+        try (
+                Connection connection = connector.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        ) {
+            preparedStatement.setString(1, tradeId);
 
-        ResultSet resultSet = preparedStatement.executeQuery();
-
-        TradeOffer tradeOffer = extractTrade(resultSet);
-
-        resultSet.close();
-        preparedStatement.close();
-
-        if (tradeOffer == null)
-            throw new TradeOfferNotFoundException();
-
-        return tradeOffer;
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                return extractTrade(resultSet);
+            }
+        }
     }
 
     @Override
     public synchronized void deleteTrade(String tradeId) throws SQLException {
         String sql = "DELETE FROM mctg_trade_offer WHERE id = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-        preparedStatement.setString(1, tradeId);
+        try (
+                Connection connection = connector.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        ) {
+            preparedStatement.setString(1, tradeId);
 
-        preparedStatement.executeUpdate();
-
-        preparedStatement.close();
+            preparedStatement.executeUpdate();
+        }
     }
 
     private TradeOffer convertResultSetToTradeOfferModel(ResultSet resultSet) throws SQLException {
@@ -119,19 +116,24 @@ public class TradeOfferRepositoryImplementation extends BaseRepository implement
         }
     }
 
-    private TradeOffer extractTrade(ResultSet resultSet) throws SQLException {
+    private TradeOffer extractTrade(ResultSet resultSet) throws SQLException, TradeOfferNotFoundException {
         if (resultSet.next()) {
             return convertResultSetToTradeOfferModel(resultSet);
         } else {
-            return null;
+            throw new TradeOfferNotFoundException();
         }
     }
 
-    private Vector<TradeOffer> extractManyTrades(ResultSet resultSet) throws SQLException {
+    private Vector<TradeOffer> extractManyTrades(ResultSet resultSet) throws SQLException, NoActiveTradeOffersException {
         Vector<TradeOffer> offers = new Vector<>();
+
         while (resultSet.next()) {
             offers.add(convertResultSetToTradeOfferModel(resultSet));
         }
+
+        if (offers.isEmpty())
+            throw new NoActiveTradeOffersException();
+
         return offers;
     }
 }

@@ -2,6 +2,7 @@ package bif3.tolan.swe1.mcg.database.respositories.interfaces;
 
 import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
+import bif3.tolan.swe1.mcg.exceptions.NoDataException;
 import bif3.tolan.swe1.mcg.exceptions.UserDoesNotExistException;
 import bif3.tolan.swe1.mcg.model.User;
 
@@ -17,5 +18,5 @@ public interface UserRepository {
 
     void updateUser(User user) throws SQLException;
 
-    Vector<User> getUsersOrderedByEloDescendingAsList() throws SQLException;
+    Vector<User> getUsersOrderedByEloDescendingAsList() throws SQLException, NoDataException;
 }

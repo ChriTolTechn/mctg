@@ -14,7 +14,7 @@ public interface TradeOfferRepository {
 
     public TradeOffer getTradeOfferById(String tradeId) throws SQLException, TradeOfferNotFoundException;
 
-    TradeOffer getTradeOfferByUserId(int userId) throws SQLException;
+    TradeOffer getTradeOfferByUserId(int userId) throws SQLException, TradeOfferNotFoundException;
 
     Vector<TradeOffer> getAllTradeOffersAsList() throws SQLException, NoActiveTradeOffersException;
 
