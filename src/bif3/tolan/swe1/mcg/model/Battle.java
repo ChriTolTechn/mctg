@@ -1,12 +1,9 @@
 package bif3.tolan.swe1.mcg.model;
 
-import bif3.tolan.swe1.mcg.constants.DamageMap;
 import bif3.tolan.swe1.mcg.exceptions.InvalidDeckException;
-import bif3.tolan.swe1.mcg.model.enums.CardType;
-import bif3.tolan.swe1.mcg.model.enums.ElementType;
-import bif3.tolan.swe1.mcg.utils.MapUtils;
+import bif3.tolan.swe1.mcg.utils.BattleUtils;
 
-import java.util.Vector;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -24,8 +21,9 @@ public class Battle {
     private User loser;
     private ConcurrentHashMap<String, Card> user1Deck;
     private ConcurrentHashMap<String, Card> user2Deck;
-    private Vector<String> battleLog;
+    private StringBuilder battleLog;
     private boolean draw;
+    private Random random;
 
     public Battle(User user1, User user2) {
         this.user1 = user1;
@@ -33,9 +31,10 @@ public class Battle {
         this.round = 0;
         this.gameFinished = false;
         this.draw = false;
-        this.battleLog = new Vector<>();
+        this.battleLog = new StringBuilder();
         this.winner = null;
         this.loser = null;
+        this.random = new Random();
 
         prepareBattle();
     }
@@ -49,7 +48,7 @@ public class Battle {
         user1Deck = new ConcurrentHashMap<>(user1.getDeck());
         user2Deck = new ConcurrentHashMap<>(user2.getDeck());
 
-        battleLog.add("------- Battle: " + user1.getUsername() + " VS " + user2.getUsername() + "-------");
+        battleLog.append("------- Battle: " + user1.getUsername() + " VS " + user2.getUsername() + "-------\n");
     }
 
     /**
@@ -63,16 +62,25 @@ public class Battle {
             round++;
 
             // Choose random card from the users deck
-            Card user1Card = MapUtils.getRandomValue(user1Deck);
-            Card user2Card = MapUtils.getRandomValue(user2Deck);
+            Card user1Card = BattleUtils.getRandomCard(user1Deck);
+            Card user2Card = BattleUtils.getRandomCard(user2Deck);
 
             // Calculate damage dealt for each card
-            float damageU1 = calculateDamage(user1Card, user2Card);
-            float damageU2 = calculateDamage(user2Card, user1Card);
+            float damageU1 = BattleUtils.calculateDamage(user1Card, user2Card);
+            float damageU2 = BattleUtils.calculateDamage(user2Card, user1Card);
 
-            concludeRound(user1Card, user2Card, damageU1, damageU2);
+            // Handle critical strikes
+            boolean didU1Crit = BattleUtils.didCrit();
+            boolean didU2Crit = BattleUtils.didCrit();
 
-            checkVictoryForUser();
+            if (didU1Crit)
+                damageU1 = BattleUtils.calculateCritDamage(damageU1);
+            if (didU2Crit)
+                damageU2 = BattleUtils.calculateCritDamage(damageU2);
+
+            concludeRound(user1Card, user2Card, damageU1, damageU2, didU1Crit, didU2Crit);
+
+            checkVictoryAndSetParameters();
         }
     }
 
@@ -85,37 +93,43 @@ public class Battle {
      * @param damageU1  Final damage of userCard1
      * @param damageU2  Final damage of userCard2
      */
-    private void concludeRound(Card user1Card, Card user2Card, float damageU1, float damageU2) {
+    private void concludeRound(Card user1Card, Card user2Card, float damageU1, float damageU2, boolean didU1Crit, boolean didU2Crit) {
         // Prepare message for log
-        String logMessage = "Round " + round + " - " + user1.getUsername() + "(" + user1Deck.size() + ")" + ": " + user1Card.getName() + " (" + user1Card.getDamage() + " BaseDamage" + ")" + " vs " +
-                user2.getUsername() + "(" + user2Deck.size() + ")" + ": " + user2Card.getName() + " (" + user2Card.getDamage() + " BaseDamage" + ")" + " => ";
+        StringBuilder logMessage = new StringBuilder("Round " + round + " - " + user1.getUsername() + "(" + user1Deck.size() + ")" + ": " + user1Card.getName() + " (" + user1Card.getDamage() + " BaseDamage" + ")" + " vs " +
+                user2.getUsername() + "(" + user2Deck.size() + ")" + ": " + user2Card.getName() + " (" + user2Card.getDamage() + " BaseDamage" + ")" + " => ");
 
         // Transfer losing card to the winners deck
         if (damageU1 > damageU2) {
             user2Deck.remove(user2Card.getCardId());
             user1Deck.put(user2Card.getCardId(), user2Card);
 
-            logMessage += user1Card.getName() + " (" + damageU1 + "FinalDamage" + ")" + " defeats " +
-                    user2Card.getName() + " (" + damageU2 + " FinalDamage" + ")";
+            logMessage.append(user1Card.getName() + " (" + damageU1 + " FinalDamage" + ")" + " defeats " +
+                    user2Card.getName() + " (" + damageU2 + " FinalDamage" + ")");
         } else if (damageU2 > damageU1) {
             user1Deck.remove(user1Card.getCardId());
             user2Deck.put(user1Card.getCardId(), user1Card);
 
-            logMessage += user2Card.getName() + " (" + damageU2 + " FinalDamage" + ")" + " defeats " +
-                    user1Card.getName() + " (" + damageU1 + " FinalDamage" + ")";
+            logMessage.append(user2Card.getName() + " (" + damageU2 + " FinalDamage" + ")" + " defeats " +
+                    user1Card.getName() + " (" + damageU1 + " FinalDamage" + ")");
         } else {
             // In case of a draw (damageU1 == damageU2) nothing happens
-            logMessage += user2Card.getName() + " (" + damageU2 + " FinalDamage" + ")" + " is in draw with " +
-                    user1Card.getName() + " (" + damageU1 + " FinalDamage" + ")";
+            logMessage.append(user2Card.getName() + " (" + damageU2 + " FinalDamage" + ")" + " is in draw with " +
+                    user1Card.getName() + " (" + damageU1 + " FinalDamage" + ")");
         }
-        battleLog.add(logMessage);
+
+        battleLog.append(logMessage + "\n");
+
+        if (didU1Crit)
+            battleLog.append(user1Card.getName() + " hit a critical strike!\n");
+        if (didU2Crit)
+            battleLog.append(user2Card.getName() + " hit a critical strike!\n");
     }
 
     /**
      * @return Returns the battle log as a string
      */
     public String getBattleLog() {
-        return String.join(" \n", battleLog);
+        return battleLog.toString();
     }
 
     /**
@@ -130,7 +144,7 @@ public class Battle {
      * Checks if one of the users has already won the game by checking if their decks are empty.
      * A game ends in a draw if the round count is over 99
      */
-    private void checkVictoryForUser() {
+    private void checkVictoryAndSetParameters() {
         if (round > 99 || user1Deck.isEmpty() || user2Deck.isEmpty()) {
             if (round > 99) {
                 //Draw
@@ -162,17 +176,16 @@ public class Battle {
         this.winner = winner;
         this.loser = loser;
 
-        battleLog.add("--------------");
+        battleLog.append("--------------\n");
         if (draw) {
-            battleLog.add("Game ended in a draw");
+            battleLog.append("Game ended in a draw\n");
         } else {
-            battleLog.add("Winner:" + winner.getUsername());
+            battleLog.append("Winner:" + winner.getUsername() + "\n");
         }
-        battleLog.add("--------------");
+        battleLog.append("--------------\n");
 
         gameFinished = true;
     }
-
 
     /**
      * @return The name of the user that has won
@@ -187,94 +200,5 @@ public class Battle {
 
     public boolean isDraw() {
         return draw;
-    }
-
-    /**
-     * Calculates damage by checking if any of the special cases are met described in the requirement or calculates it with regular settings
-     *
-     * @param attacker The attacking card
-     * @param defender The defending card
-     * @return damage that the attacker deals to the defender as float value
-     * @throws IllegalStateException if something went wrong during damage calculation
-     */
-    private float calculateDamage(Card attacker, Card defender) throws IllegalStateException {
-        float damage = -1;
-
-        // Check if there are special cases in battle
-        damage = calculateSpecialCaseDamage(attacker, defender);
-
-        // If there was no special case, regular damage calculation is applied
-        if (damage == -1) {
-            damage = calculateRegularDamage(attacker, defender);
-        }
-
-        // Should be unreachable
-        if (damage == -1) {
-            throw new IllegalStateException("Card-State not valid for damage calculation");
-        }
-
-        return damage;
-    }
-
-    /**
-     * Calculates damage the regular way
-     * If both cards are monsters, its just about their base damage
-     * If any card is a spell card, the damage is determined by their base damage multiplied with the value the damage map returns based on the defender
-     *
-     * @param attacker The attacking card
-     * @param defender The defending card
-     * @return damage that the attacker deals to the defender as float value
-     */
-    private float calculateRegularDamage(Card attacker, Card defender) {
-        if (attacker.getMonsterType().isInGroup(CardType.CardGroup.MONSTER)
-                && defender.getMonsterType().isInGroup(CardType.CardGroup.MONSTER)) {
-            // Fights between Monster don't affect their damage output
-            return attacker.getDamage();
-        } else if (attacker.getMonsterType().isInGroup(CardType.CardGroup.SPELL)
-                || defender.getMonsterType().isInGroup(CardType.CardGroup.SPELL)) {
-            // Fights with at least one spell card involved will trigger effectiveness
-            float damageMultiplicator = DamageMap.GetDamageMultiplicator(attacker.getElement(), defender.getElement());
-            return attacker.getDamage() * damageMultiplicator;
-        }
-        // Return should not be reachable in normal cases
-        return -1;
-    }
-
-    /**
-     * Calculate damage based on special cases defined in the requirements
-     *
-     * @param attacker The attacking card
-     * @param defender The defending card
-     * @return damage that the attacker deals to the defender as float value
-     */
-    private float calculateSpecialCaseDamage(Card attacker, Card defender) {
-        switch (attacker.getMonsterType()) {
-            // goblins cant attack dragons
-            case GOBLIN:
-                if (defender.getMonsterType() == CardType.DRAGON)
-                    return 0;
-                return -1;
-            // orks cant attack wizards
-            case ORK:
-                if (defender.getMonsterType() == CardType.WIZARD)
-                    return 0;
-                return -1;
-            // dragons cant attack elves with a fire type
-            case DRAGON:
-                if (defender.getMonsterType() == CardType.ELF && defender.getElement() == ElementType.FIRE)
-                    return 0;
-                return -1;
-            case SPELL:
-                // Knights are instant K.O.'d by Water spells
-                if (attacker.getElement() == ElementType.WATER) {
-                    if (defender.getMonsterType() == CardType.KNIGHT)
-                        return Float.MAX_VALUE;
-                    // Kraken dont get damaged by spell cards
-                } else if (defender.getMonsterType() == CardType.KRAKEN)
-                    return 0;
-                return -1;
-            default:
-                return -1;
-        }
     }
 }
