@@ -17,15 +17,28 @@ public class Main {
         httpServerThread.start();
 
         Scanner scanner = new Scanner(System.in);
-        boolean stop = false;
+        boolean exitApplication = false;
 
-        while (!stop) {
+        while (!exitApplication) {
             if (scanner.hasNextLine()) {
                 String input = scanner.nextLine();
                 if (input.equalsIgnoreCase("stop")) {
-                    stop = true;
+                    httpServerThread.interrupt();
+                    System.out.println("----------------------------------------------");
+                    System.out.println("Server stopped");
+                    System.out.println("----------------------------------------------");
+                } else if (input.equalsIgnoreCase("exit")) {
+                    if (httpServerThread.isAlive()) {
+                        System.out.println("----------------------------------------------");
+                        System.out.println("Http server thread still running. Please clost it with 'exit' first!");
+                        System.out.println("----------------------------------------------");
+                    } else {
+                        exitApplication = true;
+                    }
                 }
             }
         }
+
+        System.exit(0);
     }
 }

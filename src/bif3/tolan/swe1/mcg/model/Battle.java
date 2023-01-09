@@ -3,7 +3,6 @@ package bif3.tolan.swe1.mcg.model;
 import bif3.tolan.swe1.mcg.exceptions.InvalidDeckException;
 import bif3.tolan.swe1.mcg.utils.BattleUtils;
 
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -23,7 +22,6 @@ public class Battle {
     private ConcurrentHashMap<String, Card> user2Deck;
     private StringBuilder battleLog;
     private boolean draw;
-    private Random random;
 
     public Battle(User user1, User user2) {
         this.user1 = user1;
@@ -34,7 +32,6 @@ public class Battle {
         this.battleLog = new StringBuilder();
         this.winner = null;
         this.loser = null;
-        this.random = new Random();
 
         prepareBattle();
     }
