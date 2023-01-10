@@ -1,8 +1,15 @@
 package bif3.tolan.swe1.mcg.model;
 
 import bif3.tolan.swe1.mcg.exceptions.InvalidDeckException;
+import bif3.tolan.swe1.mcg.json.BattleViews;
+import bif3.tolan.swe1.mcg.json.UserViews;
 import bif3.tolan.swe1.mcg.utils.BattleUtils;
+import com.fasterxml.jackson.annotation.JsonClassDescription;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonView;
 
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -10,26 +17,49 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Christopher Tolan
  */
+@JsonClassDescription("Battle")
 public class Battle {
 
+    @JsonIgnore
+    @JsonView(BattleViews.ReadBattle.class)
     private final User user1;
+    @JsonIgnore
     private final User user2;
+
+    @JsonProperty("TotalRounds")
+    @JsonView(BattleViews.ReadBattle.class)
     private int round;
+    @JsonIgnore
     private boolean gameFinished;
+
+    @JsonProperty("Winner")
+    @JsonView(UserViews.ReadBattleUser.class)
     private User winner;
+
+    @JsonProperty("Loser")
+    @JsonView(UserViews.ReadBattleUser.class)
     private User loser;
+
+    @JsonIgnore
     private ConcurrentHashMap<String, Card> user1Deck;
+    @JsonIgnore
     private ConcurrentHashMap<String, Card> user2Deck;
-    private StringBuilder battleLog;
-    private boolean draw;
+
+    @JsonProperty("BattleLog")
+    @JsonView(BattleViews.ReadBattle.class)
+    private Vector<String> battleLog;
+
+    @JsonProperty("IsDraw")
+    @JsonView(BattleViews.ReadBattle.class)
+    private boolean isDraw;
 
     public Battle(User user1, User user2) {
         this.user1 = user1;
         this.user2 = user2;
         this.round = 0;
         this.gameFinished = false;
-        this.draw = false;
-        this.battleLog = new StringBuilder();
+        this.isDraw = false;
+        this.battleLog = new Vector<>();
         this.winner = null;
         this.loser = null;
 
@@ -44,8 +74,6 @@ public class Battle {
     private void prepareBattle() {
         user1Deck = new ConcurrentHashMap<>(user1.getDeck());
         user2Deck = new ConcurrentHashMap<>(user2.getDeck());
-
-        battleLog.append("------- Battle: " + user1.getUsername() + " VS " + user2.getUsername() + "-------\n");
     }
 
     /**
@@ -114,24 +142,18 @@ public class Battle {
                     user1Card.getName() + " (" + damageU1 + " FinalDamage" + ")");
         }
 
-        battleLog.append(logMessage + "\n");
-
         if (didU1Crit)
-            battleLog.append(user1Card.getName() + " hit a critical strike!\n");
+            logMessage.append(user1Card.getName() + " hit a critical strike!");
         if (didU2Crit)
-            battleLog.append(user2Card.getName() + " hit a critical strike!\n");
+            logMessage.append(user2Card.getName() + " hit a critical strike!");
+
+        battleLog.add(logMessage.toString());
     }
 
-    /**
-     * @return Returns the battle log as a string
-     */
-    public String getBattleLog() {
-        return battleLog.toString();
+    public Vector<String> getBattleLog() {
+        return battleLog;
     }
 
-    /**
-     * @return Returns the game state
-     */
     public boolean getGameFinished() {
         return gameFinished;
     }
@@ -147,7 +169,7 @@ public class Battle {
                 //Draw
                 winner = user1;
                 loser = user2;
-                draw = true;
+                isDraw = true;
             } else if (user2Deck.isEmpty()) {
                 // User 1 wins
                 winner = user1;
@@ -173,20 +195,9 @@ public class Battle {
         this.winner = winner;
         this.loser = loser;
 
-        battleLog.append("--------------\n");
-        if (draw) {
-            battleLog.append("Game ended in a draw\n");
-        } else {
-            battleLog.append("Winner:" + winner.getUsername() + "\n");
-        }
-        battleLog.append("--------------\n");
-
         gameFinished = true;
     }
 
-    /**
-     * @return The name of the user that has won
-     */
     public User getWinner() {
         return winner;
     }
@@ -195,7 +206,7 @@ public class Battle {
         return loser;
     }
 
-    public boolean isDraw() {
-        return draw;
+    public boolean getIsDraw() {
+        return isDraw;
     }
 }

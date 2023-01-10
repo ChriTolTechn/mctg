@@ -1,6 +1,7 @@
 package bif3.tolan.swe1.mcg.model;
 
 import bif3.tolan.swe1.mcg.constants.DefaultValues;
+import bif3.tolan.swe1.mcg.json.CardViews;
 import bif3.tolan.swe1.mcg.json.UserViews;
 import bif3.tolan.swe1.mcg.utils.UserUtils;
 import com.fasterxml.jackson.annotation.*;
@@ -17,17 +18,18 @@ import static bif3.tolan.swe1.mcg.utils.PasswordHashUtils.hashPassword;
 @JsonClassDescription("User")
 public class User implements Cloneable {
     @JsonProperty("Username")
-    @JsonView({UserViews.ReadProfileUser.class, UserViews.CreateUser.class, UserViews.ReadStatsUser.class})
+    @JsonView({UserViews.ReadProfileUser.class, UserViews.CreateUser.class, UserViews.ReadStatsUser.class, UserViews.ReadBattleUser.class})
     private String username;
     @JsonProperty("Id")
-    @JsonView({UserViews.ReadProfileUser.class, UserViews.ReadStatsUser.class})
+    @JsonView({UserViews.ReadProfileUser.class, UserViews.ReadStatsUser.class, UserViews.ReadBattleUser.class})
     private int id;
     @JsonIgnore
     private String passwordHash;
     @JsonProperty("Elo")
     @JsonView({UserViews.ReadProfileUser.class, UserViews.ReadStatsUser.class})
     private int elo;
-    @JsonIgnore
+    @JsonProperty("Deck")
+    @JsonView(CardViews.ReadCard.class)
     private ConcurrentHashMap<String, Card> deck;
     @JsonProperty("Coins")
     @JsonView(UserViews.ReadProfileUser.class)

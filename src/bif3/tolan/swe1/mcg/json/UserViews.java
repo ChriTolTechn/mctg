@@ -15,4 +15,7 @@ public class UserViews {
 
     public static class ReadLoginUser {
     }
+
+    public static class ReadBattleUser extends CardViews.ReadCard {
+    }
 }
