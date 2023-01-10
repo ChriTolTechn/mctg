@@ -69,7 +69,8 @@ public class HttpRequestHandler implements Runnable {
      * @return A response that describes the outcome of the execution
      */
     private HttpResponse executeRequest(HttpRequest request) {
-        Workable correspondingWorker = workers.get(request.getPathArray()[0]);
+        String[] pathArray = request.getPathArray();
+        Workable correspondingWorker = (pathArray == null || pathArray.length == 0) ? null : workers.get(pathArray[0]);
 
         if (correspondingWorker != null) {
             return correspondingWorker.executeRequest(request);
