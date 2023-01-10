@@ -8,6 +8,7 @@ import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpContentType;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpStatus;
+import bif3.tolan.swe1.mcg.json.UserViews;
 import bif3.tolan.swe1.mcg.model.User;
 import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -54,7 +55,11 @@ public class LoginWorker implements Workable {
             User requestedUser = userRepository.getUserByUsername(loginValues.getUsername());
             // Check if passwords match
             if (loginValues.getPasswordHash().equals(requestedUser.getPasswordHash())) {
-                return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, "Successfully logged in. Session token: " + requestedUser.getToken());
+                String token = mapper
+                        .writerWithView(UserViews.ReadLoginUser.class)
+                        .writeValueAsString(requestedUser);
+
+                return new HttpResponse(HttpStatus.OK, HttpContentType.JSON, token);
             } else {
                 return GenericHttpResponses.WRONG_CREDENTIALS;
             }

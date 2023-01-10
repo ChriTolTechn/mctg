@@ -62,8 +62,8 @@ public class TradeOfferRepositoryImplementation extends BaseRepository implement
                 preparedStatement.setString(1, tradeOffer.getTradeId());
                 preparedStatement.setInt(2, tradeOffer.getMinDamage());
                 preparedStatement.setInt(3, tradeOffer.getUserId());
-                preparedStatement.setString(4, tradeOffer.getCardType() != null ? tradeOffer.getCardType().name() : null);
-                preparedStatement.setString(5, tradeOffer.getCardGroup() != null ? tradeOffer.getCardGroup().name() : null);
+                preparedStatement.setString(4, tradeOffer.getRequestedCardType() != null ? tradeOffer.getRequestedCardType().name() : null);
+                preparedStatement.setString(5, tradeOffer.getRequestedCardGroup() != null ? tradeOffer.getRequestedCardGroup().name() : null);
 
                 preparedStatement.executeUpdate();
             }

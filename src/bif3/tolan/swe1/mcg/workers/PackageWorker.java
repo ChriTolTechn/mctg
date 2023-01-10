@@ -8,6 +8,7 @@ import bif3.tolan.swe1.mcg.exceptions.*;
 import bif3.tolan.swe1.mcg.httpserver.HttpRequest;
 import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
+import bif3.tolan.swe1.mcg.json.CardViews;
 import bif3.tolan.swe1.mcg.model.Card;
 import bif3.tolan.swe1.mcg.model.User;
 import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.CardRepository;
@@ -64,9 +65,11 @@ public class PackageWorker implements Workable {
                 // read cards from json to be created
                 ObjectMapper mapper = new ObjectMapper();
                 String newCardsAsJsonString = request.getBody();
-                Vector<Card> newCards = mapper.readValue(
-                        newCardsAsJsonString,
-                        mapper.getTypeFactory().constructCollectionType(Vector.class, Card.class));
+
+                Vector<Card> newCards = mapper
+                        .readerWithView(CardViews.CreateCard.class)
+                        .forType(mapper.getTypeFactory().constructCollectionType(Vector.class, Card.class))
+                        .readValue(newCardsAsJsonString);
 
                 // trying to add all new cards
                 for (Card c : newCards) {

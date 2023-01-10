@@ -120,7 +120,7 @@ public class UserRepositoryImplementation extends BaseRepository implements User
 
     @Override
     public Vector<User> getUsersOrderedByEloDescendingAsList() throws SQLException, NoDataException {
-        String sql = "SELECT username, elo, games_played, wins FROM mctg_user ORDER BY elo DESC";
+        String sql = "SELECT id, username, elo, games_played, wins FROM mctg_user ORDER BY elo DESC";
 
         try (
                 Connection connection = connector.getDatabaseConnection();
@@ -139,8 +139,9 @@ public class UserRepositoryImplementation extends BaseRepository implements User
             int elo = resultSet.getInt("elo");
             int gamesPlayed = resultSet.getInt("games_played");
             int wins = resultSet.getInt("wins");
+            int id = resultSet.getInt("id");
 
-            users.add(new User(username, "", elo, 0, gamesPlayed, 0, wins, "", "", ""));
+            users.add(new User(username, "", elo, 0, gamesPlayed, id, wins, "", "", ""));
         }
 
         if (users.isEmpty())

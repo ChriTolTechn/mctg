@@ -1,9 +1,9 @@
 package bif3.tolan.swe1.mcg.model;
 
 import bif3.tolan.swe1.mcg.constants.DefaultValues;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
+import bif3.tolan.swe1.mcg.json.UserViews;
+import bif3.tolan.swe1.mcg.utils.UserUtils;
+import com.fasterxml.jackson.annotation.*;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -14,29 +14,47 @@ import static bif3.tolan.swe1.mcg.utils.PasswordHashUtils.hashPassword;
  *
  * @author Christopher Tolan
  */
+@JsonClassDescription("User")
 public class User implements Cloneable {
     @JsonProperty("Username")
+    @JsonView({UserViews.ReadProfileUser.class, UserViews.CreateUser.class, UserViews.ReadStatsUser.class})
     private String username;
-    @JsonIgnore
+    @JsonProperty("Id")
+    @JsonView({UserViews.ReadProfileUser.class, UserViews.ReadStatsUser.class})
     private int id;
     @JsonIgnore
     private String passwordHash;
-    @JsonIgnore
+    @JsonProperty("Elo")
+    @JsonView({UserViews.ReadProfileUser.class, UserViews.ReadStatsUser.class})
     private int elo;
     @JsonIgnore
     private ConcurrentHashMap<String, Card> deck;
-    @JsonIgnore
+    @JsonProperty("Coins")
+    @JsonView(UserViews.ReadProfileUser.class)
     private int coins;
-    @JsonIgnore
+    @JsonProperty("GamesPlayed")
+    @JsonView({UserViews.ReadProfileUser.class, UserViews.ReadStatsUser.class})
     private int gamesPlayed;
-    @JsonIgnore
+    @JsonProperty("Wins")
+    @JsonView({UserViews.ReadProfileUser.class, UserViews.ReadStatsUser.class})
     private int wins;
     @JsonProperty("Bio")
+    @JsonView({UserViews.ReadProfileUser.class, UserViews.EditUser.class})
     private String bio;
     @JsonProperty("Image")
+    @JsonView({UserViews.ReadProfileUser.class, UserViews.EditUser.class})
     private String image;
     @JsonProperty("Name")
+    @JsonView({UserViews.ReadProfileUser.class, UserViews.EditUser.class})
     private String name;
+
+    @JsonProperty("Token")
+    @JsonView(UserViews.ReadLoginUser.class)
+    private String token;
+
+    @JsonProperty("WinrateInPercent")
+    @JsonView(UserViews.ReadStatsUser.class)
+    private double winrateInPercent;
 
     public User(String username, String passwordHash, int elo, int coins, int gamesPlayed, int id, int wins, String name, String bio, String image) {
         this.username = username;
@@ -49,6 +67,8 @@ public class User implements Cloneable {
         this.name = name;
         this.bio = bio;
         this.image = image;
+        this.winrateInPercent = UserUtils.calculateWinPercentage(gamesPlayed, wins);
+        this.token = "Basic " + username + "-mtcgToken";
     }
 
     // Default Constructor for Jackson
@@ -60,6 +80,8 @@ public class User implements Cloneable {
         this.name = "";
         this.bio = "";
         this.image = "";
+        this.winrateInPercent = 0;
+        this.token = "";
     }
 
     @Override
@@ -101,7 +123,7 @@ public class User implements Cloneable {
     }
 
     public String getToken() {
-        return "Basic " + this.username + "-mtcgToken";
+        return token;
     }
 
     public int getCoins() {
@@ -112,6 +134,7 @@ public class User implements Cloneable {
         this.coins = coins;
     }
 
+    @JsonIgnore
     public String getPasswordHash() {
         return passwordHash;
     }
@@ -151,6 +174,14 @@ public class User implements Cloneable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public double getWinrateInPercent() {
+        return winrateInPercent;
+    }
+
+    public void setWinrateInPercent(double winrateInPercent) {
+        this.winrateInPercent = winrateInPercent;
     }
 
     @Override

@@ -5,7 +5,7 @@ import bif3.tolan.swe1.mcg.httpserver.enums.HttpContentType;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpStatus;
 
 public final class GenericHttpResponses {
-    private final static String DEFAULT_JSON_FORMAT = "{\"message\":\"%s\"}";
+    public final static String DEFAULT_JSON_FORMAT = "{\"Message\":\"%s\"}";
     public final static HttpResponse INTERNAL_ERROR = new HttpResponse(HttpStatus.INTERNAL_SERVER_ERROR, HttpContentType.JSON, String.format(DEFAULT_JSON_FORMAT, "An issue occured on server side. Please contact the support for further instructions."));
     public final static HttpResponse WRONG_CREDENTIALS = new HttpResponse(HttpStatus.BAD_REQUEST, HttpContentType.JSON, String.format(DEFAULT_JSON_FORMAT, "Wrong user credentials. Please try again."));
     public final static HttpResponse INVALID_PATH = new HttpResponse(HttpStatus.NOT_FOUND, HttpContentType.JSON, String.format(DEFAULT_JSON_FORMAT, "Invalid path. Please check that you entered the path correctly."));

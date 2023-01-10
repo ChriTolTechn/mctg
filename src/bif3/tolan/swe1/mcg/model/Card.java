@@ -3,11 +3,10 @@ package bif3.tolan.swe1.mcg.model;
 import bif3.tolan.swe1.mcg.constants.CommonRegex;
 import bif3.tolan.swe1.mcg.exceptions.UnsupportedCardTypeException;
 import bif3.tolan.swe1.mcg.exceptions.UnsupportedElementTypeException;
+import bif3.tolan.swe1.mcg.json.CardViews;
 import bif3.tolan.swe1.mcg.model.enums.CardType;
 import bif3.tolan.swe1.mcg.model.enums.ElementType;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,27 +19,37 @@ import static bif3.tolan.swe1.mcg.utils.CardUtils.extractElementType;
  *
  * @author Christopher Tolan
  */
+@JsonClassDescription("Card")
 public class Card {
     @JsonProperty("Id")
+    @JsonView({CardViews.CreateCard.class, CardViews.ReadCard.class})
     private String cardId;
-    @JsonIgnore
+    @JsonProperty("Name")
+    @JsonView(CardViews.ReadCard.class)
     private String name;
-    @JsonIgnore
+    @JsonProperty("Element")
+    @JsonView(CardViews.ReadCard.class)
     private ElementType element;
-    @JsonIgnore
+    @JsonProperty("CardType")
+    @JsonView(CardViews.ReadCard.class)
     private CardType cardType;
     @JsonProperty("Damage")
+    @JsonView({CardViews.CreateCard.class, CardViews.ReadCard.class})
     private float damage;
 
     public Card(String cardId, String name, float damage) throws UnsupportedCardTypeException, UnsupportedElementTypeException {
         this.cardId = cardId;
         this.name = name;
         this.damage = damage;
-        setCardElementAndTypeByCardName(this.name);
+        setCardElementAndTypeByCardName(name);
     }
 
     // Default Constructor for Jackson
-    public Card() {
+    public Card() throws UnsupportedCardTypeException, UnsupportedElementTypeException {
+        this.name = "Goblin";
+        this.cardId = "";
+        this.damage = 0;
+        setCardElementAndTypeByCardName(name);
     }
 
     public String getName() {
@@ -48,6 +57,7 @@ public class Card {
     }
 
     @JsonSetter("Name")
+    @JsonView(CardViews.CreateCard.class)
     public void setName(String name) throws UnsupportedCardTypeException, UnsupportedElementTypeException {
         this.name = name;
 
@@ -62,6 +72,7 @@ public class Card {
         return damage;
     }
 
+    @JsonIgnore
     public CardType getMonsterType() {
         return cardType;
     }
