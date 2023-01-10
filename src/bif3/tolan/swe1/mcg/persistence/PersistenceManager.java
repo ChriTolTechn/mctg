@@ -31,16 +31,14 @@ public class PersistenceManager {
         initializeRepositories();
     }
 
-    public Connection getDatabaseConnection() throws SQLException {
-        return DriverManager.getConnection(DB_URL + DB_NAME, DB_USERNAME, DB_PASSWORD);
-    }
-
     private void initializeRepositories() {
-        userRepository = new UserRepositoryImplementation(this);
-        cardRepository = new CardRepositoryImplementation(this);
-        deckRepository = new DeckRepositoryImplementation(this);
-        packageRepository = new PackageRepositoryImplementation(this);
-        tradeOfferRepository = new TradeOfferRepositoryImplementation(this);
+        DatabaseConnector dbConnector = new DatabaseConnectorImplementation();
+
+        userRepository = new UserRepositoryImplementation(dbConnector);
+        cardRepository = new CardRepositoryImplementation(dbConnector);
+        deckRepository = new DeckRepositoryImplementation(dbConnector);
+        packageRepository = new PackageRepositoryImplementation(dbConnector);
+        tradeOfferRepository = new TradeOfferRepositoryImplementation(dbConnector);
     }
 
     private void resetDatabase() throws SQLException {
@@ -50,7 +48,7 @@ public class PersistenceManager {
         String input = scanner.nextLine();
         if (input.toLowerCase().equals("y")) {
             try (
-                    Connection connection = getDatabaseConnection();
+                    Connection connection = DriverManager.getConnection(DB_URL + DB_NAME, DB_USERNAME, DB_PASSWORD);
                     PreparedStatement preparedStatement = connection.prepareStatement("TRUNCATE TABLE mctg_card, mctg_trade_offer, mctg_deck, mctg_package, mctg_user")
             ) {
                 preparedStatement.execute();

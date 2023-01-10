@@ -12,6 +12,7 @@ import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpContentType;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpStatus;
+import bif3.tolan.swe1.mcg.json.BattleViews;
 import bif3.tolan.swe1.mcg.model.Battle;
 import bif3.tolan.swe1.mcg.model.User;
 import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.CardRepository;
@@ -19,6 +20,8 @@ import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.DeckRepository;
 import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.utils.EloUtils;
 import bif3.tolan.swe1.mcg.utils.UserUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.sql.SQLException;
 
@@ -81,7 +84,7 @@ public class BattleWorker implements Workable {
                 return GenericHttpResponses.INVALID_DECK;
             }
         } catch (InterruptedException | CloneNotSupportedException | UnsupportedCardTypeException |
-                 UnsupportedElementTypeException | SQLException e) {
+                 UnsupportedElementTypeException | SQLException | JsonProcessingException e) {
             e.printStackTrace();
             return GenericHttpResponses.INTERNAL_ERROR;
         } catch (UserDoesNotExistException e) {
@@ -89,7 +92,7 @@ public class BattleWorker implements Workable {
         }
     }
 
-    private synchronized HttpResponse joinBattleAndBattle(User requestingUser) throws SQLException, CloneNotSupportedException {
+    private synchronized HttpResponse joinBattleAndBattle(User requestingUser) throws SQLException, CloneNotSupportedException, JsonProcessingException {
         // check to not play against yourself
         if (waitingForBattle != requestingUser) {
             // create a battle
@@ -107,7 +110,7 @@ public class BattleWorker implements Workable {
             EloUtils.NewEloValues newEloValues;
             User winner = battle.getWinner();
             User loser = battle.getLoser();
-            boolean draw = battle.isDraw();
+            boolean draw = battle.getIsDraw();
 
             // winner and loser assignment is irrelevant when it is a draw
             newEloValues = EloUtils.calculateNewElo(
@@ -133,20 +136,20 @@ public class BattleWorker implements Workable {
             userRepository.updateUser(winner);
             userRepository.updateUser(loser);
 
-            // get battle log
-            String battleLog = battle.getBattleLog();
+            // convert battle results to json
+            String jsonString = getBattleAsJsonString();
 
             // notify other player that the game finished
             this.notify();
 
             // return result
-            return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, battleLog);
+            return new HttpResponse(HttpStatus.OK, HttpContentType.JSON, jsonString);
         } else {
             return GenericHttpResponses.IDENTICAL_USER;
         }
     }
 
-    private synchronized HttpResponse createLobbyAndWaitForOpponent(User requestingUser) throws InterruptedException, CloneNotSupportedException {
+    private synchronized HttpResponse createLobbyAndWaitForOpponent(User requestingUser) throws InterruptedException, CloneNotSupportedException, JsonProcessingException {
         // set user as waiting
         waitingForBattle = (User) requestingUser.clone();
 
@@ -158,13 +161,21 @@ public class BattleWorker implements Workable {
             waitingForBattle = null;
             return GenericHttpResponses.BATTLE_REQUEST_TIMEOUT;
         } else {
-            // get battlelog and return it
-            String battleLog = battle.getBattleLog();
+            // Get battle results and convert to json
+            String jsonString = getBattleAsJsonString();
 
             // reset battle
             battle = null;
 
-            return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, battleLog);
+            return new HttpResponse(HttpStatus.OK, HttpContentType.JSON, jsonString);
         }
+    }
+
+    private String getBattleAsJsonString() throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonString = mapper
+                .writerWithView(BattleViews.ReadBattle.class)
+                .writeValueAsString(battle);
+        return jsonString;
     }
 }

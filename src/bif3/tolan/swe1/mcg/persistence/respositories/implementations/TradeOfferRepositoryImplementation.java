@@ -5,7 +5,7 @@ import bif3.tolan.swe1.mcg.exceptions.NoActiveTradeOffersException;
 import bif3.tolan.swe1.mcg.exceptions.TradeOfferNotFoundException;
 import bif3.tolan.swe1.mcg.model.TradeOffer;
 import bif3.tolan.swe1.mcg.model.enums.CardType;
-import bif3.tolan.swe1.mcg.persistence.PersistenceManager;
+import bif3.tolan.swe1.mcg.persistence.DatabaseConnector;
 import bif3.tolan.swe1.mcg.persistence.respositories.BaseRepository;
 import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.TradeOfferRepository;
 import bif3.tolan.swe1.mcg.utils.TradeUtils;
@@ -17,7 +17,7 @@ import java.sql.SQLException;
 import java.util.Vector;
 
 public class TradeOfferRepositoryImplementation extends BaseRepository implements TradeOfferRepository {
-    public TradeOfferRepositoryImplementation(PersistenceManager connector) {
+    public TradeOfferRepositoryImplementation(DatabaseConnector connector) {
         super(connector);
     }
 
@@ -62,8 +62,8 @@ public class TradeOfferRepositoryImplementation extends BaseRepository implement
                 preparedStatement.setString(1, tradeOffer.getTradeId());
                 preparedStatement.setInt(2, tradeOffer.getMinDamage());
                 preparedStatement.setInt(3, tradeOffer.getUserId());
-                preparedStatement.setString(4, tradeOffer.getCardType() != null ? tradeOffer.getCardType().name() : null);
-                preparedStatement.setString(5, tradeOffer.getCardGroup() != null ? tradeOffer.getCardGroup().name() : null);
+                preparedStatement.setString(4, tradeOffer.getRequestedCardType() != null ? tradeOffer.getRequestedCardType().name() : null);
+                preparedStatement.setString(5, tradeOffer.getRequestedCardGroup() != null ? tradeOffer.getRequestedCardGroup().name() : null);
 
                 preparedStatement.executeUpdate();
             }

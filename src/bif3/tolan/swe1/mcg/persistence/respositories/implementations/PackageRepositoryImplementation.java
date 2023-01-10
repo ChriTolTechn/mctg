@@ -1,7 +1,7 @@
 package bif3.tolan.swe1.mcg.persistence.respositories.implementations;
 
 import bif3.tolan.swe1.mcg.exceptions.PackageNotFoundException;
-import bif3.tolan.swe1.mcg.persistence.PersistenceManager;
+import bif3.tolan.swe1.mcg.persistence.DatabaseConnector;
 import bif3.tolan.swe1.mcg.persistence.respositories.BaseRepository;
 import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.PackageRepository;
 
@@ -11,7 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class PackageRepositoryImplementation extends BaseRepository implements PackageRepository {
-    public PackageRepositoryImplementation(PersistenceManager connector) {
+    public PackageRepositoryImplementation(DatabaseConnector connector) {
         super(connector);
     }
 

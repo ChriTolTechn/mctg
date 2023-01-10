@@ -5,7 +5,7 @@ import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.exceptions.NoDataException;
 import bif3.tolan.swe1.mcg.exceptions.UserDoesNotExistException;
 import bif3.tolan.swe1.mcg.model.User;
-import bif3.tolan.swe1.mcg.persistence.PersistenceManager;
+import bif3.tolan.swe1.mcg.persistence.DatabaseConnector;
 import bif3.tolan.swe1.mcg.persistence.respositories.BaseRepository;
 import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.utils.UserUtils;
@@ -18,7 +18,7 @@ import java.util.Vector;
 
 public class UserRepositoryImplementation extends BaseRepository implements UserRepository {
 
-    public UserRepositoryImplementation(PersistenceManager connector) {
+    public UserRepositoryImplementation(DatabaseConnector connector) {
         super(connector);
     }
 
@@ -120,7 +120,7 @@ public class UserRepositoryImplementation extends BaseRepository implements User
 
     @Override
     public Vector<User> getUsersOrderedByEloDescendingAsList() throws SQLException, NoDataException {
-        String sql = "SELECT username, elo, games_played, wins FROM mctg_user ORDER BY elo DESC";
+        String sql = "SELECT id, username, elo, games_played, wins FROM mctg_user ORDER BY elo DESC";
 
         try (
                 Connection connection = connector.getDatabaseConnection();
@@ -139,8 +139,9 @@ public class UserRepositoryImplementation extends BaseRepository implements User
             int elo = resultSet.getInt("elo");
             int gamesPlayed = resultSet.getInt("games_played");
             int wins = resultSet.getInt("wins");
+            int id = resultSet.getInt("id");
 
-            users.add(new User(username, "", elo, 0, gamesPlayed, 0, wins, "", "", ""));
+            users.add(new User(username, "", elo, 0, gamesPlayed, id, wins, "", "", ""));
         }
 
         if (users.isEmpty())

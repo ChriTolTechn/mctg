@@ -11,6 +11,7 @@ import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpContentType;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpStatus;
+import bif3.tolan.swe1.mcg.json.UserViews;
 import bif3.tolan.swe1.mcg.model.User;
 import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.DeckRepository;
 import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.UserRepository;
@@ -61,7 +62,10 @@ public class UserWorker implements Workable {
 
         try {
             // Create user from jsonString
-            User userTryingToRegister = mapper.readValue(jsonString, User.class);
+            User userTryingToRegister = mapper
+                    .readerWithView(UserViews.CreateUser.class)
+                    .forType(User.class)
+                    .readValue(jsonString);
 
             //Check if user already exists
             try {
@@ -97,11 +101,16 @@ public class UserWorker implements Workable {
             User requestingUser = userRepository.getUserByUsername(username);
 
             if (requestingUser.getUsername().equals(requestedUser)) {
-                return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, UserUtils.getUserProfile(requestingUser));
+                ObjectMapper mapper = new ObjectMapper();
+                String jsonString = mapper
+                        .writerWithView(UserViews.ReadProfileUser.class)
+                        .writeValueAsString(requestingUser);
+
+                return new HttpResponse(HttpStatus.OK, HttpContentType.JSON, jsonString);
             } else {
                 return GenericHttpResponses.UNAUTHORIZED;
             }
-        } catch (SQLException e) {
+        } catch (SQLException | JsonProcessingException e) {
             e.printStackTrace();
             return GenericHttpResponses.INTERNAL_ERROR;
         } catch (UserDoesNotExistException e) {
@@ -122,7 +131,11 @@ public class UserWorker implements Workable {
                 // read data to update
                 ObjectMapper mapper = new ObjectMapper();
                 String newUserDataAsJsonString = request.getBody();
-                User newUserWithUpdatedData = mapper.readValue(newUserDataAsJsonString, User.class);
+
+                User newUserWithUpdatedData = mapper
+                        .readerWithView(UserViews.EditUser.class)
+                        .forType(User.class)
+                        .readValue(newUserDataAsJsonString);
 
                 // update data
                 if (newUserWithUpdatedData.getName() != null)

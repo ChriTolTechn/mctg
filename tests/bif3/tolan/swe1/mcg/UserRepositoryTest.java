@@ -4,7 +4,7 @@ import bif3.tolan.swe1.mcg.exceptions.IdExistsException;
 import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.exceptions.UserDoesNotExistException;
 import bif3.tolan.swe1.mcg.model.User;
-import bif3.tolan.swe1.mcg.persistence.PersistenceManager;
+import bif3.tolan.swe1.mcg.persistence.DatabaseConnector;
 import bif3.tolan.swe1.mcg.persistence.respositories.implementations.UserRepositoryImplementation;
 import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.UserRepository;
 import org.junit.Before;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class UserRepositoryTest {
     @Mock
-    private PersistenceManager mockPersistenceManager;
+    private DatabaseConnector mockDatabaseConnector;
 
     @Mock
     private Connection mockConnection;
@@ -56,9 +56,9 @@ public class UserRepositoryTest {
         doAnswer(invocationOnMock -> when(mockResultSet.next()).thenReturn(true)).when(mockStatement).setString(eq(1), eq("test"));
         doAnswer(invocationOnMock -> when(mockResultSet.next()).thenReturn(false)).when(mockStatement).setString(eq(1), eq("notTest"));
         when(mockStatement.executeQuery()).thenReturn(mockResultSet);
-        when(mockPersistenceManager.getDatabaseConnection()).thenReturn(mockConnection);
+        when(mockDatabaseConnector.getDatabaseConnection()).thenReturn(mockConnection);
 
-        userRepository = new UserRepositoryImplementation(mockPersistenceManager);
+        userRepository = new UserRepositoryImplementation(mockDatabaseConnector);
     }
 
     @Test

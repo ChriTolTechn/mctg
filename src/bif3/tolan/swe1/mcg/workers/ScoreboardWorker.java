@@ -10,9 +10,12 @@ import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpContentType;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpStatus;
+import bif3.tolan.swe1.mcg.json.UserViews;
 import bif3.tolan.swe1.mcg.model.User;
 import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.utils.UserUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.sql.SQLException;
 import java.util.Vector;
@@ -54,10 +57,15 @@ public class ScoreboardWorker implements Workable {
 
             // get all users orderd by elo descending and get scoreboard as string
             Vector<User> allUsersOrderedByEloDescending = userRepository.getUsersOrderedByEloDescendingAsList();
-            String scoreboard = UserUtils.getScoreboard(allUsersOrderedByEloDescending);
-            return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, scoreboard);
 
-        } catch (SQLException e) {
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonString = mapper
+                    .writerWithView(UserViews.ReadStatsUser.class)
+                    .writeValueAsString(allUsersOrderedByEloDescending);
+
+            return new HttpResponse(HttpStatus.OK, HttpContentType.JSON, jsonString);
+
+        } catch (SQLException | JsonProcessingException e) {
             e.printStackTrace();
             return GenericHttpResponses.INTERNAL_ERROR;
         } catch (UserDoesNotExistException e) {

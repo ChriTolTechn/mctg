@@ -9,6 +9,7 @@ import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpContentType;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpStatus;
+import bif3.tolan.swe1.mcg.json.TradeOfferViews;
 import bif3.tolan.swe1.mcg.model.Card;
 import bif3.tolan.swe1.mcg.model.TradeOffer;
 import bif3.tolan.swe1.mcg.model.User;
@@ -79,9 +80,16 @@ public class TradeWorker implements Workable {
                 tradeOffer.setCard(cardRepository.getCardByTradeOfferId(tradeOffer.getTradeId()));
             }
 
+            // Parse trade offers to json
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonString = mapper
+                    .writerWithView(TradeOfferViews.ReadTradeOffer.class)
+                    .writeValueAsString(allTradeOffers);
+
             // print all trade offers including the cards
-            return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, TradeUtils.printAllTradeOffers(allTradeOffers));
-        } catch (SQLException | UnsupportedCardTypeException | UnsupportedElementTypeException e) {
+            return new HttpResponse(HttpStatus.OK, HttpContentType.JSON, jsonString);
+        } catch (SQLException | UnsupportedCardTypeException | UnsupportedElementTypeException |
+                 JsonProcessingException e) {
             e.printStackTrace();
             return GenericHttpResponses.INTERNAL_ERROR;
         } catch (UserDoesNotExistException e) {
@@ -104,7 +112,12 @@ public class TradeWorker implements Workable {
             // check to not trade with yourself
             if (wantedTrade.getUserId() != requestingUser.getId()) {
                 // get card offered by user
-                String offerCardIdOfRequestingUser = TradeUtils.extractStringFromJson(request.getBody());
+                ObjectMapper mapper = new ObjectMapper();
+                String jsonString = request.getBody();
+
+                String offerCardIdOfRequestingUser = mapper
+                        .readValue(jsonString, String.class);
+
                 Card offerCardOfRequestingUser = cardRepository.getCardById(offerCardIdOfRequestingUser);
 
                 // check if the card belongs to the user
@@ -154,7 +167,10 @@ public class TradeWorker implements Workable {
             // create trade offer from jsonString
             ObjectMapper mapper = new ObjectMapper();
             String jsonString = request.getBody();
-            TradeOffer tradeOffer = mapper.readValue(jsonString, TradeOffer.class);
+            TradeOffer tradeOffer = mapper
+                    .readerWithView(TradeOfferViews.CreateTradeOffer.class)
+                    .forType(TradeOffer.class)
+                    .readValue(jsonString);
 
             // check if trade with ID exists
             try {

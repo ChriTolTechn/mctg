@@ -11,12 +11,14 @@ import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpContentType;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpStatus;
+import bif3.tolan.swe1.mcg.json.CardViews;
 import bif3.tolan.swe1.mcg.model.Card;
 import bif3.tolan.swe1.mcg.model.User;
 import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.CardRepository;
 import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.UserRepository;
-import bif3.tolan.swe1.mcg.utils.CardUtils;
 import bif3.tolan.swe1.mcg.utils.UserUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.sql.SQLException;
 import java.util.Vector;
@@ -60,8 +62,13 @@ public class CardWorker implements Workable {
 
             // get users card stack
             Vector<Card> cardStackOfRequestingUser = cardRepository.getAllCardsByUserIdAsList(requestingUser.getId());
-            return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, CardUtils.getMultipleCardDisplayForUser(requestingUser.getUsername(), cardStackOfRequestingUser));
-        } catch (SQLException e) {
+
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonString = mapper
+                    .writerWithView(CardViews.ReadCard.class)
+                    .writeValueAsString(cardStackOfRequestingUser);
+            return new HttpResponse(HttpStatus.OK, HttpContentType.JSON, jsonString);
+        } catch (SQLException | JsonProcessingException e) {
             e.printStackTrace();
             return GenericHttpResponses.INTERNAL_ERROR;
         } catch (UnsupportedCardTypeException e) {

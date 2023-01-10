@@ -1,11 +1,11 @@
 package bif3.tolan.swe1.mcg.persistence.respositories;
 
-import bif3.tolan.swe1.mcg.persistence.PersistenceManager;
+import bif3.tolan.swe1.mcg.persistence.DatabaseConnector;
 
 public class BaseRepository {
-    protected PersistenceManager connector;
+    protected DatabaseConnector connector;
 
-    public BaseRepository(PersistenceManager connector) {
+    public BaseRepository(DatabaseConnector connector) {
         if (connector != null) {
             this.connector = connector;
         } else {

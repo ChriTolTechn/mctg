@@ -2,25 +2,8 @@ package bif3.tolan.swe1.mcg.utils;
 
 import bif3.tolan.swe1.mcg.model.Card;
 import bif3.tolan.swe1.mcg.model.TradeOffer;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.util.Vector;
 
 public class TradeUtils {
-
-    public static String printAllTradeOffers(Vector<TradeOffer> tradeOffers) {
-        StringBuilder stringBuilder = new StringBuilder();
-        for (TradeOffer trade : tradeOffers) {
-            stringBuilder.append(trade.toString());
-            if (trade.getCard() != null) {
-                stringBuilder.append(" Card: ");
-                stringBuilder.append(trade.getCard().toString());
-            }
-            stringBuilder.append(" \n");
-        }
-        return stringBuilder.toString();
-    }
 
     public static boolean isValidTrade(TradeOffer tradeOffer) {
         if (tradeOffer == null) return false;
@@ -31,12 +14,6 @@ public class TradeUtils {
         if (tradeOffer.getMinDamage() < 0) return false;
 
         return true;
-    }
-
-    public static String extractStringFromJson(String jsonString) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        String tradeInCardId = mapper.readValue(jsonString, String.class);
-        return tradeInCardId;
     }
 
     /**
@@ -50,9 +27,9 @@ public class TradeUtils {
     public static boolean cardMeetsRequirement(Card card, TradeOffer tradeOffer) {
         return card.getDamage() >= tradeOffer.getMinDamage() &&
                 (
-                        (tradeOffer.getCardGroup() == null && tradeOffer.getCardType() == card.getMonsterType())
+                        (tradeOffer.getRequestedCardGroup() == null && tradeOffer.getRequestedCardType() == card.getMonsterType())
                                 ^
-                                (tradeOffer.getCardType() == null && card.getMonsterType().isInGroup(tradeOffer.getCardGroup()))
+                                (tradeOffer.getRequestedCardType() == null && card.getMonsterType().isInGroup(tradeOffer.getRequestedCardGroup()))
                 );
     }
 }

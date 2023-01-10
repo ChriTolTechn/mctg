@@ -10,6 +10,7 @@ import bif3.tolan.swe1.mcg.httpserver.HttpResponse;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpContentType;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpMethod;
 import bif3.tolan.swe1.mcg.httpserver.enums.HttpStatus;
+import bif3.tolan.swe1.mcg.json.CardViews;
 import bif3.tolan.swe1.mcg.model.Card;
 import bif3.tolan.swe1.mcg.model.User;
 import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.CardRepository;
@@ -82,9 +83,14 @@ public class DeckWorker implements Workable {
             if (formatParameter != null && formatParameter.equals("plain")) {
                 return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, CardUtils.getMultipleCardDisplayForUser(requestingUser.getUsername(), cardDeckOfRequestingUser));
             } else {
-                return new HttpResponse(HttpStatus.OK, HttpContentType.PLAIN_TEXT, CardUtils.getCardDetails(requestingUser.getUsername(), cardDeckOfRequestingUser));
+                ObjectMapper mapper = new ObjectMapper();
+                String jsonString = mapper
+                        .writerWithView(CardViews.ReadCard.class)
+                        .writeValueAsString(cardDeckOfRequestingUser);
+                return new HttpResponse(HttpStatus.OK, HttpContentType.JSON, jsonString);
             }
-        } catch (SQLException | UnsupportedCardTypeException | UnsupportedElementTypeException e) {
+        } catch (SQLException | UnsupportedCardTypeException | UnsupportedElementTypeException |
+                 JsonProcessingException e) {
             e.printStackTrace();
             return GenericHttpResponses.INTERNAL_ERROR;
         } catch (UserDoesNotExistException e) {
