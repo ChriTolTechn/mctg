@@ -2,7 +2,7 @@ package bif3.tolan.swe1.mcg.persistence.respositories.implementations;
 
 import bif3.tolan.swe1.mcg.exceptions.*;
 import bif3.tolan.swe1.mcg.model.Card;
-import bif3.tolan.swe1.mcg.persistence.PersistenceManager;
+import bif3.tolan.swe1.mcg.persistence.DatabaseConnector;
 import bif3.tolan.swe1.mcg.persistence.respositories.BaseRepository;
 import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.CardRepository;
 import bif3.tolan.swe1.mcg.utils.CardUtils;
@@ -15,7 +15,7 @@ import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CardRepositoryImplementation extends BaseRepository implements CardRepository {
-    public CardRepositoryImplementation(PersistenceManager connector) {
+    public CardRepositoryImplementation(DatabaseConnector connector) {
         super(connector);
     }
 

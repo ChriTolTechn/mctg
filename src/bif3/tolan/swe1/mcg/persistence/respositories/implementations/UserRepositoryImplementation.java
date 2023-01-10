@@ -5,7 +5,7 @@ import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.exceptions.NoDataException;
 import bif3.tolan.swe1.mcg.exceptions.UserDoesNotExistException;
 import bif3.tolan.swe1.mcg.model.User;
-import bif3.tolan.swe1.mcg.persistence.PersistenceManager;
+import bif3.tolan.swe1.mcg.persistence.DatabaseConnector;
 import bif3.tolan.swe1.mcg.persistence.respositories.BaseRepository;
 import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.UserRepository;
 import bif3.tolan.swe1.mcg.utils.UserUtils;
@@ -18,7 +18,7 @@ import java.util.Vector;
 
 public class UserRepositoryImplementation extends BaseRepository implements UserRepository {
 
-    public UserRepositoryImplementation(PersistenceManager connector) {
+    public UserRepositoryImplementation(DatabaseConnector connector) {
         super(connector);
     }
 

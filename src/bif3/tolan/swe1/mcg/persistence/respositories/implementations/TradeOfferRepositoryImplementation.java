@@ -5,7 +5,7 @@ import bif3.tolan.swe1.mcg.exceptions.NoActiveTradeOffersException;
 import bif3.tolan.swe1.mcg.exceptions.TradeOfferNotFoundException;
 import bif3.tolan.swe1.mcg.model.TradeOffer;
 import bif3.tolan.swe1.mcg.model.enums.CardType;
-import bif3.tolan.swe1.mcg.persistence.PersistenceManager;
+import bif3.tolan.swe1.mcg.persistence.DatabaseConnector;
 import bif3.tolan.swe1.mcg.persistence.respositories.BaseRepository;
 import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.TradeOfferRepository;
 import bif3.tolan.swe1.mcg.utils.TradeUtils;
@@ -17,7 +17,7 @@ import java.sql.SQLException;
 import java.util.Vector;
 
 public class TradeOfferRepositoryImplementation extends BaseRepository implements TradeOfferRepository {
-    public TradeOfferRepositoryImplementation(PersistenceManager connector) {
+    public TradeOfferRepositoryImplementation(DatabaseConnector connector) {
         super(connector);
     }
 

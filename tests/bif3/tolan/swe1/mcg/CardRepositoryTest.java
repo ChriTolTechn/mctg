@@ -5,7 +5,7 @@ import bif3.tolan.swe1.mcg.exceptions.InvalidInputException;
 import bif3.tolan.swe1.mcg.exceptions.UnsupportedCardTypeException;
 import bif3.tolan.swe1.mcg.exceptions.UnsupportedElementTypeException;
 import bif3.tolan.swe1.mcg.model.Card;
-import bif3.tolan.swe1.mcg.persistence.PersistenceManager;
+import bif3.tolan.swe1.mcg.persistence.DatabaseConnector;
 import bif3.tolan.swe1.mcg.persistence.respositories.implementations.CardRepositoryImplementation;
 import bif3.tolan.swe1.mcg.persistence.respositories.interfaces.CardRepository;
 import org.junit.Before;
@@ -32,7 +32,7 @@ public class CardRepositoryTest {
     private Connection mockConnection;
 
     @Mock
-    private PersistenceManager mockPersistenceManager;
+    private DatabaseConnector mockDatabaseConnector;
 
     @Mock
     private PreparedStatement mockStatement;
@@ -62,9 +62,9 @@ public class CardRepositoryTest {
 
         when(mockStatement.executeQuery()).thenReturn(mockResultSet);
 
-        when(mockPersistenceManager.getDatabaseConnection()).thenReturn(mockConnection);
+        when(mockDatabaseConnector.getDatabaseConnection()).thenReturn(mockConnection);
 
-        cardRepository = new CardRepositoryImplementation(mockPersistenceManager);
+        cardRepository = new CardRepositoryImplementation(mockDatabaseConnector);
     }
 
     @Test
