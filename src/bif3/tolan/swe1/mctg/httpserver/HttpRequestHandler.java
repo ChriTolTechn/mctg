@@ -1,7 +1,6 @@
 package bif3.tolan.swe1.mctg.httpserver;
 
-import bif3.tolan.swe1.mctg.httpserver.enums.HttpContentType;
-import bif3.tolan.swe1.mctg.httpserver.enums.HttpStatus;
+import bif3.tolan.swe1.mctg.constants.GenericHttpResponses;
 import bif3.tolan.swe1.mctg.workers.Workable;
 
 import java.io.*;
@@ -79,7 +78,7 @@ public class HttpRequestHandler implements Runnable {
         if (correspondingWorker != null) {
             return correspondingWorker.executeRequest(request);
         } else {
-            return new HttpResponse(HttpStatus.NOT_FOUND, HttpContentType.PLAIN_TEXT, "Invalid path");
+            return GenericHttpResponses.INVALID_PATH;
         }
     }
 }
